@@ -2,21 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.db import SessionLocal
+from app.db import get_db
 from app import models, schemas
 from app.services.pricing import calculate_fee
 from app.services.payments import recalc_ticket_payment_status
 from app.services.spots import allocate_free_spot
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("")
@@ -124,10 +116,9 @@ def ticket_exit(
     t.fee = calculate_fee(t, db)
     t.ticket_state = "CLOSED"
 
-    db.commit()
-    db.refresh(t)
-
-    # posle izlaza, možda već postoje uplate -> recalculacija
+    # Recalc payment_status before commit so it is persisted in one commit
     recalc_ticket_payment_status(db, ticket_id)
 
+    db.commit()
+    db.refresh(t)
     return t
