@@ -26,3 +26,9 @@ def recalc_ticket_payment_status(db, ticket_id: int):
         ticket.payment_status = "UNPAID"
 
     return ticket
+
+
+# NOTE: This function is never called; payment_status is updated by DB trigger.
+# It’s kept for reference, or for future use in an API-based payment status calculation.
+# If you ever move payment status calculation into the API, you could call something like recalc_ticket_payment_status (or a service that uses payment amounts)
+# and then set ticket.payment_status in the same transaction. Until then, the current design is fine.

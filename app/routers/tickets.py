@@ -125,3 +125,7 @@ def ticket_exit(
     db.commit()
     db.refresh(t)
     return t
+
+# Exit only sets exit_time; fee and ticket_state come from the DB trigger. That’s consistent. 
+# If you ever move fee calculation into the API, you could call something like calculate_fee (or a service that uses garage/vehicle_type rates) 
+# and then set ticket.fee and ticket.ticket_state in the same transaction. Until then, the current design is fine.

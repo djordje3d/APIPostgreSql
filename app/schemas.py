@@ -96,7 +96,7 @@ class VehicleTypeCreate(BaseModel):
 
 
 class VehicleCreate(BaseModel):
-    licence_plate: str
+    licence_plate: str | None = None
     vehicle_type_id: int
     status: int = 1
 

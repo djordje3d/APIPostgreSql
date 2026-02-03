@@ -41,7 +41,7 @@ class ParkingConfig(Base):
     open_time = Column(Time, nullable=True)
     close_time = Column(Time, nullable=True)
     allow_subscription = Column(Boolean, nullable=True, default=True)
-    created_at = Column(DateTime, server_default=func.now())
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
 
 
 class VehicleType(Base):
@@ -72,9 +72,9 @@ class Ticket(Base):
     entry_time = Column(DateTime)
     exit_time = Column(DateTime, nullable=True)
     fee = Column(Numeric)
-    ticket_state = Column(String)
-    payment_status = Column(String)
-    operational_status = Column(String)
+    ticket_state = Column(String, nullable=False)
+    payment_status = Column(String, nullable=False)
+    operational_status = Column(String, nullable=False)
 
     vehicle_id = Column(Integer, ForeignKey("vehicle.id"))
     garage_id = Column(Integer, ForeignKey("parking_config.id"), nullable=False)
