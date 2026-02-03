@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 from app import models, schemas
@@ -9,15 +10,19 @@ router = APIRouter(prefix="/spots", tags=["Parking Spots"])
 # Tag "Parking Spots" je za dokumentaciju (Swagger UI).
 
 
-@router.get("")
-def list_spots(  # lista sva mesta, sa filterima
+@router.get(
+    "",
+    response_model=schemas.PaginatedResponse[schemas.SpotResponse],
+)
+def list_spots(
+    db: Session = Depends(get_db),
     garage_id: int | None = Query(default=None),
     active_only: bool = Query(default=True),
     rentable_only: bool = Query(default=False),
     only_free: bool = Query(default=False),
-    db: Session = Depends(get_db),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ):
-
     q = db.query(models.ParkingSpot)
 
     if garage_id is not None:
@@ -26,10 +31,6 @@ def list_spots(  # lista sva mesta, sa filterima
         q = q.filter(models.ParkingSpot.is_active == True)
     if rentable_only:
         q = q.filter(models.ParkingSpot.is_rentable == True)
-
-    # samo slobodna mesta (bez otvorenih tiketa)
-    # ~exists() je isto što i NOT EXISTS u SQL
-
     if only_free:
         q = q.filter(
             ~exists().where(
@@ -38,10 +39,15 @@ def list_spots(  # lista sva mesta, sa filterima
             )
         )
 
-    return q.order_by(models.ParkingSpot.id.desc()).all()
+    q = q.order_by(models.ParkingSpot.id.desc())
+    total = q.count()
+    items = q.limit(limit).offset(offset).all()
+    return schemas.PaginatedResponse(
+        total=total, limit=limit, offset=offset, items=items
+    )
 
 
-@router.get("/{spot_id}")
+@router.get("/{spot_id}", response_model=schemas.SpotResponse)
 def get_spot(spot_id: int, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
@@ -49,7 +55,7 @@ def get_spot(spot_id: int, db: Session = Depends(get_db)):
     return spot
 
 
-@router.post("")
+@router.post("", response_model=schemas.SpotResponse)
 def create_spot(data: schemas.SpotCreate, db: Session = Depends(get_db)):
     garage = db.get(models.ParkingConfig, data.garage_id)
     if not garage:
@@ -62,12 +68,16 @@ def create_spot(data: schemas.SpotCreate, db: Session = Depends(get_db)):
         is_active=data.is_active,
     )
     db.add(spot)
-    db.commit()
-    db.refresh(spot)
-    return spot
+    try:
+        db.commit()
+        db.refresh(spot)
+        return spot
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Spot code already exists for this garage")
 
 
-@router.patch("/{spot_id}")
+@router.patch("/{spot_id}", response_model=schemas.SpotResponse)
 def update_spot(spot_id: int, data: schemas.SpotUpdate, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
@@ -80,6 +90,10 @@ def update_spot(spot_id: int, data: schemas.SpotUpdate, db: Session = Depends(ge
     if data.is_active is not None:
         spot.is_active = data.is_active
 
-    db.commit()
-    db.refresh(spot)
-    return spot
+    try:
+        db.commit()
+        db.refresh(spot)
+        return spot
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Spot code already exists for this garage")

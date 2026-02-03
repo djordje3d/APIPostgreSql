@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     SmallInteger,
     Boolean,
+    UniqueConstraint,
 )
 from sqlalchemy.sql import func, text
 from sqlalchemy.orm import relationship
@@ -16,6 +17,7 @@ from .db import Base
 
 class ParkingSpot(Base):
     __tablename__ = "parking_spot"
+    __table_args__ = (UniqueConstraint("garage_id", "code", name="uq_spot_per_garage"),)
 
     id = Column(Integer, primary_key=True)
     garage_id = Column(

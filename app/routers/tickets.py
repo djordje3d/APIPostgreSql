@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db import get_db
 from app import models, schemas
@@ -9,12 +9,17 @@ from app.services.spots import allocate_free_spot
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
 
-@router.get("")
+@router.get(
+    "",
+    response_model=schemas.PaginatedResponse[schemas.TicketResponse],
+)
 def list_tickets(
-    state: str | None = Query(default=None),
-    payment_status: str | None = Query(default=None),
-    garage_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
+    state: schemas.TicketState | None = Query(default=None),
+    payment_status: schemas.PaymentStatus | None = Query(default=None),
+    garage_id: int | None = Query(default=None),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ):
     q = db.query(models.Ticket)
 
@@ -25,10 +30,15 @@ def list_tickets(
     if garage_id is not None:
         q = q.filter(models.Ticket.garage_id == garage_id)
 
-    return q.order_by(models.Ticket.id.desc()).all()
+    q = q.order_by(models.Ticket.id.desc())
+    total = q.count()
+    items = q.limit(limit).offset(offset).all()
+    return schemas.PaginatedResponse(
+        total=total, limit=limit, offset=offset, items=items
+    )
 
 
-@router.get("/{ticket_id}")
+@router.get("/{ticket_id}", response_model=schemas.TicketResponse)
 def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     t = db.get(models.Ticket, ticket_id)
     if not t:
@@ -36,7 +46,7 @@ def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     return t
 
 
-@router.post("/entry")
+@router.post("/entry", response_model=schemas.TicketResponse)
 def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
     vehicle = db.get(models.Vehicle, data.vehicle_id)
     if not vehicle:
@@ -74,7 +84,7 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
 
         t = models.Ticket(
             vehicle_id=data.vehicle_id,
-            entry_time=data.entry_time or datetime.utcnow(),
+            entry_time=data.entry_time or datetime.now(timezone.utc),
             ticket_state="OPEN",
             payment_status="NOT_APPLICABLE",
             operational_status="OK",
@@ -99,7 +109,7 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
         raise HTTPException(500, f"Ticket entry failed: {str(e)}")
 
 
-@router.post("/{ticket_id}/exit")
+@router.post("/{ticket_id}/exit", response_model=schemas.TicketResponse)
 def ticket_exit(
     ticket_id: int, data: schemas.TicketExit, db: Session = Depends(get_db)
 ):
@@ -110,7 +120,7 @@ def ticket_exit(
     if t.ticket_state != "OPEN" or t.exit_time is not None:
         raise HTTPException(400, "Ticket is not open")
 
-    t.exit_time = data.exit_time or datetime.utcnow()
+    t.exit_time = data.exit_time or datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(t)

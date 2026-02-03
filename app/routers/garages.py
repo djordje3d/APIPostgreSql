@@ -1,18 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import IntegrityError
 from app.db import get_db
 from app import models, schemas
 
 router = APIRouter(prefix="/garages", tags=["Garages"])
 
 
-@router.get("")
-def list_garages(db: Session = Depends(get_db)):
-    return db.query(models.ParkingConfig).order_by(models.ParkingConfig.id).all()
+@router.get(
+    "",
+    response_model=schemas.PaginatedResponse[schemas.GarageResponse],
+)
+def list_garages(
+    db: Session = Depends(get_db),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+):
+    q = db.query(models.ParkingConfig).order_by(models.ParkingConfig.id)
+    total = q.count()
+    items = q.limit(limit).offset(offset).all()
+    return schemas.PaginatedResponse(
+        total=total, limit=limit, offset=offset, items=items
+    )
 
 
-@router.get("/{garage_id}")
+@router.get("/{garage_id}", response_model=schemas.GarageResponse)
 def get_garage(garage_id: int, db: Session = Depends(get_db)):
     g = db.get(models.ParkingConfig, garage_id)
     if not g:
@@ -20,7 +32,7 @@ def get_garage(garage_id: int, db: Session = Depends(get_db)):
     return g
 
 
-@router.post("")
+@router.post("", response_model=schemas.GarageResponse)
 def create_garage(data: schemas.GarageCreate, db: Session = Depends(get_db)):
     g = models.ParkingConfig(
         name=data.name,
@@ -39,7 +51,7 @@ def create_garage(data: schemas.GarageCreate, db: Session = Depends(get_db)):
     return g
 
 
-@router.put("/{garage_id}")
+@router.put("/{garage_id}", response_model=schemas.GarageResponse)
 def update_garage(
     garage_id: int, data: schemas.GarageCreate, db: Session = Depends(get_db)
 ):
@@ -66,5 +78,11 @@ def delete_garage(garage_id: int, db: Session = Depends(get_db)):
     if not g:
         raise HTTPException(404, "Garage not found")
     db.delete(g)
-    db.commit()
-    return {"deleted": True}
+    try:
+        db.commit()
+        return {"deleted": True}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            400, "Cannot delete garage: it has parking spots or tickets"
+        )
