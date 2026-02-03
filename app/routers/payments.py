@@ -2,19 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.db import SessionLocal
+from app.db import get_db
 from app import models, schemas
-from app.services.payments import recalc_ticket_payment_status
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("")
@@ -35,11 +26,6 @@ def create_payment(data: schemas.PaymentCreate, db: Session = Depends(get_db)):
         )
         db.add(p)
 
-        # auto update ticket.payment_status
-        # recalculacija statusa (bez commit unutra)
-        recalc_ticket_payment_status(db, data.ticket_id)
-
-        # 1 commit za sve
         db.commit()
         db.refresh(p)
 

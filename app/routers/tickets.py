@@ -4,8 +4,6 @@ from datetime import datetime
 
 from app.db import get_db
 from app import models, schemas
-from app.services.pricing import calculate_fee
-from app.services.payments import recalc_ticket_payment_status
 from app.services.spots import allocate_free_spot
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
@@ -78,8 +76,8 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
             vehicle_id=data.vehicle_id,
             entry_time=data.entry_time or datetime.utcnow(),
             ticket_state="OPEN",
-            payment_status="UNPAID",
-            operational_status="ACTIVE",
+            payment_status="NOT_APPLICABLE",
+            operational_status="OK",
             garage_id=data.garage_id,
             fee=0,
             spot_id=spot_id,
@@ -113,11 +111,6 @@ def ticket_exit(
         raise HTTPException(400, "Ticket is not open")
 
     t.exit_time = data.exit_time or datetime.utcnow()
-    t.fee = calculate_fee(t, db)
-    t.ticket_state = "CLOSED"
-
-    # Recalc payment_status before commit so it is persisted in one commit
-    recalc_ticket_payment_status(db, ticket_id)
 
     db.commit()
     db.refresh(t)

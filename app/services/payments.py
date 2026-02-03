@@ -21,7 +21,7 @@ def recalc_ticket_payment_status(db, ticket_id: int):
     elif total_paid >= fee:
         ticket.payment_status = "PAID"
     elif total_paid > 0:
-        ticket.payment_status = "PARTIAL"
+        ticket.payment_status = "PARTIALLY_PAID"
     else:
         ticket.payment_status = "UNPAID"
 

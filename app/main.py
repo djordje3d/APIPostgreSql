@@ -5,6 +5,7 @@ from app.routers.payments import router as payments_router
 from app.routers.vehicles import router as vehicles_router
 from app.routers.vehicle_types import router as vehicle_types_router
 from app.routers.spots import router as spots_router
+from app.routers.garages import router as garages_router
 
 app = FastAPI(title="Parking API")
 
@@ -14,6 +15,7 @@ def health():
     return {"status": "ok"}
 
 
+app.include_router(garages_router)
 app.include_router(vehicle_types_router)
 app.include_router(vehicles_router)
 app.include_router(tickets_router)

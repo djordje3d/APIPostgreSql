@@ -4,8 +4,8 @@ from decimal import Decimal
 
 
 class VehicleTypeCreate(BaseModel):
-    type: str
-    rate: Decimal
+    type: str = Field(..., min_length=1)
+    rate: Decimal = Field(...)
 
 
 class VehicleCreate(BaseModel):
@@ -33,3 +33,15 @@ class PaymentCreate(BaseModel):
     method: str
     currency: str = "RSD"
     paid_at: datetime | None = None
+
+
+class GarageCreate(BaseModel):
+    name: str
+    capacity: int
+    default_rate: Decimal
+    lost_ticket_fee: Decimal | None = None
+    night_rate: Decimal | None = None
+    day_rate: Decimal | None = None
+    open_time: datetime | None = None
+    close_time: datetime | None = None
+    allow_subscription: bool | None = True

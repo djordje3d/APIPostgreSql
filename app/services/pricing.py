@@ -3,7 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 
-# delta 
+# delta
 def calculate_fee(ticket, db) -> Decimal:
     delta: timedelta = ticket.exit_time - ticket.entry_time
     minutes = max(1, int(delta.total_seconds() / 60))

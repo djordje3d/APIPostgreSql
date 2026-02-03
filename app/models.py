@@ -4,11 +4,12 @@ from sqlalchemy import (
     String,
     Numeric,
     DateTime,
+    Time,
     ForeignKey,
     SmallInteger,
     Boolean,
 )
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 from sqlalchemy.orm import relationship
 from .db import Base
 
@@ -20,27 +21,43 @@ class ParkingSpot(Base):
     garage_id = Column(
         Integer, ForeignKey("parking_config.id"), nullable=False
     )  # u DB ti je bigint, ali radi i kao int
-    code = Column(String(50), nullable=False)
+    code = Column(String(14), nullable=False, server_default=text("'10010'"))
     is_rentable = Column(Boolean, nullable=False, default=False)
     is_active = Column(Boolean, nullable=False, default=True)
+
+
+class ParkingConfig(Base):
+    __tablename__ = "parking_config"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False)
+    capacity = Column(Integer, nullable=False)
+    default_rate = Column(Numeric, nullable=False)
+    lost_ticket_fee = Column(Numeric, nullable=True)
+    night_rate = Column(Numeric, nullable=True)
+    day_rate = Column(Numeric, nullable=True)
+    open_time = Column(Time, nullable=True)
+    close_time = Column(Time, nullable=True)
+    allow_subscription = Column(Boolean, nullable=True, default=True)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class VehicleType(Base):
     __tablename__ = "vehicle_types"
 
     id = Column(Integer, primary_key=True)
-    type = Column(String)
-    rate = Column(Numeric)
+    type = Column(String, nullable=False, unique=True)
+    rate = Column(Numeric, nullable=False)
 
 
 class Vehicle(Base):
     __tablename__ = "vehicle"
 
     id = Column(Integer, primary_key=True)
-    licence_plate = Column(String(8), unique=True)
-    vehicle_type_id = Column(Integer, ForeignKey("vehicle_types.id"))
+    licence_plate = Column(String(8), unique=True, nullable=True)
+    vehicle_type_id = Column(Integer, ForeignKey("vehicle_types.id"), nullable=True)
     created = Column(DateTime, server_default=func.now())
-    status = Column(SmallInteger)
+    status = Column(SmallInteger, default=1)
 
     vehicle_type = relationship("VehicleType")
 
@@ -49,15 +66,16 @@ class Ticket(Base):
     __tablename__ = "tickets"
 
     id = Column(Integer, primary_key=True)
-    vehicle_id = Column(Integer, ForeignKey("vehicle.id"))
+
     entry_time = Column(DateTime)
     exit_time = Column(DateTime, nullable=True)
     fee = Column(Numeric)
     ticket_state = Column(String)
     payment_status = Column(String)
     operational_status = Column(String)
-    garage_id = Column(Integer)
 
+    vehicle_id = Column(Integer, ForeignKey("vehicle.id"))
+    garage_id = Column(Integer, ForeignKey("parking_config.id"), nullable=False)
     spot_id = Column(Integer, ForeignKey("parking_spot.id"), nullable=True)
 
     vehicle = relationship("Vehicle")
@@ -69,9 +87,9 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True)
     ticket_id = Column(Integer, ForeignKey("tickets.id"))
-    amount = Column(Numeric)
-    method = Column(String(20))
-    currency = Column(String(3))
-    paid_at = Column(DateTime)
+    amount = Column(Numeric, nullable=False)
+    method = Column(String(20), nullable=True)
+    currency = Column(String(3), nullable=False, server_default=text("'RSD'"))
+    paid_at = Column(DateTime, server_default=func.now())
 
     ticket = relationship("Ticket")

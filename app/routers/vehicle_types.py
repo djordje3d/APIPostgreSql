@@ -1,18 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.db import SessionLocal
+from app.db import get_db
 from app import models, schemas
 
 router = APIRouter(prefix="/vehicle-types", tags=["Vehicle Types"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("")
