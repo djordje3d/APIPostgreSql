@@ -48,14 +48,15 @@ def create_vehicle(data: schemas.VehicleCreate, db: Session = Depends(get_db)):
     if not vt:
         raise HTTPException(400, "Invalid vehicle_type_id")
 
-    # ensure plate unique
-    exists = (
-        db.query(models.Vehicle)
-        .filter(models.Vehicle.licence_plate == data.licence_plate)
-        .first()
-    )
-    if exists:
-        raise HTTPException(400, "licence_plate already exists")
+    # ensure plate unique only when provided (multiple vehicles may have no plate)
+    if data.licence_plate is not None:
+        exists = (
+            db.query(models.Vehicle)
+            .filter(models.Vehicle.licence_plate == data.licence_plate)
+            .first()
+        )
+        if exists:
+            raise HTTPException(400, "licence_plate already exists")
 
     v = models.Vehicle(
         licence_plate=data.licence_plate,
@@ -78,6 +79,8 @@ def patch_vehicle(
     if not v:
         raise HTTPException(404, "Vehicle not found")
 
+    if data.licence_plate is not None:
+        v.licence_plate = data.licence_plate
     if data.status is not None:
         v.status = data.status
     if data.vehicle_type_id is not None:

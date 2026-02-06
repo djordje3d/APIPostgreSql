@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.db import get_db
 from app import models, schemas
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/garages", tags=["Garages"])
 
@@ -44,6 +45,8 @@ def create_garage(data: schemas.GarageCreate, db: Session = Depends(get_db)):
         open_time=data.open_time,
         close_time=data.close_time,
         allow_subscription=data.allow_subscription,
+        created_at=data.created_at if data.created_at else None,
+        #
     )
     db.add(g)
     db.commit()

@@ -97,3 +97,35 @@ def update_spot(spot_id: int, data: schemas.SpotUpdate, db: Session = Depends(ge
     except IntegrityError:
         db.rollback()
         raise HTTPException(400, "Spot code already exists for this garage")
+
+
+@router.delete("/{spot_id}")
+def delete_spot(spot_id: int, db: Session = Depends(get_db)):
+    spot = db.get(models.ParkingSpot, spot_id)
+    if not spot:
+        raise HTTPException(404, "Spot not found")
+
+    # zabrani ako postoji aktivan tiket
+    has_open_ticket = db.query(
+        exists().where(
+            (models.Ticket.spot_id == spot_id) & (models.Ticket.ticket_state == "OPEN")
+        )
+    ).scalar()
+
+    if has_open_ticket:
+        raise HTTPException(400, "Cannot deactivate spot: it has an OPEN ticket")
+
+    spot.is_active = False
+    db.commit()
+    return {"message": "Parking spot successfully deactivated", "spot_id": spot_id}
+
+
+@router.patch("/{spot_id}/activate", response_model=schemas.SpotResponse)
+def activate_spot(spot_id: int, db: Session = Depends(get_db)):
+    spot = db.get(models.ParkingSpot, spot_id)
+    if not spot:
+        raise HTTPException(404, "Spot not found")
+    spot.is_active = True
+    db.commit()
+    db.refresh(spot)
+    return spot

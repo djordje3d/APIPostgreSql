@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 
 from app.db import get_db
@@ -44,6 +45,37 @@ def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     if not t:
         raise HTTPException(404, "Ticket not found")
     return t
+
+
+@router.put("/{ticket_id}", response_model=schemas.TicketResponse)
+def update_ticket(
+    ticket_id: int,
+    data: schemas.TicketUpdate,
+    db: Session = Depends(get_db),
+):
+    t = db.get(models.Ticket, ticket_id)
+    if not t:
+        raise HTTPException(404, "Ticket not found")
+    update = data.model_dump(exclude_unset=True)
+    for key, value in update.items():
+        setattr(t, key, value)
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.delete("/{ticket_id}")
+def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
+    t = db.get(models.Ticket, ticket_id)
+    if not t:
+        raise HTTPException(404, "Ticket not found")
+    db.delete(t)
+    try:
+        db.commit()
+        return {"deleted": True}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Cannot delete: ticket has payments")
 
 
 @router.post("/entry", response_model=schemas.TicketResponse)
@@ -126,6 +158,7 @@ def ticket_exit(
     db.refresh(t)
     return t
 
-# Exit only sets exit_time; fee and ticket_state come from the DB trigger. That’s consistent. 
-# If you ever move fee calculation into the API, you could call something like calculate_fee (or a service that uses garage/vehicle_type rates) 
+
+# Exit only sets exit_time; fee and ticket_state come from the DB trigger. That’s consistent.
+# If you ever move fee calculation into the API, you could call something like calculate_fee (or a service that uses garage/vehicle_type rates)
 # and then set ticket.fee and ticket.ticket_state in the same transaction. Until then, the current design is fine.

@@ -7,7 +7,29 @@ from app.routers.vehicle_types import router as vehicle_types_router
 from app.routers.spots import router as spots_router
 from app.routers.garages import router as garages_router
 
-app = FastAPI(title="Parking API")
+app = FastAPI(
+    title="Parking API",
+    description=(
+        "API for managing parking garages, spots, vehicles, tickets, and "
+        "payments. Supports entry/exit flow, spot allocation, and payment "
+        "recording for closed tickets."
+    ),
+    version="1.0.0",
+    openapi_tags=[
+        {"name": "Garages", "description": "Garage (config) management."},
+        {"name": "Vehicle Types", "description": "Vehicle type definitions and rates."},
+        {"name": "Vehicles", "description": "Vehicle registry (plate, type, status)."},
+        {
+            "name": "Tickets",
+            "description": "Entry, exit, list; filter by state/garage.",
+        },
+        {"name": "Payments", "description": "Payments for closed tickets."},
+        {
+            "name": "Parking Spots",
+            "description": "Spots per garage; list, create, update.",
+        },
+    ],
+)
 
 
 @app.get("/health")

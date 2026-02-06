@@ -92,3 +92,112 @@
 | Optional | Response models, pagination, no default DB password, relationships |
 
 **Opinion**: The codebase is in good shape and matches the database. Your changes (route order, IntegrityError handling, VehicleUpdate schema, payment validation, VehicleType unique name handling) are correctly applied. Fixing the datetime deprecation and optionally cleaning or documenting dead code will keep it maintainable as you grow.
+
+---
+
+## 5. Additional analysis and suggestions
+
+### 5.1 Critical / high priority
+
+**Payments router: duplicate update endpoints and wrong HTTP method**
+
+- **Issue**: You have two ways to “update” a payment:
+  - `POST /payments/{payment_id}` → `update_payment`
+  - `PUT /payments/{payment_id}` → `patch_payment`
+  Both do the same thing (full replace with `PaymentCreate`). In REST, `POST` on a resource ID is usually used for actions, not updates; updates are `PUT` (replace) or `PATCH` (partial).
+- **Suggestion**: Keep a single update endpoint: use **`PUT /payments/{payment_id}`** for full replace and remove **`POST /payments/{payment_id}`**. If you later need partial updates, add **`PATCH /payments/{payment_id}`** with a schema that has optional fields (e.g. `PaymentUpdate`).
+
+**Hardcoded database credentials in `db.py`**
+
+- **Issue**: Default `DATABASE_URL` contains a literal password. If the repo is ever shared or deployed, this is a security risk.
+- **Suggestion**: Do not default to a URL with credentials. Either:
+  - Use only `os.getenv("DATABASE_URL")` and fail fast if unset in production, or
+  - Use `python-dotenv` and a `.env` file (add `.env` to `.gitignore`) and document that users must set `DATABASE_URL` locally.
+
+**SQLAlchemy `echo=True` in production**
+
+- **Issue**: In `db.py`, `create_engine(DATABASE_URL, echo=True)` logs every SQL statement. Useful for debugging, but noisy and can leak sensitive data in production.
+- **Suggestion**: Set `echo` from the environment, e.g. `echo=os.getenv("SQL_ECHO", "false").lower() == "true"`, so it is off by default and can be enabled when needed.
+
+---
+
+### 5.2 Consistency and API design
+
+**Vehicle create when `licence_plate` is optional**
+
+- **Issue**: `VehicleCreate.licence_plate` is optional (`str | None = None`). The duplicate check `filter(models.Vehicle.licence_plate == data.licence_plate)` when `licence_plate` is `None` becomes `IS NULL`, so only one vehicle can have a null plate. If the business allows many vehicles without a plate, this is a bug; if “one unknown vehicle” is intended, it’s fine but worth documenting.
+- **Suggestion**: Decide the rule: either (a) require `licence_plate` in `VehicleCreate`, or (b) allow multiple null plates and only check uniqueness when `licence_plate` is not None (e.g. `if data.licence_plate is not None:` then run the duplicate check). Document the chosen behavior.
+
+**HTTP status codes**
+
+- **Issue**: Some validation errors use `400` (e.g. “Invalid ticket_id”, “Payment only allowed for closed tickets”). For “resource not found” you use `404`, which is good. For “business rule violated” (e.g. ticket not closed), `400` is acceptable; for “conflict” (e.g. spot occupied), `409` is already used and is good.
+- **Suggestion**: Keep 404 for “not found” and 409 for conflicts. Use 400 for bad request/validation. Optionally use 422 only for request body validation (FastAPI does this automatically for Pydantic). No change strictly required, but stay consistent.
+
+**Garage update is full replace**
+
+- **Issue**: `PUT /garages/{id}` expects full `GarageCreate` body. There is no `PATCH` for partial update (e.g. only change `default_rate`).
+- **Suggestion**: Optional but nice: add `GarageUpdate` with all optional fields and `PATCH /garages/{garage_id}` for partial updates, similar to vehicles and spots.
+
+---
+
+### 5.3 Structure and maintainability
+
+**Empty `run.py`**
+
+- **Issue**: `app/run.py` is empty. The app is run by importing `app` from `app.main` (e.g. `uvicorn app.main:app`). Having an empty `run.py` is confusing.
+- **Suggestion**: Either remove `run.py` or use it as the entry point, e.g.:
+
+  ```python
+  import uvicorn
+  if __name__ == "__main__":
+      uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+  ```
+
+  Then you can run with `python -m app.run` (or `python app/run.py`). Document the run command in the README.
+
+**No dependency list**
+
+- **Issue**: There is no `requirements.txt` or `pyproject.toml`, so it’s unclear which versions of FastAPI, SQLAlchemy, psycopg2, etc. are used.
+- **Suggestion**: Add `requirements.txt` (or `pyproject.toml` with dependencies) and pin versions, e.g.:
+
+  ```
+  fastapi>=0.109.0
+  uvicorn[standard]>=0.27.0
+  sqlalchemy>=2.0.0
+  psycopg2-binary>=2.9.9
+  pydantic>=2.0.0
+  ```
+
+  This improves reproducibility and onboarding.
+
+**Dead code in services**
+
+- **Issue**: `services/pricing.py` has `calculate_fee()` and `services/payments.py` has `recalc_ticket_payment_status()`; both are unused (DB triggers handle fee and payment_status). `services/tickets.py` is empty.
+- **Suggestion**: Either remove these functions (and the empty `services/tickets.py` file if unused) or move them to a small “scripts/utils” module and add a one-line comment that they are for offline tools or future API-based logic. This keeps the main codebase easier to follow.
+
+---
+
+### 5.4 Optional improvements
+
+- **Response models**: You already use `response_model` in many places. Where you return lists, using `PaginatedResponse[SomeResponse]` is good. No change needed unless you want to hide internal fields.
+- **OpenAPI metadata**: In `FastAPI(title="Parking API")` you could add `description=...`, `version="1.0.0"`, and tags for better Swagger/ReDoc.
+- **Health check**: `/health` could check DB connectivity (e.g. `db.execute(text("SELECT 1"))`) and return 503 if DB is down, so load balancers can detect unhealthy instances.
+- **Pagination**: List endpoints already use `limit`/`offset` and `PaginatedResponse` where it matters. Good.
+- **Model relationships**: Adding `ParkingConfig.spots` and `ParkingConfig.tickets` (and backrefs) would allow `garage.spots` in code; optional and only if you find yourself writing extra queries.
+
+---
+
+## 6. Summary of suggested actions
+
+| Priority   | Action |
+|-----------|--------|
+| High      | Remove hardcoded DB password; use env-only or `.env`. |
+| High      | Make SQLAlchemy `echo` configurable (default off). |
+| High      | Payments: remove `POST /payments/{payment_id}`; keep only `PUT` for update. |
+| Medium    | Fix or document vehicle create when `licence_plate` is None (uniqueness rule). |
+| Medium    | Add `requirements.txt` (or pyproject) and document how to run the app. |
+| Medium    | Use `run.py` as uvicorn entry point or delete it. |
+| Low       | Remove or relocate dead code in `services/pricing.py` and `services/payments.py`; remove empty `services/tickets.py` if unused. |
+| Low       | Optional: add `GarageUpdate` + `PATCH /garages/{id}`; enrich OpenAPI and health check. |
+
+Overall, the project is well structured (routers, services, schemas, models), uses the DB as source of truth for fee and payment status, and handles errors and edge cases in most places. Addressing the items above will make it safer, clearer, and easier to maintain and deploy.

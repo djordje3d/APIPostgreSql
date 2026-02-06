@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 
 from app.db import get_db
@@ -78,3 +79,34 @@ def get_payment(payment_id: int, db: Session = Depends(get_db)):
     if not p:
         raise HTTPException(404, "Payment not found")
     return p
+
+
+@router.put("/{payment_id}", response_model=schemas.PaymentResponse)
+def update_payment(
+    payment_id: int, data: schemas.PaymentUpdate, db: Session = Depends(get_db)
+):
+    """Full replace of a payment by ID. Use PUT for updates (not POST)."""
+    p = db.get(models.Payment, payment_id)
+    if not p:
+        raise HTTPException(404, "Payment not found")
+    p.amount = data.amount
+    p.method = data.method
+    p.currency = data.currency
+    p.paid_at = data.paid_at or datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(p)
+    return p
+
+
+@router.delete("/{payment_id}")
+def delete_payment(payment_id: int, db: Session = Depends(get_db)):
+    p = db.get(models.Payment, payment_id)
+    if not p:
+        raise HTTPException(404, "Payment not found")
+    db.delete(p)
+    try:
+        db.commit()
+        return {"deleted": True}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Cannot delete: payment has tickets")

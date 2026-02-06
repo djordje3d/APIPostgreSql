@@ -61,14 +61,7 @@ class TicketResponse(BaseModel):
     spot_id: int | None
 
 
-class PaymentResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    ticket_id: int | None
-    amount: Decimal
-    method: str | None
-    currency: str
-    paid_at: datetime | None
+
 
 
 # --- Pagination ---
@@ -102,6 +95,7 @@ class VehicleCreate(BaseModel):
 
 
 class VehicleUpdate(BaseModel):
+    licence_plate: str | None = None
     status: int | None = None
     vehicle_type_id: int | None = None
 
@@ -119,6 +113,17 @@ class TicketExit(BaseModel):
     exit_time: datetime | None = None
 
 
+class TicketUpdate(BaseModel):
+    ticket_state: TicketState | None = None
+    payment_status: PaymentStatus | None = None
+    operational_status: OperationalStatus | None = None
+    fee: Decimal | None = None
+    entry_time: datetime | None = None
+
+    spot_id: int | None = None
+    garage_id: int | None = None
+
+
 class PaymentCreate(BaseModel):
     ticket_id: int
     amount: Decimal = Field(gt=0)  # uplata mora biti > 0
@@ -127,16 +132,35 @@ class PaymentCreate(BaseModel):
     paid_at: datetime | None = None
 
 
+class PaymentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    ticket_id: int | None
+    amount: Decimal
+    method: str | None
+    currency: str
+    paid_at: datetime | None
+
+
+class PaymentUpdate(BaseModel):
+    amount: Decimal = Field(gt=0)
+    method: str
+    currency: str = "RSD"
+    paid_at: datetime | None = None
+
+
+
 class GarageCreate(BaseModel):
     name: str
     capacity: int
-    default_rate: Decimal
-    lost_ticket_fee: Decimal | None = None
-    night_rate: Decimal | None = None
-    day_rate: Decimal | None = None
+    default_rate: float
+    lost_ticket_fee: float | None = None
+    night_rate: float | None = None
+    day_rate: float | None = None
     open_time: time | None = None
     close_time: time | None = None
     allow_subscription: bool | None = True
+    created_at: datetime | None = None
 
 
 class SpotCreate(BaseModel):
