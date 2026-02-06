@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
+from app.db import get_db
 from app.routers.tickets import router as tickets_router
 from app.routers.payments import router as payments_router
 from app.routers.vehicles import router as vehicles_router
@@ -33,8 +36,16 @@ app = FastAPI(
 
 
 @app.get("/health")
-def health():
-    return {"status": "ok"}
+def health(db: Session = Depends(get_db)):
+    """Health check. Returns 200 if app and DB are OK, 503 if DB is unavailable."""
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable",
+        )
 
 
 app.include_router(garages_router)
