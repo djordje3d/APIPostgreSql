@@ -29,12 +29,16 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
 
    Set the following environment variables (or create a `.env` file in the project root and load it with e.g. `python-dotenv`; do not commit `.env`).
 
-   | Variable       | Description                                                                 | Example |
-   |----------------|-----------------------------------------------------------------------------|---------|
-   | `DATABASE_URL` | PostgreSQL connection URL (required in production; optional for local dev) | `postgresql+psycopg2://user:password@localhost:5432/garaza` |
-   | `SQL_ECHO`     | Set to `true` to log SQL statements (default: off)                         | `false` |
+   | Variable                     | Description                                                                 | Example |
+   |------------------------------|-----------------------------------------------------------------------------|---------|
+   | `DATABASE_URL`               | PostgreSQL connection URL (required in production; optional for local dev) | `postgresql+psycopg2://user:password@localhost:5432/garaza` |
+   | `SQL_ECHO`                   | Set to `true` to log SQL statements (default: off)                         | `false` |
+   | `USE_API_FEE_CALCULATION`     | Set to `true` if the DB has no trigger for ticket fee/state on exit; the API will compute fee and set ticket_state to CLOSED. Default: `false` (expect DB trigger). | `false` |
+   | `USE_API_PAYMENT_STATUS`     | Set to `true` if the DB has no trigger to update ticket payment_status after payments; the API will recalc and update it. Default: `false` (expect DB trigger). | `false` |
 
    If `DATABASE_URL` is not set, the app falls back to a default URL (see `app/db.py`). **Do not rely on the default in production;** set `DATABASE_URL` explicitly.
+
+   **Database with or without triggers:** If your database has triggers that set ticket `fee`/`ticket_state` on exit and `payment_status` after payments, leave `USE_API_FEE_CALCULATION` and `USE_API_PAYMENT_STATUS` unset or `false`. If you use a database without those triggers (e.g. a fresh schema or another DB), set both to `true` so the API performs fee calculation and payment-status updates itself.
 
 ## How to run
 

@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 
 from app.db import get_db
 from app import models, schemas
+from app.config import USE_API_PAYMENT_STATUS
+from app.services.payments import recalc_ticket_payment_status
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -40,12 +42,11 @@ def create_payment(data: schemas.PaymentCreate, db: Session = Depends(get_db)):
             paid_at=data.paid_at or datetime.now(timezone.utc),
         )
         db.add(p)
-
+        if USE_API_PAYMENT_STATUS:
+            recalc_ticket_payment_status(db, data.ticket_id)
         db.commit()
         db.refresh(p)
-
         return p
-
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Payment failed: {str(e)}")
@@ -93,6 +94,8 @@ def update_payment(
     p.method = data.method
     p.currency = data.currency
     p.paid_at = data.paid_at or datetime.now(timezone.utc)
+    if USE_API_PAYMENT_STATUS:
+        recalc_ticket_payment_status(db, p.ticket_id)
     db.commit()
     db.refresh(p)
     return p
@@ -103,10 +106,13 @@ def delete_payment(payment_id: int, db: Session = Depends(get_db)):
     p = db.get(models.Payment, payment_id)
     if not p:
         raise HTTPException(404, "Payment not found")
+    ticket_id = p.ticket_id
     db.delete(p)
+    if USE_API_PAYMENT_STATUS:
+        recalc_ticket_payment_status(db, ticket_id)
     try:
         db.commit()
         return {"deleted": True}
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Cannot delete: payment has tickets")
+        raise HTTPException(400, "Cannot delete payment")

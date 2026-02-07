@@ -5,7 +5,9 @@ from datetime import datetime, timezone
 
 from app.db import get_db
 from app import models, schemas
+from app.config import USE_API_FEE_CALCULATION
 from app.services.spots import allocate_free_spot
+from app.services.pricing import get_ticket_fee
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
@@ -154,11 +156,10 @@ def ticket_exit(
 
     t.exit_time = data.exit_time or datetime.now(timezone.utc)
 
+    if USE_API_FEE_CALCULATION:
+        t.fee = get_ticket_fee(t, db)
+        t.ticket_state = "CLOSED"
+
     db.commit()
     db.refresh(t)
     return t
-
-
-# Exit only sets exit_time; fee and ticket_state come from the DB trigger. That’s consistent.
-# If you ever move fee calculation into the API, you could call something like calculate_fee (or a service that uses garage/vehicle_type rates)
-# and then set ticket.fee and ticket.ticket_state in the same transaction. Until then, the current design is fine.
