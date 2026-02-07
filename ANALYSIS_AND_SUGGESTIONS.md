@@ -43,15 +43,16 @@ Notable features: optional API-key auth, CORS configuration (including productio
 
 ### Security & config
 
-- **API key**: Optional `X-API-Key` when `API_KEY` is set; `/health` is excluded. OpenAPI schema includes the security scheme so Swagger can send the key.
+- **API key**: Optional `X-API-Key` when `API_KEY` is set in config (read once at startup; no per-request env lookup); `/health` is excluded. OpenAPI schema includes the security scheme so Swagger can send the key.
 - **CORS**: Configurable origins, methods, headers, max_age; production mode requires explicit `CORS_ORIGINS` (or `CORS_DISABLED=true`). Validation rejects invalid origins.
 - **Health**: `/health` runs `SELECT 1` and returns 503 if the DB is unavailable — good for load balancers.
+- **Env loading**: `.env` is loaded only in `app/config.py`; `app/main.py` imports config before db so `DATABASE_URL` is available when the engine is created; `app/db.py` documents this order.
 
 ### Code quality
 
 - **Datetime**: `datetime.now(timezone.utc)` is used (no deprecated `utcnow()`).
 - **Pydantic v2**: `model_config = ConfigDict(from_attributes=True)` and `model_dump(exclude_unset=True)` for partial updates.
-- **Tests**: Integration tests for health, garages, vehicle types, and ticket entry flow; `TestClient` against the real app and DB.
+- **Tests**: Integration tests with transactional rollback isolation (`conftest.py`). Coverage includes health, garages, vehicle types, vehicles (create, get by id/plate, 404, PATCH, delete with tickets), spots (create, duplicate code, list by garage_id/only_free, deactivate/activate), tickets (entry/exit, list filters), and payments (create for closed ticket, overpayment rejected, list by ticket).
 - **Docs**: README and POSTMAN.md explain setup, env vars, and usage.
 
 ---
@@ -68,30 +69,19 @@ Notable features: optional API-key auth, CORS configuration (including productio
   - Or keep a default only for local dev (e.g. `postgresql+psycopg2://user:pass@localhost:5432/garaza`) and document that **production must set `DATABASE_URL`** and never commit real credentials.  
   You already use `python-dotenv` in config; ensure `db.py` does not override with a default that includes real passwords in production.
 
-**SQL logging always on (`app/db.py`)**
+**SQL logging (`app/db.py`)** — **Addressed**
 
-- **Current**: `create_engine(DATABASE_URL, echo=True)` — every SQL statement is logged. Noisy and can leak sensitive data in production.
-- **Suggestion**: Make it configurable, e.g. `echo=os.getenv("SQL_ECHO", "false").lower() in ("true", "1", "yes")`. Your README already mentions `SQL_ECHO`; wiring it in `db.py` keeps behavior consistent with docs.
+- **Current**: `db.py` uses `echo=os.getenv("SQL_ECHO", "false").lower() in ("true", "1", "yes")`; SQL is logged only when `SQL_ECHO` is set. README documents `SQL_ECHO`.
 
 ### 3.2 Consistency and robustness
 
-**Config loading in `db.py`**
+**Config loading and import order** — **Addressed**
 
-- **Current**: `db.py` reads `DATABASE_URL` via `os.getenv()` but does not call `load_dotenv()`. If the app is started without loading `.env` first (e.g. if only `config` is imported before `db`), the fallback URL might be used even when `.env` is present.
-- **Suggestion**: Either call `load_dotenv()` at the top of `db.py` (like `config.py`), or document that `config` (or `main`) must be imported first so that `load_dotenv()` runs before any code that uses `DATABASE_URL`. Prefer one clear place (e.g. `main.py` or `config.py`) that loads env and then import `db` after.
+- **Current**: `.env` is loaded only in `app/config.py`. `app/main.py` imports `app.config` before `app.db` (documented in a comment in `main.py`). `app/db.py` does not call `load_dotenv()` and documents that the entry point must import config first so `DATABASE_URL` is available when the engine is created.
 
-**Empty `app/run.py`**
+**Run entry point (`app/run.py`)** — **Addressed**
 
-- **Current**: File is empty. Run command is `uvicorn app.main:app ...`.
-- **Suggestion**: Either remove `run.py` or use it as the entry point, e.g.:
-
-  ```python
-  import uvicorn
-  if __name__ == "__main__":
-      uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
-  ```
-
-  Then you can run with `python -m app.run` and keep README in sync.
+- **Current**: `run.py` is the uvicorn entry point (`python -m app.run`); it reads `HOST`, `PORT`, `RELOAD` from env and runs `uvicorn.run("app.main:app", ...)`. README documents this.
 
 **Vehicle create with `licence_plate is None`**
 
@@ -105,10 +95,9 @@ Notable features: optional API-key auth, CORS configuration (including productio
 - **Current**: `PaymentCreate.method` is a free-form string; `currency` defaults to `"RSD"` and is a string. DB has `method` as `String(20)`, `currency` as `String(3)`.
 - **Suggestion**: Optionally restrict `method` and `currency` (e.g. `Literal["CASH", "CARD", "BANK"]` and a small set of currency codes) and/or add `max_length` in Pydantic so validation and OpenAPI stay aligned with the DB and business rules.
 
-**Garage create/update types**
+**Garage create/update types** — **Addressed**
 
-- **Current**: `GarageCreate` / `GarageUpdate` use `float` for rates; DB and responses use `Decimal`. FastAPI/Pydantic will coerce, but using `Decimal` in schemas would match the domain and avoid float rounding in validation.
-- **Suggestion**: Use `Decimal` (or `condecimal`) for monetary and rate fields in create/update schemas for consistency with `GarageResponse` and the DB.
+- **Current**: `GarageCreate` and `GarageUpdate` use `Decimal` for rates and monetary fields; consistent with `GarageResponse` and the DB.
 
 ### 3.4 Structure and maintainability
 
@@ -124,15 +113,13 @@ Notable features: optional API-key auth, CORS configuration (including productio
 
 ### 3.5 Testing and ops
 
-**Test isolation**
+**Test isolation** — **Addressed**
 
-- **Current**: Integration tests hit the real database; test_garages and test_tickets_flow create real rows (garages, spots, vehicles, tickets).
-- **Suggestion**: For stability and parallel runs, consider: (a) a dedicated test DB and cleaning key tables in `conftest.py` (e.g. in a fixture with `yield`), or (b) using transactions/rollback so each test runs in an isolated transaction. That reduces interference and makes tests more predictable.
+- **Current**: `conftest.py` runs each test in a transaction that is rolled back; the app’s `get_db` is overridden so `commit()` only flushes. The database is not modified by tests; sequences are reset once per run so IDs remain valid after rollbacks.
 
-**More coverage**
+**Test coverage** — **Addressed**
 
-- **Current**: Health, garages, vehicle types, and one ticket flow are covered.
-- **Suggestion**: Add tests for: payments (create for closed ticket, overpayment rejected, list by ticket); spots (create, filter by garage/active/free, deactivate); vehicles (create, get by plate, 404); tickets (exit, list filters). Even a few tests per resource will catch regressions.
+- **Current**: Tests cover health; garages (list, create, get, 404); vehicle types (list, create, etc.); vehicles (create, get by id, get by plate, 404, PATCH, delete with tickets → 400); spots (list, create, duplicate code → 400, filter by garage_id, only_free, deactivate, activate, 404); tickets (list, entry, exit, filters by state/payment_status/garage_id, 404); payments (create for closed ticket, open ticket → 400, overpayment → 400, list by ticket, 404).
 
 ---
 
@@ -142,19 +129,17 @@ Notable features: optional API-key auth, CORS configuration (including productio
 |-------------------------|---------------------|
 | Architecture            | Good separation; keep routers thin and services for logic. |
 | Pagination & route order| In good shape. |
-| Auth & CORS             | Solid; API key and CORS config are clear. |
+| Auth & CORS             | Solid; API key read once at startup from config; CORS config clear. |
 | Fee / payment status    | Flexible (API vs DB); services used when flags are on. |
-| Security                | Remove or restrict default DB URL with credentials; make `echo` configurable. |
-| Config / env            | Ensure `.env` is loaded before `db` uses `DATABASE_URL`. |
-| Run entry point         | Use or remove `run.py` and document. |
-| Schemas                 | Consider `Decimal` for money/rates; optional Literals for payment method/currency. |
-| Tests                   | Add payment/spot/vehicle/ticket tests; improve isolation. |
+| Security                | **SQL_ECHO** is configurable (addressed). Consider removing or restricting default DB URL with credentials for production. |
+| Config / env            | Addressed: `.env` loaded only in config; main imports config before db; documented. |
+| Run entry point         | Addressed: `run.py` is the uvicorn entry point; documented. |
+| Schemas                 | Garages use `Decimal`; optional Literals for payment method/currency. |
+| Tests                   | Addressed: transactional rollback isolation; coverage for health, garages, vehicle types, vehicles, spots, tickets, payments. |
 | Type checking           | Prefer targeted pyright over disabling for whole file. |
 
 ---
 
 ## 5. Opinion
 
-The project is in good shape: clear structure, sensible API design, and careful handling of entry/exit, payments, and constraints. The main gaps are **security and config** (default DB URL with password, SQL echo always on, env loading order) and **test coverage/isolation**. Addressing the security and config points will make it safe and predictable in production; improving tests will make refactors and new features safer. The rest are incremental improvements (types, schemas, optional relationships) that you can adopt as you go.
-
-Implementing the two critical items (no hardcoded credentials in default URL for production, and `SQL_ECHO`-driven `echo` in `db.py`) plus either using or removing `run.py` would already be a strong next step.
+The project is in good shape: clear structure, sensible API design, and careful handling of entry/exit, payments, and constraints. **Already addressed**: env loading (single place in config, import order documented), run entry point (`run.py`), SQL logging (`SQL_ECHO`), API key (read once at startup), and test coverage/isolation (transactional rollback, tests for all main resources). The main remaining gap is **security**: the default `DATABASE_URL` in `db.py` still contains a literal password; for production, require `DATABASE_URL` to be set and avoid a default with real credentials. The rest are incremental improvements (schemas, optional model relationships, type checking) that you can adopt as you go.

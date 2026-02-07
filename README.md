@@ -27,7 +27,7 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
 
 3. **Configure environment:**
 
-   Set the following environment variables (or create a `.env` file in the project root; the app loads it automatically via `python-dotenv`. Do not commit `.env`).
+   Set the following environment variables (or create a `.env` file in the project root). The app loads `.env` once at startup via `python-dotenv` in `app/config.py`. Do not commit `.env`.
 
    | Variable                     | Description                                                                 | Example |
    |------------------------------|-----------------------------------------------------------------------------|---------|
@@ -90,7 +90,7 @@ See **[POSTMAN.md](POSTMAN.md)** for step-by-step Postman setup and what to show
 
 ## Running tests
 
-Integration tests call the real API and database. Ensure PostgreSQL is running and `DATABASE_URL` (or the default in `app/db.py`) points to a database you can use for testing.
+Integration tests call the real API and database. Each test runs in a transaction that is rolled back, so the database is not modified. Ensure PostgreSQL is running and `DATABASE_URL` (or the default in `app/db.py`) points to a database you can use for testing.
 
 ```bash
 pytest
@@ -108,12 +108,16 @@ Run a specific test file:
 pytest tests/test_health.py -v
 ```
 
+Test modules: `test_health`, `test_garages`, `test_vehicle_types`, `test_vehicles`, `test_spots`, `test_tickets_flow`, `test_payments`.
+
 ## Project layout
 
-- `app/main.py` — FastAPI app and route registration
-- `app/db.py` — database engine, session, and `get_db` dependency
+- `app/main.py` — FastAPI app and route registration (imports `app.config` first so `.env` is loaded before the DB engine is created)
+- `app/config.py` — environment variables and flags; loads `.env` via `python-dotenv`; `API_KEY` read once at startup
+- `app/auth.py` — API key middleware (uses `API_KEY` from config)
+- `app/db.py` — database engine, session, and `get_db` dependency (expects env already loaded by config)
 - `app/models.py` — SQLAlchemy models
 - `app/schemas.py` — Pydantic request/response schemas
 - `app/routers/` — API route handlers (garages, vehicle-types, vehicles, tickets, payments, spots)
-- `app/services/` — business logic (e.g. spot allocation)
-- `tests/` — API integration tests (pytest)
+- `app/services/` — business logic (e.g. spot allocation, pricing, payment status)
+- `tests/` — API integration tests (pytest, transactional rollback isolation)

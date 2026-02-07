@@ -13,7 +13,7 @@ This document describes how to configure Postman for the Parking API and what to
 
 ## 2. API key (when authentication is enabled)
 
-If you set `API_KEY` in your `.env` file, **every request except `GET /health`** must send the API key.
+If you set `API_KEY` in your `.env` file, **every request except `GET /health`** must send the API key. The API reads `API_KEY` once at startup from the environment; if you change it in `.env`, restart the server for it to take effect.
 
 ### Option A: Per request
 
