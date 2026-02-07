@@ -2,8 +2,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-# Env is loaded in app.config (load_dotenv). The app entry point (app.main) must import
-# app.config before app.db so DATABASE_URL is available when the engine is created.
+# Env is loaded in app.config (load_dotenv from project root). The app entry point
+# (app.main) must import app.config before app.db so DATABASE_URL is available.
 
 # Prefer env var so credentials are not in code. In production set DATABASE_URL.
 # Example: postgresql+psycopg2://user:password@localhost:5432/dbname

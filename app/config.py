@@ -5,18 +5,28 @@ fee calculation and payment status updates are done in the API or by the DB.
 - When using a database that has triggers: set both to false (default).
 - When using a database without those triggers: set both to true so the API
   computes ticket fee on exit and updates ticket payment_status after payments.
+
+- API key: When API_KEY is set, all requests except GET /health must send
+  header X-API-Key. When API_KEY is not set, no authentication is required.
+  .env is loaded from the project root (parent of app/) so it is found
+  regardless of the process current working directory.
 """
 import logging
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 
-load_dotenv()
+# Load .env from project root (parent of app/) so it works even when the server
+# is started from a different directory (e.g. python -m app.run from project root).
+_project_root = Path(__file__).resolve().parent.parent
+load_dotenv(_project_root / ".env")
 
 _log = logging.getLogger(__name__)
 
-# Optional API key; when set, all requests except GET /health must send X-API-Key header.
-# Read once at startup so the auth middleware does not call os.getenv on every request.
+# Optional API key. When set: auth middleware requires X-API-Key header on every
+# request except GET /health (401 otherwise). When not set: no auth required.
+# Read once at startup so the middleware does not read env on every request.
 API_KEY: str | None = os.getenv("API_KEY") or None
 
 

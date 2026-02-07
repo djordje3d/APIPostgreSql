@@ -61,9 +61,6 @@ class TicketResponse(BaseModel):
     spot_id: int | None
 
 
-
-
-
 # --- Pagination ---
 T = TypeVar("T")
 
@@ -149,7 +146,6 @@ class PaymentUpdate(BaseModel):
     paid_at: datetime | None = None
 
 
-
 class GarageCreate(BaseModel):
     name: str
     capacity: int
@@ -165,6 +161,7 @@ class GarageCreate(BaseModel):
 
 class GarageUpdate(BaseModel):
     """All fields optional for PATCH partial updates."""
+
     name: str | None = None
     capacity: int | None = None
     default_rate: Decimal | None = None

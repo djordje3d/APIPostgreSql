@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.config import (
+    API_KEY,
     CORS_ALLOW_HEADERS,
     CORS_ALLOW_METHODS,
     CORS_MAX_AGE,
@@ -59,7 +60,7 @@ app.add_middleware(APIKeyMiddleware)
 
 
 def openapi_with_api_key():
-    """Add X-API-Key to OpenAPI so Swagger UI shows Authorize when API_KEY is set."""
+    """When API_KEY is set, add X-API-Key to OpenAPI so Swagger UI shows Authorize and sends the header. /health is documented as public (no key required)."""
     from fastapi.openapi.utils import get_openapi
     schema = get_openapi(
         title=app.title,
@@ -68,10 +69,19 @@ def openapi_with_api_key():
         routes=app.routes,
         tags=app.openapi_tags,
     )
-    schema["components"]["securitySchemes"] = {
-        "ApiKeyHeader": {"type": "apiKey", "in": "header", "name": "X-API-Key", "description": "Set when API_KEY env is configured."},
-    }
-    schema["security"] = [{"ApiKeyHeader": []}]
+    if API_KEY:
+        schema.setdefault("components", {})["securitySchemes"] = {
+            "ApiKeyHeader": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "Required for all endpoints except GET /health when API_KEY is set in .env.",
+            },
+        }
+        schema["security"] = [{"ApiKeyHeader": []}]
+        # /health is public; don't require API key in Swagger for it
+        if "paths" in schema and "/health" in schema["paths"] and "get" in schema["paths"]["/health"]:
+            schema["paths"]["/health"]["get"]["security"] = []
     return schema
 
 

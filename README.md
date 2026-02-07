@@ -27,7 +27,7 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
 
 3. **Configure environment:**
 
-   Set the following environment variables (or create a `.env` file in the project root). The app loads `.env` once at startup via `python-dotenv` in `app/config.py`. Do not commit `.env`.
+   Set the following environment variables (or create a `.env` file in the project root). Copy `.env.example` to `.env` as a starting point. The app loads `.env` once at startup from the **project root** (parent of `app/`) via `python-dotenv` in `app/config.py`, so the file is found regardless of the directory you start the server from. Do not commit `.env`.
 
    | Variable                     | Description                                                                 | Example |
    |------------------------------|-----------------------------------------------------------------------------|---------|
@@ -45,6 +45,10 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
    **CORS:** The API allows credentials (cookies, `X-API-Key`). Allowed methods are GET, POST, PUT, PATCH, DELETE; allowed headers include `Content-Type`, `Accept`, `Authorization`, `X-API-Key`. Each origin in `CORS_ORIGINS` must start with `http://` or `https://` and have no path (invalid entries are skipped with a log warning). With `ENVIRONMENT=production` or `ENV=production`, invalid or missing `CORS_ORIGINS` cause startup to fail unless `CORS_DISABLED=true`. Set `CORS_DISABLED=true` when the API is only used server-to-server or same-origin (no browser CORS needed).
 
    **Database with or without triggers:** If your database has triggers that set ticket `fee`/`ticket_state` on exit and `payment_status` after payments, leave `USE_API_FEE_CALCULATION` and `USE_API_PAYMENT_STATUS` unset or `false`. If you use a database without those triggers (e.g. a fresh schema or another DB), set both to `true` so the API performs fee calculation and payment-status updates itself.
+
+   **API key and .env:**
+   - **If `API_KEY` is not set** (missing or empty in `.env`): the middleware does nothing; **all requests are allowed** and no key is required. This is why Postman (or curl) may work without sending `X-API-Key`.
+   - **If `API_KEY` is set**: every request except `GET /health` must send the header `X-API-Key` with the same value, or the API returns **401 Unauthorized**. Add `API_KEY=your-secret-key` to `.env` in the project root, start the server from the project root (e.g. `python -m app.run`), and **restart the server** after changing `.env` so the new value is picked up.
 
 ## How to run
 
@@ -108,7 +112,7 @@ Run a specific test file:
 pytest tests/test_health.py -v
 ```
 
-Test modules: `test_health`, `test_garages`, `test_vehicle_types`, `test_vehicles`, `test_spots`, `test_tickets_flow`, `test_payments`.
+Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, `test_vehicles`, `test_spots`, `test_tickets_flow`, `test_payments`.
 
 ## Project layout
 
