@@ -1,8 +1,19 @@
+# pyright: reportMissingImports=false
+# Import config first so load_dotenv() runs before db engine is created.
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
+from app.config import (
+    CORS_ALLOW_HEADERS,
+    CORS_ALLOW_METHODS,
+    CORS_MAX_AGE,
+    CORS_DISABLED,
+    CORS_ORIGINS,
+)
 from app.db import get_db
+from app.auth import APIKeyMiddleware
 from app.routers.tickets import router as tickets_router
 from app.routers.payments import router as payments_router
 from app.routers.vehicles import router as vehicles_router
@@ -33,6 +44,38 @@ app = FastAPI(
         },
     ],
 )
+
+# CORS: allow browser apps (different origin) to call this API. Skip if CORS_DISABLED.
+if not CORS_DISABLED:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=CORS_ALLOW_METHODS,
+        allow_headers=CORS_ALLOW_HEADERS,
+        max_age=CORS_MAX_AGE,
+    )
+app.add_middleware(APIKeyMiddleware)
+
+
+def openapi_with_api_key():
+    """Add X-API-Key to OpenAPI so Swagger UI shows Authorize when API_KEY is set."""
+    from fastapi.openapi.utils import get_openapi
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        tags=app.openapi_tags,
+    )
+    schema["components"]["securitySchemes"] = {
+        "ApiKeyHeader": {"type": "apiKey", "in": "header", "name": "X-API-Key", "description": "Set when API_KEY env is configured."},
+    }
+    schema["security"] = [{"ApiKeyHeader": []}]
+    return schema
+
+
+app.openapi = openapi_with_api_key
 
 
 @app.get("/health")

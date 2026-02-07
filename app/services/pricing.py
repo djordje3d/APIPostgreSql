@@ -1,8 +1,17 @@
 import math
-from datetime import timedelta
+from datetime import timedelta, timezone
 from decimal import Decimal
 
 from app import models
+
+
+def _ensure_utc(dt):
+    """If datetime is naive, treat as UTC so we can subtract entry from exit safely."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 def _get_rate_for_ticket(ticket, db) -> Decimal:
@@ -21,7 +30,9 @@ def calculate_fee(ticket, db) -> Decimal:
     """Fee from entry/exit duration and rate (vehicle type or garage default)."""
     if ticket.entry_time is None or ticket.exit_time is None:
         return Decimal("0")
-    delta: timedelta = ticket.exit_time - ticket.entry_time
+    entry = _ensure_utc(ticket.entry_time)
+    exit_ = _ensure_utc(ticket.exit_time)
+    delta: timedelta = exit_ - entry
     minutes = max(1, int(delta.total_seconds() / 60))
     hours = max(1, math.ceil(minutes / 60))
     rate = _get_rate_for_ticket(ticket, db)

@@ -1,150 +1,88 @@
-# Analysis: Database & Python Code (After Your Changes)
+# API Project Analysis & Suggestions for Improvement
 
-## 1. Database schema recap
-
-| Table | Key points |
-|-------|------------|
-| **parking_config** | id, name, capacity, default_rate, lost_ticket_fee, night/day_rate, open_time, close_time (time), allow_subscription, created_at |
-| **parking_spot** | id, garage_id → parking_config, code (varchar 14), is_rentable, is_active; **UNIQUE(garage_id, code)** |
-| **vehicle_types** | id, type (unique), rate |
-| **vehicle** | id, licence_plate (unique, nullable), vehicle_type_id, created, status |
-| **tickets** | id, vehicle_id, garage_id, spot_id, entry_time, exit_time, fee, ticket_state, payment_status, operational_status; **CHECKs** on state/status |
-| **payments** | id, ticket_id, amount, method, currency, paid_at; **triggers** update ticket payment_status |
+This document is a full review of your **Parking API** (FastAPI + PostgreSQL): what works well, what could be improved, and concrete suggestions.
 
 ---
 
-## 2. What’s in good shape now
+## 1. Project overview
 
-### Models vs DB
-- **ParkingSpot**: `UniqueConstraint("garage_id", "code")` matches DB; FKs to `parking_config`.
-- **ParkingConfig**: `Time` for open_time/close_time; Numeric for rates; `created_at` with `func.now()`.
-- **VehicleType**, **Vehicle**, **Ticket**, **Payment**: Columns and FKs align; relationships (Vehicle→VehicleType, Ticket→Vehicle/Spot, Payment→Ticket) are defined.
+The API manages:
 
-### Schemas
-- **Literals**: `TicketState`, `PaymentStatus`, `OperationalStatus` used in `list_tickets` query params → invalid values yield 422.
-- **GarageCreate**: `time` for open_time/close_time.
-- **SpotCreate / SpotUpdate**: code max_length=14, optional is_rentable/is_active.
-- **VehicleCreate / VehicleUpdate**: PATCH uses `VehicleUpdate` (optional status, vehicle_type_id) → no raw dict, validated and documented.
+- **Garages** (`parking_config`) – capacity, rates, opening hours
+- **Parking spots** – per garage, with `code`, `is_rentable`, `is_active`
+- **Vehicle types** – type name and hourly rate
+- **Vehicles** – licence plate, type, status
+- **Tickets** – entry/exit, fee, state, payment status; optional spot assignment
+- **Payments** – linked to closed tickets, with overpayment checks
 
-### Routers
-- **Payments**: `GET /by-ticket/{ticket_id}` is declared **before** `GET /{payment_id}` → no route-order bug.
-- **Payments**: Validates ticket is CLOSED; rejects overpayment (total_paid + amount > ticket.fee).
-- **Spots**: Create/Patch catch `IntegrityError` → 400 “Spot code already exists for this garage”.
-- **Tickets**: Entry validates vehicle, garage, spot (belongs to garage, active, not occupied); auto-allocates spot via `allocate_free_spot` with `FOR UPDATE SKIP LOCKED`; sets OPEN, NOT_APPLICABLE, OK; exit only sets exit_time (fee/state from DB trigger).
-- **Garages / Vehicle types / Vehicles**: Delete endpoints catch `IntegrityError` and return clear 400 messages (“Cannot delete: …”).
-- **VehicleType**: PUT catches `IntegrityError` on duplicate type name → 400 “Vehicle type name already exists”.
-
-### Structure
-- Routers, services, schemas, models are separated; DB is source of truth for fee and payment_status; no duplicate business logic in Python for those.
+Notable features: optional API-key auth, CORS configuration (including production checks), configurable fee/payment-status logic (API vs DB triggers), spot allocation with `FOR UPDATE SKIP LOCKED`, and solid validation via Pydantic and Literals.
 
 ---
 
-## 3. Remaining / optional improvements
+## 2. What’s working well
 
-### 3.1 `datetime.utcnow()` (Python 3.12+)
+### Architecture
 
-- **Issue**: `datetime.utcnow()` is deprecated in Python 3.12.
-- **Fix**: Use `datetime.now(timezone.utc)` and import `timezone` from `datetime`. Applied in: `routers/tickets.py` (entry_time, exit_time), `routers/payments.py` (paid_at).
+- Clear separation: **routers** (HTTP), **services** (business logic), **schemas** (validation/serialization), **models** (ORM). Easy to navigate and test.
+- **Config** is centralized in `app/config.py` with env-based flags (`USE_API_FEE_CALCULATION`, `USE_API_PAYMENT_STATUS`, CORS). Good for different deployments (with/without DB triggers).
+- **Dependencies**: `get_db()` used consistently; routers stay thin.
 
-### 3.2 Unused service functions (dead code)
+### API design
 
-- **`services/pricing.py`**: `calculate_fee(ticket, db)` is never called; fee is set by DB trigger.
-- **`services/payments.py`**: `recalc_ticket_payment_status(db, ticket_id)` is never called; payment_status is updated by DB trigger.
+- **REST-style** resources and methods: list (GET), create (POST), get by id (GET), full replace (PUT) where needed, partial update (PATCH) for garages, vehicles, spots, tickets; delete (DELETE) with integrity handling.
+- **Paginated lists** with `limit`/`offset` and `PaginatedResponse[T]` for garages, vehicle types, vehicles, tickets, spots, and payments-by-ticket.
+- **Route order**: e.g. `GET /payments/by-ticket/{ticket_id}` is registered before `GET /payments/{payment_id}` — no “by-ticket” path eaten by id.
+- **Literals** for `TicketState`, `PaymentStatus`, `OperationalStatus` in schemas and query params give clear validation and docs.
 
-**Options**: Remove them, or add a short comment that they are kept for scripts/tools only. Removing (or moving to a “utils/scripts” module) keeps the codebase clearer.
+### Business logic
 
-### 3.3 Response models (optional)
+- **Ticket entry**: Validates vehicle, garage, optional spot (same garage, active, not occupied); otherwise allocates a free spot via `allocate_free_spot()` with `FOR UPDATE SKIP LOCKED` to avoid races.
+- **Ticket exit**: Only for OPEN tickets; when `USE_API_FEE_CALCULATION` is true, fee and `ticket_state=CLOSED` are set in the API; otherwise DB trigger can do it.
+- **Payments**: Only for CLOSED tickets; overpayment rejected (total paid + new amount ≤ ticket fee); when `USE_API_PAYMENT_STATUS` is true, payment status is recalculated after create/update/delete.
+- **Deletes**: Garages, vehicle types, vehicles, tickets, payments, and spots handle `IntegrityError` and return clear 400 messages. Spot “delete” is implemented as deactivation (and activation endpoint exists).
 
-- List/detail endpoints return ORM objects directly. FastAPI serializes them, but:
-  - Adding explicit **response_model** (e.g. list of Pydantic schemas) gives consistent API docs and hides internal fields if needed.
-  - Low priority if you are fine with current OpenAPI shape.
+### Security & config
 
-### 3.4 Pagination (optional)
+- **API key**: Optional `X-API-Key` when `API_KEY` is set; `/health` is excluded. OpenAPI schema includes the security scheme so Swagger can send the key.
+- **CORS**: Configurable origins, methods, headers, max_age; production mode requires explicit `CORS_ORIGINS` (or `CORS_DISABLED=true`). Validation rejects invalid origins.
+- **Health**: `/health` runs `SELECT 1` and returns 503 if the DB is unavailable — good for load balancers.
 
-- `list_tickets`, `list_spots`, `list_vehicles`, `list_garages` return full lists. For larger data, add `limit`/`offset` (or `page`/`page_size`) query params.
+### Code quality
 
-### 3.5 Config / security
-
-- **`db.py`**: Default `DATABASE_URL` contains a hardcoded password. For production, use only environment variables (no default with credentials), or use a `.env` file loaded by something like `python-dotenv` and never commit it.
-
-### 3.6 Model relationships (optional)
-
-- **ParkingConfig**: No `relationship` to `ParkingSpot` or `Ticket`. Adding them (e.g. `spots = relationship("ParkingSpot")`) allows `garage.spots` in code and can simplify some queries. Optional.
-
-### 3.7 Ticket exit and fee
-
-- Exit endpoint only sets `exit_time`; fee and ticket_state come from the DB trigger. This is consistent and correct; no change needed unless you move fee calculation into the API.
-
----
-
-## 4. Summary
-
-| Area | Status |
-|------|--------|
-| DB ↔ models | Aligned (constraints, types, FKs) |
-| Schemas | Literals + Pydantic for create/update; VehicleUpdate for PATCH |
-| Payments route order | Fixed (by-ticket before {payment_id}) |
-| Delete + IntegrityError | Handled for garages, vehicle types, vehicles |
-| VehicleType duplicate name | Handled on PUT |
-| Payment rules | CLOSED-only and overpayment check in API |
-| Datetime | Prefer `datetime.now(timezone.utc)` (deprecation fix) |
-| Dead code | Optional: remove or document pricing/payments helpers |
-| Optional | Response models, pagination, no default DB password, relationships |
-
-**Opinion**: The codebase is in good shape and matches the database. Your changes (route order, IntegrityError handling, VehicleUpdate schema, payment validation, VehicleType unique name handling) are correctly applied. Fixing the datetime deprecation and optionally cleaning or documenting dead code will keep it maintainable as you grow.
+- **Datetime**: `datetime.now(timezone.utc)` is used (no deprecated `utcnow()`).
+- **Pydantic v2**: `model_config = ConfigDict(from_attributes=True)` and `model_dump(exclude_unset=True)` for partial updates.
+- **Tests**: Integration tests for health, garages, vehicle types, and ticket entry flow; `TestClient` against the real app and DB.
+- **Docs**: README and POSTMAN.md explain setup, env vars, and usage.
 
 ---
 
-## 5. Additional analysis and suggestions
+## 3. Suggestions for improvement
 
-### 5.1 Critical / high priority
+### 3.1 Critical / security
 
-**Payments router: duplicate update endpoints and wrong HTTP method**
+**Hardcoded database URL and password (`app/db.py`)**
 
-- **Issue**: You have two ways to “update” a payment:
-  - `POST /payments/{payment_id}` → `update_payment`
-  - `PUT /payments/{payment_id}` → `patch_payment`
-  Both do the same thing (full replace with `PaymentCreate`). In REST, `POST` on a resource ID is usually used for actions, not updates; updates are `PUT` (replace) or `PATCH` (partial).
-- **Suggestion**: Keep a single update endpoint: use **`PUT /payments/{payment_id}`** for full replace and remove **`POST /payments/{payment_id}`**. If you later need partial updates, add **`PATCH /payments/{payment_id}`** with a schema that has optional fields (e.g. `PaymentUpdate`).
+- **Current**: `DATABASE_URL` defaults to a URL that contains a literal password. If the repo is shared or deployed, this is a security risk.
+- **Suggestion**:  
+  - Prefer no default with credentials. For example: `DATABASE_URL = os.getenv("DATABASE_URL")` and fail at startup if unset (or only in production).  
+  - Or keep a default only for local dev (e.g. `postgresql+psycopg2://user:pass@localhost:5432/garaza`) and document that **production must set `DATABASE_URL`** and never commit real credentials.  
+  You already use `python-dotenv` in config; ensure `db.py` does not override with a default that includes real passwords in production.
 
-**Hardcoded database credentials in `db.py`**
+**SQL logging always on (`app/db.py`)**
 
-- **Issue**: Default `DATABASE_URL` contains a literal password. If the repo is ever shared or deployed, this is a security risk.
-- **Suggestion**: Do not default to a URL with credentials. Either:
-  - Use only `os.getenv("DATABASE_URL")` and fail fast if unset in production, or
-  - Use `python-dotenv` and a `.env` file (add `.env` to `.gitignore`) and document that users must set `DATABASE_URL` locally.
+- **Current**: `create_engine(DATABASE_URL, echo=True)` — every SQL statement is logged. Noisy and can leak sensitive data in production.
+- **Suggestion**: Make it configurable, e.g. `echo=os.getenv("SQL_ECHO", "false").lower() in ("true", "1", "yes")`. Your README already mentions `SQL_ECHO`; wiring it in `db.py` keeps behavior consistent with docs.
 
-**SQLAlchemy `echo=True` in production**
+### 3.2 Consistency and robustness
 
-- **Issue**: In `db.py`, `create_engine(DATABASE_URL, echo=True)` logs every SQL statement. Useful for debugging, but noisy and can leak sensitive data in production.
-- **Suggestion**: Set `echo` from the environment, e.g. `echo=os.getenv("SQL_ECHO", "false").lower() == "true"`, so it is off by default and can be enabled when needed.
+**Config loading in `db.py`**
 
----
+- **Current**: `db.py` reads `DATABASE_URL` via `os.getenv()` but does not call `load_dotenv()`. If the app is started without loading `.env` first (e.g. if only `config` is imported before `db`), the fallback URL might be used even when `.env` is present.
+- **Suggestion**: Either call `load_dotenv()` at the top of `db.py` (like `config.py`), or document that `config` (or `main`) must be imported first so that `load_dotenv()` runs before any code that uses `DATABASE_URL`. Prefer one clear place (e.g. `main.py` or `config.py`) that loads env and then import `db` after.
 
-### 5.2 Consistency and API design
+**Empty `app/run.py`**
 
-**Vehicle create when `licence_plate` is optional**
-
-- **Issue**: `VehicleCreate.licence_plate` is optional (`str | None = None`). The duplicate check `filter(models.Vehicle.licence_plate == data.licence_plate)` when `licence_plate` is `None` becomes `IS NULL`, so only one vehicle can have a null plate. If the business allows many vehicles without a plate, this is a bug; if “one unknown vehicle” is intended, it’s fine but worth documenting.
-- **Suggestion**: Decide the rule: either (a) require `licence_plate` in `VehicleCreate`, or (b) allow multiple null plates and only check uniqueness when `licence_plate` is not None (e.g. `if data.licence_plate is not None:` then run the duplicate check). Document the chosen behavior.
-
-**HTTP status codes**
-
-- **Issue**: Some validation errors use `400` (e.g. “Invalid ticket_id”, “Payment only allowed for closed tickets”). For “resource not found” you use `404`, which is good. For “business rule violated” (e.g. ticket not closed), `400` is acceptable; for “conflict” (e.g. spot occupied), `409` is already used and is good.
-- **Suggestion**: Keep 404 for “not found” and 409 for conflicts. Use 400 for bad request/validation. Optionally use 422 only for request body validation (FastAPI does this automatically for Pydantic). No change strictly required, but stay consistent.
-
-**Garage update is full replace**
-
-- **Issue**: `PUT /garages/{id}` expects full `GarageCreate` body. There is no `PATCH` for partial update (e.g. only change `default_rate`).
-- **Suggestion**: Optional but nice: add `GarageUpdate` with all optional fields and `PATCH /garages/{garage_id}` for partial updates, similar to vehicles and spots.
-
----
-
-### 5.3 Structure and maintainability
-
-**Empty `run.py`**
-
-- **Issue**: `app/run.py` is empty. The app is run by importing `app` from `app.main` (e.g. `uvicorn app.main:app`). Having an empty `run.py` is confusing.
+- **Current**: File is empty. Run command is `uvicorn app.main:app ...`.
 - **Suggestion**: Either remove `run.py` or use it as the entry point, e.g.:
 
   ```python
@@ -153,51 +91,70 @@
       uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
   ```
 
-  Then you can run with `python -m app.run` (or `python app/run.py`). Document the run command in the README.
+  Then you can run with `python -m app.run` and keep README in sync.
 
-**No dependency list**
+**Vehicle create with `licence_plate is None`**
 
-- **Issue**: There is no `requirements.txt` or `pyproject.toml`, so it’s unclear which versions of FastAPI, SQLAlchemy, psycopg2, etc. are used.
-- **Suggestion**: Add `requirements.txt` (or `pyproject.toml` with dependencies) and pin versions, e.g.:
+- **Current**: Uniqueness is checked only when `data.licence_plate is not None`, so multiple vehicles with `licence_plate is None` are allowed. That may be intended (e.g. “unknown” vehicles).
+- **Suggestion**: If that is the intended rule, add a short comment in the router or schema. If only one “unknown” vehicle should exist, add a check for an existing row with `licence_plate IS NULL` and return 400 in that case.
 
-  ```
-  fastapi>=0.109.0
-  uvicorn[standard]>=0.27.0
-  sqlalchemy>=2.0.0
-  psycopg2-binary>=2.9.9
-  pydantic>=2.0.0
-  ```
+### 3.3 API and validation
 
-  This improves reproducibility and onboarding.
+**Payment method and currency**
 
-**Dead code in services**
+- **Current**: `PaymentCreate.method` is a free-form string; `currency` defaults to `"RSD"` and is a string. DB has `method` as `String(20)`, `currency` as `String(3)`.
+- **Suggestion**: Optionally restrict `method` and `currency` (e.g. `Literal["CASH", "CARD", "BANK"]` and a small set of currency codes) and/or add `max_length` in Pydantic so validation and OpenAPI stay aligned with the DB and business rules.
 
-- **Issue**: `services/pricing.py` has `calculate_fee()` and `services/payments.py` has `recalc_ticket_payment_status()`; both are unused (DB triggers handle fee and payment_status). `services/tickets.py` is empty.
-- **Suggestion**: Either remove these functions (and the empty `services/tickets.py` file if unused) or move them to a small “scripts/utils” module and add a one-line comment that they are for offline tools or future API-based logic. This keeps the main codebase easier to follow.
+**Garage create/update types**
+
+- **Current**: `GarageCreate` / `GarageUpdate` use `float` for rates; DB and responses use `Decimal`. FastAPI/Pydantic will coerce, but using `Decimal` in schemas would match the domain and avoid float rounding in validation.
+- **Suggestion**: Use `Decimal` (or `condecimal`) for monetary and rate fields in create/update schemas for consistency with `GarageResponse` and the DB.
+
+### 3.4 Structure and maintainability
+
+**Pyright and `main.py`**
+
+- **Current**: `# pyright: reportMissingImports=false` at the top of `main.py` disables missing-import checks for the whole file.
+- **Suggestion**: Prefer fixing or typing the imports (e.g. `dotenv` in config) and removing the directive, or limit the directive to the few lines that need it so the rest of the file is still checked.
+
+**Optional relationships on models**
+
+- **Current**: `ParkingConfig` has no `relationship` to `ParkingSpot` or `Ticket`. Other models have relationships where needed.
+- **Suggestion**: If you often need “all spots for a garage” or “all tickets for a garage”, adding e.g. `spots = relationship("ParkingSpot", back_populates="garage")` (and backrefs on spots) can simplify code and avoid extra queries. Optional and only if it improves readability.
+
+### 3.5 Testing and ops
+
+**Test isolation**
+
+- **Current**: Integration tests hit the real database; test_garages and test_tickets_flow create real rows (garages, spots, vehicles, tickets).
+- **Suggestion**: For stability and parallel runs, consider: (a) a dedicated test DB and cleaning key tables in `conftest.py` (e.g. in a fixture with `yield`), or (b) using transactions/rollback so each test runs in an isolated transaction. That reduces interference and makes tests more predictable.
+
+**More coverage**
+
+- **Current**: Health, garages, vehicle types, and one ticket flow are covered.
+- **Suggestion**: Add tests for: payments (create for closed ticket, overpayment rejected, list by ticket); spots (create, filter by garage/active/free, deactivate); vehicles (create, get by plate, 404); tickets (exit, list filters). Even a few tests per resource will catch regressions.
 
 ---
 
-### 5.4 Optional improvements
+## 4. Summary table
 
-- **Response models**: You already use `response_model` in many places. Where you return lists, using `PaginatedResponse[SomeResponse]` is good. No change needed unless you want to hide internal fields.
-- **OpenAPI metadata**: In `FastAPI(title="Parking API")` you could add `description=...`, `version="1.0.0"`, and tags for better Swagger/ReDoc.
-- **Health check**: `/health` could check DB connectivity (e.g. `db.execute(text("SELECT 1"))`) and return 503 if DB is down, so load balancers can detect unhealthy instances.
-- **Pagination**: List endpoints already use `limit`/`offset` and `PaginatedResponse` where it matters. Good.
-- **Model relationships**: Adding `ParkingConfig.spots` and `ParkingConfig.tickets` (and backrefs) would allow `garage.spots` in code; optional and only if you find yourself writing extra queries.
+| Area                    | Status / suggestion |
+|-------------------------|---------------------|
+| Architecture            | Good separation; keep routers thin and services for logic. |
+| Pagination & route order| In good shape. |
+| Auth & CORS             | Solid; API key and CORS config are clear. |
+| Fee / payment status    | Flexible (API vs DB); services used when flags are on. |
+| Security                | Remove or restrict default DB URL with credentials; make `echo` configurable. |
+| Config / env            | Ensure `.env` is loaded before `db` uses `DATABASE_URL`. |
+| Run entry point         | Use or remove `run.py` and document. |
+| Schemas                 | Consider `Decimal` for money/rates; optional Literals for payment method/currency. |
+| Tests                   | Add payment/spot/vehicle/ticket tests; improve isolation. |
+| Type checking           | Prefer targeted pyright over disabling for whole file. |
 
 ---
 
-## 6. Summary of suggested actions
+## 5. Opinion
 
-| Priority   | Action |
-|-----------|--------|
-| High      | Remove hardcoded DB password; use env-only or `.env`. |
-| High      | Make SQLAlchemy `echo` configurable (default off). |
-| High      | Payments: remove `POST /payments/{payment_id}`; keep only `PUT` for update. |
-| Medium    | Fix or document vehicle create when `licence_plate` is None (uniqueness rule). |
-| Medium    | Add `requirements.txt` (or pyproject) and document how to run the app. |
-| Medium    | Use `run.py` as uvicorn entry point or delete it. |
-| Low       | Remove or relocate dead code in `services/pricing.py` and `services/payments.py`; remove empty `services/tickets.py` if unused. |
-| Low       | Optional: add `GarageUpdate` + `PATCH /garages/{id}`; enrich OpenAPI and health check. |
+The project is in good shape: clear structure, sensible API design, and careful handling of entry/exit, payments, and constraints. The main gaps are **security and config** (default DB URL with password, SQL echo always on, env loading order) and **test coverage/isolation**. Addressing the security and config points will make it safe and predictable in production; improving tests will make refactors and new features safer. The rest are incremental improvements (types, schemas, optional relationships) that you can adopt as you go.
 
-Overall, the project is well structured (routers, services, schemas, models), uses the DB as source of truth for fee and payment status, and handles errors and edge cases in most places. Addressing the items above will make it safer, clearer, and easier to maintain and deploy.
+Implementing the two critical items (no hardcoded credentials in default URL for production, and `SQL_ECHO`-driven `echo` in `db.py`) plus either using or removing `run.py` would already be a strong next step.

@@ -153,14 +153,27 @@ class PaymentUpdate(BaseModel):
 class GarageCreate(BaseModel):
     name: str
     capacity: int
-    default_rate: float
-    lost_ticket_fee: float | None = None
-    night_rate: float | None = None
-    day_rate: float | None = None
+    default_rate: Decimal
+    lost_ticket_fee: Decimal | None = None
+    night_rate: Decimal | None = None
+    day_rate: Decimal | None = None
     open_time: time | None = None
     close_time: time | None = None
     allow_subscription: bool | None = True
     created_at: datetime | None = None
+
+
+class GarageUpdate(BaseModel):
+    """All fields optional for PATCH partial updates."""
+    name: str | None = None
+    capacity: int | None = None
+    default_rate: Decimal | None = None
+    lost_ticket_fee: Decimal | None = None
+    night_rate: Decimal | None = None
+    day_rate: Decimal | None = None
+    open_time: time | None = None
+    close_time: time | None = None
+    allow_subscription: bool | None = None
 
 
 class SpotCreate(BaseModel):

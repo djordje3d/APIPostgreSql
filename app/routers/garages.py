@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.db import get_db
 from app import models, schemas
-from datetime import datetime, timezone
 
 router = APIRouter(prefix="/garages", tags=["Garages"])
 
@@ -58,6 +57,7 @@ def create_garage(data: schemas.GarageCreate, db: Session = Depends(get_db)):
 def update_garage(
     garage_id: int, data: schemas.GarageCreate, db: Session = Depends(get_db)
 ):
+    """Full replace: send all garage fields."""
     g = db.get(models.ParkingConfig, garage_id)
     if not g:
         raise HTTPException(404, "Garage not found")
@@ -70,6 +70,22 @@ def update_garage(
     g.open_time = data.open_time
     g.close_time = data.close_time
     g.allow_subscription = data.allow_subscription
+    db.commit()
+    db.refresh(g)
+    return g
+
+
+@router.patch("/{garage_id}", response_model=schemas.GarageResponse)
+def patch_garage(
+    garage_id: int, data: schemas.GarageUpdate, db: Session = Depends(get_db)
+):
+    """Partial update: send only the fields you want to change."""
+    g = db.get(models.ParkingConfig, garage_id)
+    if not g:
+        raise HTTPException(404, "Garage not found")
+    update = data.model_dump(exclude_unset=True)
+    for key, value in update.items():
+        setattr(g, key, value)
     db.commit()
     db.refresh(g)
     return g
