@@ -10,6 +10,12 @@ const router = createRouter({
       meta: { title: 'Dashboard' },
     },
     {
+      path: '/by-garage',
+      name: 'dashboard-by-garage',
+      component: () => import('../views/GarageDashboardView.vue'),
+      meta: { title: 'Dashboard by garage' },
+    },
+    {
       path: '/garage/:id',
       name: 'garage-detail',
       component: () => import('../views/GarageDetailView.vue'),

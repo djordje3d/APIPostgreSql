@@ -105,11 +105,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import { listTicketsDashboard } from '../api/tickets'
-import { ticketExit } from '../api/tickets'
+import { ref, onMounted, nextTick, watch } from 'vue'
+import { listTicketsDashboard, ticketExit } from '../api/tickets'
 import type { TicketDashboardRow } from '../api/tickets'
 import PaymentModal from './PaymentModal.vue'
+
+const props = withDefaults(
+  defineProps<{ garageId?: number | null }>(),
+  { garageId: undefined }
+)
 
 const loading = ref(true)
 const tickets = ref<TicketDashboardRow[]>([])
@@ -129,7 +133,11 @@ function formatTime(s: string | null) {
 async function fetch() {
   loading.value = true
   try {
-    const res = await listTicketsDashboard({ limit: 10, offset: 0 })
+    const res = await listTicketsDashboard({
+      ...(props.garageId != null ? { garage_id: props.garageId } : {}),
+      limit: 10,
+      offset: 0,
+    })
     tickets.value = res.data.items
   } catch {
     tickets.value = []
@@ -171,6 +179,7 @@ function onPaymentDone() {
 }
 
 onMounted(fetch)
+watch(() => props.garageId, fetch)
 
 defineExpose({ refresh: fetch })
 </script>

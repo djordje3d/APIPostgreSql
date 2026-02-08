@@ -13,10 +13,21 @@ export interface Payment {
 export function listPayments(params?: {
   from?: string
   to?: string
+  garage_id?: number
   limit?: number
   offset?: number
 }) {
   return api.get<Paginated<Payment>>('/payments', { params })
+}
+
+export interface OutstandingResponse {
+  total_outstanding: number
+}
+
+export function getOutstanding(garageId?: number | null) {
+  return api.get<OutstandingResponse>('/payments/outstanding', {
+    params: garageId != null ? { garage_id: garageId } : {},
+  })
 }
 
 export function getPaymentsByTicket(ticketId: number, params?: { limit?: number; offset?: number }) {

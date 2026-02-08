@@ -156,6 +156,11 @@ class PaymentResponse(BaseModel):
     paid_at: datetime | None
 
 
+class OutstandingResponse(BaseModel):
+    """Total amount still to be paid for unpaid/partially paid tickets (optionally per garage)."""
+    total_outstanding: float
+
+
 class PaymentUpdate(BaseModel):
     amount: Decimal = Field(gt=0)
     method: str

@@ -20,13 +20,18 @@ def list_payments(
     db: Session = Depends(get_db),
     from_date: date | None = Query(default=None, alias="from"),
     to_date: date | None = Query(default=None, alias="to"),
+    garage_id: int | None = Query(default=None),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
-    """List payments, optionally filtered by paid_at date range (inclusive)."""
+    """List payments, filtered by paid_at date range (inclusive) and garage."""
     q = db.query(models.Payment).order_by(models.Payment.paid_at.desc())
+    if garage_id is not None:
+        q = q.join(models.Ticket).filter(models.Ticket.garage_id == garage_id)
     if from_date is not None:
-        start = datetime.fromisoformat(from_date.isoformat() + "T00:00:00+00:00")
+        start = datetime.fromisoformat(
+            from_date.isoformat() + "T00:00:00+00:00"
+        )
         q = q.filter(models.Payment.paid_at >= start)
     if to_date is not None:
         end_exclusive = datetime.fromisoformat(
@@ -78,6 +83,34 @@ def create_payment(data: schemas.PaymentCreate, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Payment failed: {str(e)}")
+
+
+@router.get(
+    "/outstanding",
+    response_model=schemas.OutstandingResponse,
+)
+def get_outstanding(
+    garage_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    """Total still to pay for closed UNPAID/PARTIALLY_PAID tickets."""
+    q = db.query(models.Ticket).filter(
+        models.Ticket.ticket_state == "CLOSED",
+        models.Ticket.payment_status.in_(["UNPAID", "PARTIALLY_PAID"]),
+    )
+    if garage_id is not None:
+        q = q.filter(models.Ticket.garage_id == garage_id)
+    tickets = q.all()
+    total = 0.0
+    for t in tickets:
+        fee = float(t.fee or 0)
+        paid = (
+            db.query(func.coalesce(func.sum(models.Payment.amount), 0))
+            .filter(models.Payment.ticket_id == t.id)
+            .scalar()
+        )
+        total += fee - float(paid)
+    return schemas.OutstandingResponse(total_outstanding=max(0.0, total))
 
 
 @router.get(

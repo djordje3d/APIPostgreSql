@@ -29,7 +29,11 @@ export function listTickets(params?: {
   return api.get<Paginated<TicketResponse>>('/tickets', { params })
 }
 
-export function listTicketsDashboard(params?: { limit?: number; offset?: number }) {
+export function listTicketsDashboard(params?: {
+  garage_id?: number
+  limit?: number
+  offset?: number
+}) {
   return api.get<Paginated<TicketDashboardRow>>('/tickets/dashboard', { params })
 }
 

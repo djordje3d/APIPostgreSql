@@ -18,6 +18,7 @@ router = APIRouter(prefix="/tickets", tags=["Tickets"])
 )
 def list_tickets_dashboard(
     db: Session = Depends(get_db),
+    garage_id: int | None = Query(default=None),
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
@@ -30,6 +31,8 @@ def list_tickets_dashboard(
         )
         .order_by(models.Ticket.id.desc())
     )
+    if garage_id is not None:
+        q = q.filter(models.Ticket.garage_id == garage_id)
     total = q.count()
     tickets = q.limit(limit).offset(offset).all()
     items = [

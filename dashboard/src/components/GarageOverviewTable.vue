@@ -7,7 +7,7 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
+            <th v-if="!garageId" class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
             <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Total spots</th>
             <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Free</th>
             <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Occupied</th>
@@ -16,22 +16,22 @@
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
           <tr v-if="loading" class="text-center text-gray-500">
-            <td colspan="5" class="px-4 py-6">Loading…</td>
+            <td :colspan="garageId ? 4 : 5" class="px-4 py-6">Loading…</td>
           </tr>
           <tr
             v-for="row in rows"
             :key="row.garage_id"
-            class="cursor-pointer hover:bg-gray-50"
-            @click="$router.push({ name: 'garage-detail', params: { id: row.garage_id } })"
+            :class="garageId ? '' : 'cursor-pointer hover:bg-gray-50'"
+            @click="!garageId && $router.push({ name: 'garage-detail', params: { id: row.garage_id } })"
           >
-            <td class="px-4 py-3 font-medium text-gray-900">{{ row.name }}</td>
+            <td v-if="!garageId" class="px-4 py-3 font-medium text-gray-900">{{ row.name }}</td>
             <td class="px-4 py-3 text-right text-gray-700">{{ row.total_spots }}</td>
             <td class="px-4 py-3 text-right text-green-700">{{ row.free }}</td>
             <td class="px-4 py-3 text-right text-red-700">{{ row.occupied }}</td>
             <td class="px-4 py-3 text-right text-gray-700">{{ row.rentable }}</td>
           </tr>
           <tr v-if="!loading && rows.length === 0">
-            <td colspan="5" class="px-4 py-6 text-center text-gray-500">No garages</td>
+            <td :colspan="garageId ? 4 : 5" class="px-4 py-6 text-center text-gray-500">No garages</td>
           </tr>
         </tbody>
       </table>
@@ -40,10 +40,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { listGarages } from '../api/garages'
+import { ref, onMounted, watch } from 'vue'
+import { listGarages, getGarage } from '../api/garages'
 import { listSpots } from '../api/spots'
 import type { Garage } from '../api/garages'
+
+const props = withDefaults(
+  defineProps<{ garageId?: number | null }>(),
+  { garageId: undefined }
+)
 
 interface Row {
   garage_id: number
@@ -60,8 +65,9 @@ const rows = ref<Row[]>([])
 async function fetch() {
   loading.value = true
   try {
-    const gRes = await listGarages({ limit: 100 })
-    const garages = gRes.data.items
+    const garages: Garage[] = props.garageId != null
+      ? [(await getGarage(props.garageId)).data]
+      : (await listGarages({ limit: 100 })).data.items
     const result: Row[] = []
     for (const g of garages) {
       const [allRes, freeRes] = await Promise.all([
@@ -90,6 +96,7 @@ async function fetch() {
 }
 
 onMounted(fetch)
+watch(() => props.garageId, fetch)
 
 defineExpose({ refresh: fetch })
 </script>

@@ -40,9 +40,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { listSpots } from '../api/spots'
 import { listTickets } from '../api/tickets'
+
+const props = withDefaults(
+  defineProps<{ garageId?: number | null }>(),
+  { garageId: undefined }
+)
 
 const loading = ref(true)
 const freeSpots = ref(0)
@@ -50,14 +55,24 @@ const occupiedSpots = ref(0)
 const inactiveSpots = ref(0)
 const openTickets = ref(0)
 
+const spotParams = () => ({
+  ...(props.garageId != null ? { garage_id: props.garageId } : {}),
+  limit: 1000,
+})
+const ticketParams = () => ({
+  ...(props.garageId != null ? { garage_id: props.garageId } : {}),
+  state: 'OPEN' as const,
+  limit: 1,
+})
+
 async function fetch() {
   loading.value = true
   try {
     const [freeRes, allSpotsRes, activeOnlyRes, openRes] = await Promise.all([
-      listSpots({ only_free: true, active_only: true, limit: 1000 }),
-      listSpots({ active_only: false, limit: 1000 }),
-      listSpots({ active_only: true, limit: 1000 }),
-      listTickets({ state: 'OPEN', limit: 1 }),
+      listSpots({ ...spotParams(), only_free: true, active_only: true }),
+      listSpots({ ...spotParams(), active_only: false }),
+      listSpots({ ...spotParams(), active_only: true }),
+      listTickets(ticketParams()),
     ])
     freeSpots.value = freeRes.data.total
     const totalActive = activeOnlyRes.data.total
@@ -73,6 +88,7 @@ async function fetch() {
 }
 
 onMounted(fetch)
+watch(() => props.garageId, fetch)
 
 defineExpose({ refresh: fetch })
 </script>
