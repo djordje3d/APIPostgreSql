@@ -11,6 +11,7 @@ fee calculation and payment status updates are done in the API or by the DB.
   .env is loaded from the project root (parent of app/) so it is found
   regardless of the process current working directory.
 """
+
 import logging
 import os
 from pathlib import Path
@@ -75,15 +76,11 @@ def _normalize_and_validate_cors_origins(raw: str) -> tuple[list[str], list[str]
 
 # If True, API computes ticket fee and sets ticket_state to CLOSED on exit.
 # If False, API only sets exit_time; fee/state expected from a DB trigger.
-USE_API_FEE_CALCULATION: bool = _env_bool(
-    "USE_API_FEE_CALCULATION", default=False
-)
+USE_API_FEE_CALCULATION: bool = _env_bool("USE_API_FEE_CALCULATION", default=False)
 
 # If True, API recalculates ticket.payment_status after create/update/delete.
 # If False, payment_status is expected to be updated by a DB trigger.
-USE_API_PAYMENT_STATUS: bool = _env_bool(
-    "USE_API_PAYMENT_STATUS", default=False
-)
+USE_API_PAYMENT_STATUS: bool = _env_bool("USE_API_PAYMENT_STATUS", default=False)
 
 # CORS: set CORS_DISABLED=true to skip adding CORSMiddleware (server-only/same-origin).
 CORS_DISABLED: bool = _env_bool("CORS_DISABLED", default=False)

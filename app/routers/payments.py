@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date, timedelta
 
 from app.db import get_db
 from app import models, schemas
@@ -10,6 +10,34 @@ from app.config import USE_API_PAYMENT_STATUS
 from app.services.payments import recalc_ticket_payment_status
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
+
+
+@router.get(
+    "",
+    response_model=schemas.PaginatedResponse[schemas.PaymentResponse],
+)
+def list_payments(
+    db: Session = Depends(get_db),
+    from_date: date | None = Query(default=None, alias="from"),
+    to_date: date | None = Query(default=None, alias="to"),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+):
+    """List payments, optionally filtered by paid_at date range (inclusive)."""
+    q = db.query(models.Payment).order_by(models.Payment.paid_at.desc())
+    if from_date is not None:
+        start = datetime.fromisoformat(from_date.isoformat() + "T00:00:00+00:00")
+        q = q.filter(models.Payment.paid_at >= start)
+    if to_date is not None:
+        end_exclusive = datetime.fromisoformat(
+            (to_date + timedelta(days=1)).isoformat() + "T00:00:00+00:00"
+        )
+        q = q.filter(models.Payment.paid_at < end_exclusive)
+    total = q.count()
+    items = q.limit(limit).offset(offset).all()
+    return schemas.PaginatedResponse(
+        total=total, limit=limit, offset=offset, items=items
+    )
 
 
 @router.post("", response_model=schemas.PaymentResponse)

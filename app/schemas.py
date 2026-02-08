@@ -61,6 +61,23 @@ class TicketResponse(BaseModel):
     spot_id: int | None
 
 
+class TicketDashboardRow(BaseModel):
+    """Ticket list row with licence_plate and spot_code for dashboard."""
+
+    id: int
+    entry_time: datetime | None
+    exit_time: datetime | None
+    fee: Decimal | None
+    ticket_state: str | None
+    payment_status: str | None
+    operational_status: str | None
+    vehicle_id: int | None
+    garage_id: int
+    spot_id: int | None
+    licence_plate: str | None = None
+    spot_code: str | None = None
+
+
 # --- Pagination ---
 T = TypeVar("T")
 

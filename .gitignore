@@ -24,6 +24,17 @@ ENV/
 .vscode/
 *.code-workspace
 
+# --- Frontend (dashboard) ---
+dashboard/node_modules/
+dashboard/dist/
+
+# --- Frontend (dashboard) ---
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env
+dashboard/.env.local
+dashboard/.env.*.local
+dashboard/.vite
 # --- OS ---
 Thumbs.db
 .DS_Store

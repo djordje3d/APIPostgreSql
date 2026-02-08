@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 
@@ -10,6 +10,48 @@ from app.services.spots import allocate_free_spot
 from app.services.pricing import get_ticket_fee
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
+
+
+@router.get(
+    "/dashboard",
+    response_model=schemas.PaginatedResponse[schemas.TicketDashboardRow],
+)
+def list_tickets_dashboard(
+    db: Session = Depends(get_db),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """List tickets with licence_plate and spot_code for dashboard."""
+    q = (
+        db.query(models.Ticket)
+        .options(
+            joinedload(models.Ticket.vehicle),
+            joinedload(models.Ticket.spot),
+        )
+        .order_by(models.Ticket.id.desc())
+    )
+    total = q.count()
+    tickets = q.limit(limit).offset(offset).all()
+    items = [
+        schemas.TicketDashboardRow(
+            id=t.id,
+            entry_time=t.entry_time,
+            exit_time=t.exit_time,
+            fee=t.fee,
+            ticket_state=t.ticket_state,
+            payment_status=t.payment_status,
+            operational_status=t.operational_status,
+            vehicle_id=t.vehicle_id,
+            garage_id=t.garage_id,
+            spot_id=t.spot_id,
+            licence_plate=t.vehicle.licence_plate if t.vehicle else None,
+            spot_code=t.spot.code if t.spot else None,
+        )
+        for t in tickets
+    ]
+    return schemas.PaginatedResponse(
+        total=total, limit=limit, offset=offset, items=items
+    )
 
 
 @router.get(
@@ -95,7 +137,7 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
             if not spot:
                 raise HTTPException(400, "Invalid spot_id")
             if spot.garage_id != data.garage_id:
-                raise HTTPException(400, "spot_id does not belong to this garage")
+                raise HTTPException(400, "spot_id does not belong to garage")
             if not spot.is_active:
                 raise HTTPException(400, "Spot is not active")
 
@@ -155,10 +197,9 @@ def ticket_exit(
         raise HTTPException(400, "Ticket is not open")
 
     t.exit_time = data.exit_time or datetime.now(timezone.utc)
-
+    t.ticket_state = "CLOSED"
     if USE_API_FEE_CALCULATION:
         t.fee = get_ticket_fee(t, db)
-        t.ticket_state = "CLOSED"
 
     db.commit()
     db.refresh(t)
