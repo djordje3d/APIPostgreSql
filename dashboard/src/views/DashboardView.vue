@@ -1,10 +1,6 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <span class="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800" title="Data refreshes automatically every 12s and when you return to this tab">Live</span>
-      </div>
+    <div class="flex items-center justify-end">
       <button
         type="button"
         class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
@@ -15,14 +11,8 @@
     </div>
     <StatusCards ref="statusRef" />
     <GarageOverviewTable ref="garageRef" />
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div class="lg:col-span-2">
-        <TicketActivityTable ref="ticketRef" />
-      </div>
-      <div>
-        <RevenueSummary ref="revenueRef" />
-      </div>
-    </div>
+    <TicketActivityTable ref="ticketRef" />
+    <RevenueSummary ref="revenueRef" />
   </div>
 </template>
 
@@ -49,6 +39,7 @@ function refreshAll() {
 useDashboardPolling(refreshAll)
 
 onMounted(() => {
+  refreshAll() // load data immediately so it appears without clicking Refresh
   window.addEventListener('dashboard-refresh', refreshAll)
 })
 onUnmounted(() => {

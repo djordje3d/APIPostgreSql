@@ -2,8 +2,6 @@
   <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex flex-wrap items-center gap-3">
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard by garage</h1>
-        <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700" title="Click Refresh to update data">Manual refresh</span>
         <label class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-700">Garage</span>
           <select
@@ -26,14 +24,7 @@
     <template v-if="selectedGarageId != null">
       <StatusCards ref="statusRef" :garage-id="selectedGarageId" />
       <GarageOverviewTable ref="garageRef" :garage-id="selectedGarageId" />
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div class="lg:col-span-2">
-          <TicketActivityTable ref="ticketRef" :garage-id="selectedGarageId" />
-        </div>
-        <div>
-          <RevenueSummary ref="revenueRef" :garage-id="selectedGarageId" />
-        </div>
-      </div>
+      <TicketActivityTable ref="ticketRef" :garage-id="selectedGarageId" />
       <section class="rounded-lg bg-slate-50 p-4 text-sm ring-1 ring-slate-200">
         <h3 class="mb-3 font-semibold text-slate-800">Status &amp; actions</h3>
         <dl class="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -44,6 +35,7 @@
           <div><dt class="font-medium text-slate-700">Refresh</dt><dd class="text-slate-600">Updates all dashboard data (balance, revenue, tickets, spots). Use after making changes elsewhere.</dd></div>
         </dl>
       </section>
+      <RevenueSummary ref="revenueRef" :garage-id="selectedGarageId" />
     </template>
     <div v-else class="rounded-lg bg-white p-8 text-center shadow ring-1 ring-gray-200">
       <p class="text-gray-500">Select a garage from the dropdown to view its dashboard.</p>

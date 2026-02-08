@@ -8,18 +8,23 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
+            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Spot</th>
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Plate</th>
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Status</th>
+            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Payment</th>
+            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Fee</th>
+            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Rest to pay</th>
             <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
           <tr v-if="loading" class="text-center text-gray-500">
-            <td colspan="5" class="px-4 py-6">Loading…</td>
+            <td colspan="9" class="px-4 py-6">Loading…</td>
           </tr>
           <tr v-for="t in (tickets || [])" :key="t.id" class="hover:bg-gray-50">
             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.entry_time) }}</td>
+            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.exit_time) }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ t.spot_code ?? '–' }}</td>
             <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ t.licence_plate ?? '–' }}</td>
             <td class="px-4 py-3">
@@ -32,6 +37,18 @@
                 {{ t.ticket_state }}
               </span>
             </td>
+            <td class="px-4 py-3">
+              <span
+                :class="[
+                  'rounded px-2 py-0.5 text-xs font-medium',
+                  t.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : t.payment_status === 'PARTIALLY_PAID' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700',
+                ]"
+              >
+                {{ t.payment_status ?? '–' }}
+              </span>
+            </td>
+            <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">{{ formatMoney(t.fee) }}</td>
+            <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium" :class="restToPayClass(t)">{{ formatRestToPay(t) }}</td>
             <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
               <button
                 type="button"
@@ -64,7 +81,7 @@
             </td>
           </tr>
           <tr v-if="!loading && (!tickets || tickets.length === 0)">
-            <td colspan="5" class="px-4 py-6 text-center text-gray-500">No tickets</td>
+            <td colspan="9" class="px-4 py-6 text-center text-gray-500">No tickets</td>
           </tr>
         </tbody>
       </table>
@@ -128,6 +145,25 @@ function formatTime(s: string | null) {
   } catch {
     return s
   }
+}
+
+function formatMoney(value: string | null | undefined): string {
+  if (value == null || value === '') return '–'
+  const n = parseFloat(String(value))
+  if (Number.isNaN(n)) return '–'
+  return new Intl.NumberFormat('sr-RS', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n) + ' RSD'
+}
+
+function formatRestToPay(t: TicketDashboardRow): string {
+  if (t.ticket_state === 'OPEN') return '–'
+  if (t.payment_status === 'PAID') return '0 RSD'
+  if (t.fee != null && t.fee !== '') return formatMoney(t.fee)
+  return '–'
+}
+
+function restToPayClass(t: TicketDashboardRow): string {
+  if (t.payment_status === 'PAID' || t.ticket_state === 'OPEN') return 'text-gray-500'
+  return 'text-amber-700'
 }
 
 async function fetch() {
