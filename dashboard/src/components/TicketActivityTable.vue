@@ -6,7 +6,7 @@
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
-          <tr>
+          <tr>  
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
             <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Spot</th>
@@ -200,6 +200,7 @@ async function closeTicket(id: number) {
   }
 }
 
+// TODO: make it work (the modal is not closing)
 function closePaymentModal() {
   nextTick(() => {
     paymentTicket.value = null

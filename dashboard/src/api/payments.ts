@@ -1,7 +1,7 @@
 import { api } from './client'
 import type { Paginated } from './garages'
 
-export interface Payment {
+export interface Payment { // TODO: change to PaymentResponse
   id: number
   ticket_id: number | null
   amount: string
@@ -24,7 +24,7 @@ export interface OutstandingResponse {
   total_outstanding: number
 }
 
-export function getOutstanding(garageId?: number | null) {
+export function getOutstanding(garageId?: number | null) { // TODO: change to getOutstandingResponse
   return api.get<OutstandingResponse>('/payments/outstanding', {
     params: garageId != null ? { garage_id: garageId } : {},
   })
