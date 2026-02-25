@@ -17,13 +17,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, inject, onMounted, onUnmounted } from 'vue'
+import type { Ref } from 'vue'
 import StatusCards from '../components/StatusCards.vue'
 import GarageOverviewTable from '../components/GarageOverviewTable.vue'
 import TicketActivityTable from '../components/TicketActivityTable.vue'
 import RevenueSummary from '../components/RevenueSummary.vue'
 import { useDashboardPolling } from '../composables/useDashboardPolling'
 
+const autoRefreshEnabled = inject<Ref<boolean>>('autoRefreshEnabled', ref(true))
 const statusRef = ref<InstanceType<typeof StatusCards> | null>(null)
 const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null)
 const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null)
@@ -36,7 +38,7 @@ function refreshAll() {
   revenueRef.value?.refresh?.()
 }
 
-useDashboardPolling(refreshAll)
+useDashboardPolling(refreshAll, { enabled: autoRefreshEnabled })
 
 onMounted(() => {
   refreshAll() // load data immediately so it appears without clicking Refresh

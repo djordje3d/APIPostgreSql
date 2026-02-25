@@ -13,6 +13,14 @@
         <nav class="flex items-center gap-4">
           <router-link to="/" class="text-xl font-semibold">Dashboard</router-link>
           <router-link to="/by-garage" class="text-sm text-slate-300 hover:text-white">By garage</router-link>
+          <label class="flex cursor-pointer select-none items-center gap-2 text-sm text-slate-200">
+            <input
+              v-model="autoRefreshEnabled"
+              type="checkbox"
+              class="h-4 w-4 rounded border-slate-500 bg-slate-700 text-emerald-600 focus:ring-emerald-500"
+            />
+            Auto refresh
+          </label>
         </nav>
         <button
           type="button"
@@ -33,12 +41,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, nextTick, watch, provide, onMounted, onUnmounted } from 'vue'
 import NewVehicleEntryModal from './components/NewVehicleEntryModal.vue'
 import { baseURL } from './api/client'
 
+const AUTO_REFRESH_STORAGE_KEY = 'dashboard-auto-refresh'
+
+function loadAutoRefreshEnabled(): boolean {
+  try {
+    const stored = localStorage.getItem(AUTO_REFRESH_STORAGE_KEY)
+    return stored !== 'false'
+  } catch {
+    return true
+  }
+}
+
 const showNewEntry = ref(false)
 const apiConnectionError = ref<string | null>(null)
+const autoRefreshEnabled = ref(loadAutoRefreshEnabled())
+
+watch(autoRefreshEnabled, (value) => {
+  try {
+    localStorage.setItem(AUTO_REFRESH_STORAGE_KEY, String(value))
+  } catch {
+    // ignore
+  }
+}, { immediate: true })
+
+provide('autoRefreshEnabled', autoRefreshEnabled)
 
 function onApiError(e: Event) {
   apiConnectionError.value = (e as CustomEvent).detail?.baseURL ?? baseURL

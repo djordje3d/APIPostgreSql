@@ -70,7 +70,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, inject, onMounted } from 'vue'
+import type { Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getGarage } from '../api/garages'
 import { listSpots } from '../api/spots'
@@ -80,6 +81,7 @@ import type { Garage } from '../api/garages'
 import type { Spot } from '../api/spots'
 import type { TicketDashboardRow } from '../api/tickets'
 
+const autoRefreshEnabled = inject<Ref<boolean>>('autoRefreshEnabled', ref(true))
 const route = useRoute()
 const garage = ref<Garage | null>(null)
 const spots = ref<Spot[]>([])
@@ -117,7 +119,7 @@ async function fetch() {
   }
 }
 
-useDashboardPolling(fetch, { intervalMs: 10_000 })
+useDashboardPolling(fetch, { intervalMs: 10_000, enabled: autoRefreshEnabled })
 watch(() => route.params.id, fetch, { immediate: true })
 onMounted(fetch)
 </script>
