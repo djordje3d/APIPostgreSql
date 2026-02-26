@@ -25,7 +25,9 @@
       <StatusCards ref="statusRef" :garage-id="selectedGarageId" />
       <GarageOverviewTable ref="garageRef" :garage-id="selectedGarageId" />
       <TicketActivityTable ref="ticketRef" :garage-id="selectedGarageId" />
-      <section class="rounded-lg bg-slate-50 p-4 text-sm ring-1 ring-slate-200">
+
+      <!-- Ticket states explanation -->
+      <section class="rounded-lg bg-slate-50 p-4 text-sm ring-1 ring-slate-200"> 
         <h3 class="mb-3 font-semibold text-slate-800">Status &amp; actions</h3>
         <dl class="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
           <div><dt class="font-medium text-slate-700">OPEN</dt><dd class="text-slate-600">Ticket is active; vehicle is parked. You can <strong>Close</strong> the ticket when the vehicle leaves.</dd></div>
@@ -35,6 +37,7 @@
           <div><dt class="font-medium text-slate-700">Refresh</dt><dd class="text-slate-600">Updates all dashboard data (balance, revenue, tickets, spots). Use after making changes elsewhere.</dd></div>
         </dl>
       </section>
+      <!-- Revenue summary -->
       <RevenueSummary ref="revenueRef" :garage-id="selectedGarageId" />
     </template>
     <div v-else class="rounded-lg bg-white p-8 text-center shadow ring-1 ring-gray-200">
@@ -55,12 +58,15 @@ import type { Garage } from '../api/garages'
 const garages = ref<Garage[]>([])
 const selectedGarageId = ref<number | null>(null)
 
-const statusRef = ref<InstanceType<typeof StatusCards> | null>(null)
-const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null)
-const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null)
-const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null)
+// InstanceType is a Vue API type that represents a component instance
+// null (before the component mounts) is the initial value
+const statusRef = ref<InstanceType<typeof StatusCards> | null>(null)  // status cards component reference
+const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null)  // garage overview table component reference
+const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null)  // ticket activity table component reference
+const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null)  // revenue summary component reference
 
-function refreshAll() {
+
+function refreshAll() {  // refresh all components
   statusRef.value?.refresh?.()
   garageRef.value?.refresh?.()
   ticketRef.value?.refresh?.()
@@ -79,11 +85,18 @@ async function loadGarages() {
   }
 }
 
+// watch for changes in the selected garage id
+// if the selected garage id changes, refresh all components
+// "watch" is Vue API function that observes a value (like ref or computed) and runs a function when the value changes
 watch(selectedGarageId, () => {
   if (selectedGarageId.value != null) refreshAll()
 })
 
 onMounted(loadGarages)
 
+// expose refreshAll to parent components
+// this allows the parent component to refresh all components
+// this is useful for when the user wants to refresh the data
+// without having to refresh each component individually
 defineExpose({ refreshAll })
 </script>

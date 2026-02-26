@@ -35,23 +35,29 @@ def list_tickets_dashboard(
         q = q.filter(models.Ticket.garage_id == garage_id)
     total = q.count()
     tickets = q.limit(limit).offset(offset).all()
-    items = [
-        schemas.TicketDashboardRow(
-            id=t.id,
-            entry_time=t.entry_time,
-            exit_time=t.exit_time,
-            fee=t.fee,
-            ticket_state=t.ticket_state,
-            payment_status=t.payment_status,
-            operational_status=t.operational_status,
-            vehicle_id=t.vehicle_id,
-            garage_id=t.garage_id,
-            spot_id=t.spot_id,
-            licence_plate=t.vehicle.licence_plate if t.vehicle else None,
-            spot_code=t.spot.code if t.spot else None,
+    items = []
+    for t in tickets:
+        # Use computed fee when entry_time and exit_time are set, so direct DB
+        # changes to entry/exit are reflected after refresh (dashboard display only).
+        fee = t.fee
+        if t.entry_time is not None and t.exit_time is not None:
+            fee = get_ticket_fee(t, db)
+        items.append(
+            schemas.TicketDashboardRow(
+                id=t.id,
+                entry_time=t.entry_time,
+                exit_time=t.exit_time,
+                fee=fee,
+                ticket_state=t.ticket_state,
+                payment_status=t.payment_status,
+                operational_status=t.operational_status,
+                vehicle_id=t.vehicle_id,
+                garage_id=t.garage_id,
+                spot_id=t.spot_id,
+                licence_plate=t.vehicle.licence_plate if t.vehicle else None,
+                spot_code=t.spot.code if t.spot else None,
+            )
         )
-        for t in tickets
-    ]
     return schemas.PaginatedResponse(
         total=total, limit=limit, offset=offset, items=items
     )

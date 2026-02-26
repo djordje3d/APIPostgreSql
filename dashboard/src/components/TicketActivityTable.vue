@@ -125,6 +125,7 @@
 import { ref, onMounted, nextTick, watch } from 'vue'
 import { listTicketsDashboard, ticketExit } from '../api/tickets'
 import type { TicketDashboardRow } from '../api/tickets'
+import { getPaymentsByTicket } from '../api/payments'
 import PaymentModal from './PaymentModal.vue'
 
 const props = withDefaults(
@@ -136,6 +137,8 @@ const loading = ref(true)
 const tickets = ref<TicketDashboardRow[]>([])
 const viewingTicket = ref<TicketDashboardRow | null>(null)
 const paymentTicket = ref<TicketDashboardRow | null>(null)
+/** Rest to pay (fee - total paid) per ticket id, for table display. Fetched when tickets load. */
+const restToPayMap = ref<Record<number, number>>({})
 
 function formatTime(s: string | null) {
   if (!s) return '–'
@@ -157,7 +160,10 @@ function formatMoney(value: string | null | undefined): string {
 function formatRestToPay(t: TicketDashboardRow): string {
   if (t.ticket_state === 'OPEN') return '–'
   if (t.payment_status === 'PAID') return '0 RSD'
-  if (t.fee != null && t.fee !== '') return formatMoney(t.fee)
+  const rest = restToPayMap.value[t.id]
+  if (rest !== undefined) return formatMoney(String(rest))
+  // Still loading rest-to-pay for this ticket
+  if (t.ticket_state === 'CLOSED' && t.payment_status !== 'PAID') return '…'
   return '–'
 }
 
@@ -166,8 +172,40 @@ function restToPayClass(t: TicketDashboardRow): string {
   return 'text-amber-700'
 }
 
+async function fetchRestToPayForTickets(items: TicketDashboardRow[]) {
+  const needRest = items.filter(
+    (t) => t.ticket_state !== 'OPEN' && t.payment_status !== 'PAID'
+  )
+  if (needRest.length === 0) {
+    restToPayMap.value = {}
+    return
+  }
+  const map: Record<number, number> = {}
+  await Promise.all(
+    needRest.map(async (t) => {
+      const feeNum =
+        t.fee != null && t.fee !== ''
+          ? parseFloat(String(t.fee))
+          : 0
+      const fee = Number.isNaN(feeNum) ? 0 : feeNum
+      try {
+        const res = await getPaymentsByTicket(t.id, { limit: 500 })
+        const totalPaid = res.data.items.reduce(
+          (s, p) => s + parseFloat(p.amount),
+          0
+        )
+        map[t.id] = Math.max(0, fee - totalPaid)
+      } catch {
+        map[t.id] = fee
+      }
+    })
+  )
+  restToPayMap.value = { ...restToPayMap.value, ...map }
+}
+
 async function fetch() {
   loading.value = true
+  restToPayMap.value = {}
   try {
     const res = await listTicketsDashboard({
       ...(props.garageId != null ? { garage_id: props.garageId } : {}),
@@ -175,6 +213,7 @@ async function fetch() {
       offset: 0,
     })
     tickets.value = res.data.items
+    await fetchRestToPayForTickets(tickets.value)
   } catch {
     tickets.value = []
   } finally {

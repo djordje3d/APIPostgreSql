@@ -44,9 +44,9 @@ onMounted(() => {
   refreshAll() // load data immediately so it appears without clicking Refresh
   window.addEventListener('dashboard-refresh', refreshAll)
 })
-onUnmounted(() => {
+onUnmounted(() => {  // cleanup event listener
   window.removeEventListener('dashboard-refresh', refreshAll)
 })
 
-defineExpose({ refreshAll })
+defineExpose({ refreshAll }) // expose refreshAll to parent components
 </script>
