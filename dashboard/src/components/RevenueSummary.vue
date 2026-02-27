@@ -39,7 +39,7 @@ const unpaidCount = ref(0)
 const totalOutstanding = ref(0)
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n) + ' RSD'
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n) + ' RSD'
 }
 
 function getTodayISO() {

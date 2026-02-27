@@ -106,7 +106,7 @@
           <div><dt class="text-gray-500">Plate</dt><dd>{{ viewingTicket.licence_plate ?? '–' }}</dd></div>
           <div><dt class="text-gray-500">State</dt><dd>{{ viewingTicket.ticket_state }}</dd></div>
           <div><dt class="text-gray-500">Payment</dt><dd>{{ viewingTicket.payment_status }}</dd></div>
-          <div><dt class="text-gray-500">Fee</dt><dd>{{ viewingTicket.fee ?? '–' }}</dd></div>
+          <div><dt class="text-gray-500">Fee</dt><dd>{{ formatMoney(viewingTicket.fee) }}</dd></div>
         </dl>
         <button
           v-if="viewingTicket.ticket_state === 'CLOSED' && viewingTicket.payment_status !== 'PAID'"
@@ -154,7 +154,7 @@ function formatMoney(value: string | null | undefined): string {
   if (value == null || value === '') return '–'
   const n = parseFloat(String(value))
   if (Number.isNaN(n)) return '–'
-  return new Intl.NumberFormat('sr-RS', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n) + ' RSD'
+  return new Intl.NumberFormat('sr-RS', { style: 'decimal', maximumFractionDigits: 0 }).format(n) + ' RSD'
 }
 
 function formatRestToPay(t: TicketDashboardRow): string {

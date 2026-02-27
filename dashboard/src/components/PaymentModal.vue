@@ -6,7 +6,7 @@
           <h3 class="text-lg font-semibold">Payment – Ticket #{{ ticketId }}</h3>
           <button type="button" class="text-gray-500 hover:text-gray-700" @click="$emit('close')">&times;</button>
         </div>
-        <p class="mb-1 text-sm text-gray-600">Total fee: {{ fee ?? '–' }} RSD</p>
+        <p class="mb-1 text-sm text-gray-600">Total fee: {{ formatFeeDisplay(fee) }} RSD</p>
         <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">Rest to pay: {{ formatMoney(restToPay) }} RSD</p>
         <form @submit.prevent="submit">
           <div class="space-y-3">
@@ -15,8 +15,8 @@
               <input
                 v-model.number="amount"
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="1"
+                min="1"
                 required
                 class="w-full rounded border px-3 py-2"
                 :class="amountExceedsRest ? 'border-red-500 bg-red-50' : 'border-gray-300'"
@@ -79,7 +79,14 @@ const amountExceedsRest = computed(() => {
 })
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n)
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)
+}
+
+function formatFeeDisplay(fee: string | null): string {
+  if (fee == null || fee === '') return '–'
+  const n = parseFloat(fee)
+  if (Number.isNaN(n)) return '–'
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)
 }
 
 async function loadPayments() {

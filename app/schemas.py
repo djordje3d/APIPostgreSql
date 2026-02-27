@@ -26,7 +26,7 @@ class VehicleTypeResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     type: str
-    rate: Decimal
+    rate: float  # serialized as JSON number for frontend math/sort/compare
 
 
 class VehicleResponse(BaseModel):

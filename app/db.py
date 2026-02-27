@@ -14,7 +14,13 @@ DATABASE_URL = os.getenv(
 
 # Log SQL only when SQL_ECHO is set (e.g. "true"); off by default to avoid noise and leakage in production
 _sql_echo = os.getenv("SQL_ECHO", "false").strip().lower() in ("true", "1", "yes")
-engine = create_engine(DATABASE_URL, echo=_sql_echo)
+# connect_timeout: fail fast if PostgreSQL is down instead of hanging (seconds)
+_connect_timeout = int(os.getenv("DB_CONNECT_TIMEOUT", "5"))
+engine = create_engine(
+    DATABASE_URL,
+    echo=_sql_echo,
+    connect_args={"connect_timeout": _connect_timeout},
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

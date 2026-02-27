@@ -88,6 +88,12 @@ def openapi_with_api_key():
 app.openapi = openapi_with_api_key
 
 
+@app.get("/")
+def root():
+    """Simple liveness check; does not use the database."""
+    return {"message": "Parking API", "docs": "/docs"}
+
+
 @app.get("/health")
 def health(db: Session = Depends(get_db)):
     """Health check. Returns 200 if app and DB are OK, 503 if DB is unavailable."""

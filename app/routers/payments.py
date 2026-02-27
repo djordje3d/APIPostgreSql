@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone, date, timedelta
@@ -8,6 +8,7 @@ from app.db import get_db
 from app import models, schemas
 from app.config import USE_API_PAYMENT_STATUS
 from app.services.payments import recalc_ticket_payment_status
+from app.services.pricing import get_ticket_fee
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -29,9 +30,7 @@ def list_payments(
     if garage_id is not None:
         q = q.join(models.Ticket).filter(models.Ticket.garage_id == garage_id)
     if from_date is not None:
-        start = datetime.fromisoformat(
-            from_date.isoformat() + "T00:00:00+00:00"
-        )
+        start = datetime.fromisoformat(from_date.isoformat() + "T00:00:00+00:00")
         q = q.filter(models.Payment.paid_at >= start)
     if to_date is not None:
         end_exclusive = datetime.fromisoformat(
@@ -93,17 +92,28 @@ def get_outstanding(
     garage_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    """Total still to pay for closed UNPAID/PARTIALLY_PAID tickets."""
-    q = db.query(models.Ticket).filter(
-        models.Ticket.ticket_state == "CLOSED",
-        models.Ticket.payment_status.in_(["UNPAID", "PARTIALLY_PAID"]),
+    """Total still to pay for closed UNPAID/PARTIALLY_PAID tickets.
+    Uses computed fee from entry_time/exit_time when both are set, so direct DB
+    changes to times are reflected (same logic as /tickets/dashboard)."""
+    q = (
+        db.query(models.Ticket)
+        .options(
+            joinedload(models.Ticket.vehicle).joinedload(models.Vehicle.vehicle_type),
+        )
+        .filter(
+            models.Ticket.ticket_state == "CLOSED",
+            models.Ticket.payment_status.in_(["UNPAID", "PARTIALLY_PAID"]),
+        )
     )
     if garage_id is not None:
         q = q.filter(models.Ticket.garage_id == garage_id)
     tickets = q.all()
     total = 0.0
     for t in tickets:
-        fee = float(t.fee or 0)
+        if t.entry_time is not None and t.exit_time is not None:
+            fee = float(get_ticket_fee(t, db))
+        else:
+            fee = float(t.fee or 0)
         paid = (
             db.query(func.coalesce(func.sum(models.Payment.amount), 0))
             .filter(models.Payment.ticket_id == t.id)
