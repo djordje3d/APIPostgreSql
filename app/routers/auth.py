@@ -67,3 +67,18 @@ def me(user: dict = Depends(get_current_user)):
     confirm the session is still valid without calling business endpoints.
     """
     return {"sub": user["sub"]}
+
+
+@router.post("/refresh")
+def refresh(user: dict = Depends(get_current_user)):
+    """
+    Issue a new access token while the current one is still valid (e.g. after user
+    activity to extend the session). Returns the same shape as login: access_token,
+    token_type, expires_in.
+    """
+    access_token = create_token(user["sub"])
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": JWT_EXPIRE_MINUTES * 60,
+    }

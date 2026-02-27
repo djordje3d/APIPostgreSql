@@ -18,3 +18,13 @@ export async function login(username: string, password: string): Promise<LoginRe
   setStoredToken(data.access_token, data.expires_in)
   return data
 }
+
+/**
+ * POST /auth/refresh: get a new access token while the current one is still valid.
+ * On success, stores the new token and returns it. Use after user activity to extend the session.
+ */
+export async function refresh(): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>('/auth/refresh')
+  setStoredToken(data.access_token, data.expires_in)
+  return data
+}

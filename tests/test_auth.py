@@ -176,3 +176,28 @@ def test_auth_me_returns_401_with_expired_token(
     token = create_token("testuser")
     response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 401
+
+
+# --- POST /auth/refresh ---
+
+
+def test_auth_refresh_returns_200_and_new_token(
+    client: TestClient, api_key_enabled: None
+) -> None:
+    """POST /auth/refresh with valid JWT returns 200 and new access_token."""
+    token = create_token("testuser")
+    response = client.post("/auth/refresh", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("token_type") == "bearer"
+    assert "access_token" in data
+    assert isinstance(data["access_token"], str) and len(data["access_token"]) > 0
+    assert data.get("expires_in") is not None
+
+
+def test_auth_refresh_returns_401_without_token(
+    client: TestClient, api_key_enabled: None
+) -> None:
+    """POST /auth/refresh without Bearer token returns 401."""
+    response = client.post("/auth/refresh")
+    assert response.status_code == 401

@@ -34,11 +34,13 @@ sequenceDiagram
   API->>Dashboard: 200 + access_token (JWT)
   Dashboard->>Dashboard: Store token, redirect to /
   User->>Dashboard: Use dashboard
-  Dashboard->>API: Request + Authorization: Bearer &lt;token&gt;
+  Dashboard->>API: Request + Authorization: Bearer <token>
   API->>API: Validate JWT (or X-API-Key)
   API->>DB: Query
   API->>Dashboard: 200 + data
 ```
+
+
 
 ---
 
@@ -46,13 +48,13 @@ sequenceDiagram
 
 ### 1.1 Dependencies
 
-- Add to [requirements.txt](requirements.txt): `python-jose[cryptography] `(or `PyJWT`) for JWT encode/decode, and `passlib[bcrypt]` if storing hashed passwords (recommended for any real user store).
+- Add to [requirements.txt](requirements.txt): `python-jose[cryptography]` (or `PyJWT`) for JWT encode/decode, and `passlib[bcrypt]` if storing hashed passwords (recommended for any real user store).
 
 ### 1.2 Config
 
 - In [app/config.py](app/config.py): add settings for JWT (e.g. `JWT_SECRET_KEY`, `JWT_ALGORITHM`, `JWT_EXPIRE_MINUTES`) and for login credentials. Two options:
   - **Env-only (minimal):** `AUTH_USERNAME`, `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`) — single user, no DB.
-  - **DB user table (scalable):** New `User` model with hashed password; config only has `JWT_*` and optionally a seed admin.
+  - **DB user table (scalable):** New `User` model with hashed password; config only has `JWT_`* and optionally a seed admin.
 
 Recommendation: start with **env-based single user** for a small upgrade; document adding a `User` model later if you need multiple users.
 
