@@ -15,6 +15,7 @@ from app.config import (
 )
 from app.db import get_db
 from app.auth import APIKeyMiddleware
+from app.routers.auth import router as auth_router
 from app.routers.tickets import router as tickets_router
 from app.routers.payments import router as payments_router
 from app.routers.vehicles import router as vehicles_router
@@ -31,6 +32,7 @@ app = FastAPI(
     ),
     version="1.0.0",
     openapi_tags=[
+        {"name": "Auth", "description": "Login; obtain JWT for Bearer auth."},
         {"name": "Garages", "description": "Garage (config) management."},
         {"name": "Vehicle Types", "description": "Vehicle type definitions and rates."},
         {"name": "Vehicles", "description": "Vehicle registry (plate, type, status)."},
@@ -60,7 +62,7 @@ app.add_middleware(APIKeyMiddleware)
 
 
 def openapi_with_api_key():
-    """When API_KEY is set, add X-API-Key to OpenAPI so Swagger UI shows Authorize and sends the header. /health is documented as public (no key required)."""
+    """Document ApiKeyHeader and BearerAuth so Swagger UI supports both. Public paths have security=[]."""
     from fastapi.openapi.utils import get_openapi
     schema = get_openapi(
         title=app.title,
@@ -69,19 +71,27 @@ def openapi_with_api_key():
         routes=app.routes,
         tags=app.openapi_tags,
     )
-    if API_KEY:
-        schema.setdefault("components", {})["securitySchemes"] = {
-            "ApiKeyHeader": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "X-API-Key",
-                "description": "Required for all endpoints except GET /health when API_KEY is set in .env.",
-            },
-        }
-        schema["security"] = [{"ApiKeyHeader": []}]
-        # /health is public; don't require API key in Swagger for it
-        if "paths" in schema and "/health" in schema["paths"] and "get" in schema["paths"]["/health"]:
-            schema["paths"]["/health"]["get"]["security"] = []
+    schema.setdefault("components", {})["securitySchemes"] = {
+        "ApiKeyHeader": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": "When API_KEY is set in .env, use this or Bearer token.",
+        },
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Obtain token from POST /auth/login.",
+        },
+    }
+    schema["security"] = [{"ApiKeyHeader": []}, {"BearerAuth": []}]
+    # Public paths: no auth required in Swagger
+    public = [("/", "get"), ("/health", "get"), ("/auth/login", "post")]
+    paths = schema.get("paths", {})
+    for path, method in public:
+        if path in paths and method in paths[path]:
+            paths[path][method]["security"] = []
     return schema
 
 
@@ -107,6 +117,7 @@ def health(db: Session = Depends(get_db)):
         )
 
 
+app.include_router(auth_router)
 app.include_router(garages_router)
 app.include_router(vehicle_types_router)
 app.include_router(vehicles_router)

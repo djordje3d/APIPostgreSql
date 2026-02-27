@@ -25,23 +25,34 @@ load_dotenv(_project_root / ".env")
 
 _log = logging.getLogger(__name__)
 
-# Optional API key. When set: auth middleware requires X-API-Key header on every
-# request except GET /health (401 otherwise). When not set: no auth required.
-# Read once at startup so the middleware does not read env on every request.
-API_KEY: str | None = os.getenv("API_KEY") or None
-
-
-def _env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name, "false" if not default else "true").lower()
-    return value in ("true", "1", "yes")
-
-
 def _env_int(name: str, default: int) -> int:
     raw = os.getenv(name, str(default)).strip()
     try:
         return max(0, int(raw))
     except ValueError:
         return default
+
+
+# Optional API key. When set: auth middleware requires X-API-Key or Bearer JWT on every
+# request except GET /, GET /health, POST /auth/login (401 otherwise). When not set: no auth required.
+# Read once at startup so the middleware does not read env on every request.
+API_KEY: str | None = os.getenv("API_KEY") or None
+
+# JWT token auth (used for login; middleware accepts Bearer token or X-API-Key).
+JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "change-me-in-production")
+JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_EXPIRE_MINUTES: int = _env_int("JWT_EXPIRE_MINUTES", 60 * 24)  # 24 hours
+
+# Single-user login (env-only). When set, POST /auth/login accepts these credentials.
+# For hashed password, set AUTH_PASSWORD_HASH (bcrypt) and leave AUTH_PASSWORD unset.
+AUTH_USERNAME: str | None = os.getenv("AUTH_USERNAME") or None
+AUTH_PASSWORD: str | None = os.getenv("AUTH_PASSWORD") or None
+AUTH_PASSWORD_HASH: str | None = os.getenv("AUTH_PASSWORD_HASH") or None
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name, "false" if not default else "true").lower()
+    return value in ("true", "1", "yes")
 
 
 def _is_valid_cors_origin(origin: str) -> bool:

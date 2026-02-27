@@ -32,7 +32,13 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
    | Variable                     | Description                                                                 | Example |
    |------------------------------|-----------------------------------------------------------------------------|---------|
    | `DATABASE_URL`               | PostgreSQL connection URL (required in production; optional for local dev) | `postgresql+psycopg2://user:password@localhost:5432/garaza` |
-   | `API_KEY`                    | Optional. If set, all requests (except `GET /health`) must include header `X-API-Key: <value>`. Omit for local dev with no auth. | `your-secret-key` |
+   | `API_KEY`                    | Optional. If set, protected routes require either `X-API-Key` or `Authorization: Bearer <jwt>`. Omit for local dev with no auth. | `your-secret-key` |
+   | `JWT_SECRET_KEY`             | Secret used to sign JWTs (default: change-me-in-production). Set in production. | `your-jwt-secret` |
+   | `JWT_ALGORITHM`              | JWT algorithm (default: `HS256`). | `HS256` |
+   | `JWT_EXPIRE_MINUTES`         | Access token lifetime in minutes (default: 1440 = 24 hours). Set to `2` to test 2-minute expiry; the dashboard will auto-logout when the token expires. | `1440` |
+   | `AUTH_USERNAME`              | Single-user login: username for `POST /auth/login`. When set with `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`), login is enabled. | `admin` |
+   | `AUTH_PASSWORD`              | Single-user login: plain password. Omit if using `AUTH_PASSWORD_HASH`. | `secret` |
+   | `AUTH_PASSWORD_HASH`         | Single-user login: bcrypt-hashed password. When set, `AUTH_PASSWORD` is ignored. | `$2b$12$...` |
    | `SQL_ECHO`                   | Set to `true` to log SQL statements (default: off)                         | `false` |
    | `USE_API_FEE_CALCULATION`     | Set to `true` if the DB has no trigger for ticket fee/state on exit; the API will compute fee and set ticket_state to CLOSED. Default: `false` (expect DB trigger). | `false` |
    | `USE_API_PAYMENT_STATUS`     | Set to `true` if the DB has no trigger to update ticket payment_status after payments; the API will recalc and update it. Default: `false` (expect DB trigger). | `false` |
@@ -46,9 +52,10 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
 
    **Database with or without triggers:** If your database has triggers that set ticket `fee`/`ticket_state` on exit and `payment_status` after payments, leave `USE_API_FEE_CALCULATION` and `USE_API_PAYMENT_STATUS` unset or `false`. If you use a database without those triggers (e.g. a fresh schema or another DB), set both to `true` so the API performs fee calculation and payment-status updates itself.
 
-   **API key and .env:**
-   - **If `API_KEY` is not set** (missing or empty in `.env`): the middleware does nothing; **all requests are allowed** and no key is required. This is why Postman (or curl) may work without sending `X-API-Key`.
-   - **If `API_KEY` is set**: every request except `GET /health` must send the header `X-API-Key` with the same value, or the API returns **401 Unauthorized**. Add `API_KEY=your-secret-key` to `.env` in the project root, start the server from the project root (e.g. `python -m app.run`), and **restart the server** after changing `.env` so the new value is picked up.
+   **Authentication (API key and JWT):**
+   - **If `API_KEY` is not set**: the middleware does not require auth; all requests are allowed (e.g. local dev).
+   - **If `API_KEY` is set**: every request except `GET /`, `GET /health`, and `POST /auth/login` must send either **`X-API-Key`** with the same value **or** **`Authorization: Bearer <token>`** (JWT from `POST /auth/login`). Otherwise the API returns **401 Unauthorized**.
+   - **Login:** Set `AUTH_USERNAME` and `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`) in `.env` to enable `POST /auth/login`. The dashboard can then log in and use the returned JWT. Set `JWT_SECRET_KEY` in production.
 
 ## How to run
 
@@ -80,11 +87,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 When using the API from Postman (or any HTTP client), keep the following in mind:
 
-1. **API key (when `API_KEY` is set in `.env`)**  
-   Every request except `GET /health` must include the header **`X-API-Key`** with the same value as in your `.env`.  
-   - **Per request:** In the request’s **Headers** tab, add: Key `X-API-Key`, Value `your-secret-key` (or your actual key).  
-   - **For all requests:** In the **Collection** → **Authorization** tab, set Type to **API Key**, Key = `X-API-Key`, Value = your key, and Add to **Header**.  
-   If the key is missing or wrong, the API returns **401 Unauthorized**.
+1. **Authentication (when `API_KEY` is set)**  
+   Every request except `GET /`, `GET /health`, and `POST /auth/login` must include either **`X-API-Key`** or **`Authorization: Bearer <token>`** (get token from `POST /auth/login` with body `{"username":"...","password":"..."}`).  
+   - **API key:** In the request’s **Headers** tab, add: Key `X-API-Key`, **Headers** add `X-API-Key`, or in **Collection** → **Authorization** set Type = API Key, Key = `X-API-Key`, Add to = Header.  
+   - **Bearer token:** Call `POST /auth/login`, copy `access_token`, then in **Authorization** set Type = Bearer Token and paste it.
+   If both are missing or invalid, the API returns **401 Unauthorized**.
 
 2. **Garages – partial vs full update**  
    - **`PATCH /garages/{id}`** — partial update: send only the fields you want to change (e.g. `{"name": "New name"}` or `{"default_rate": 120}`).  
@@ -118,7 +125,9 @@ Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, 
 
 - `app/main.py` — FastAPI app and route registration (imports `app.config` first so `.env` is loaded before the DB engine is created)
 - `app/config.py` — environment variables and flags; loads `.env` via `python-dotenv`; `API_KEY` read once at startup
-- `app/auth.py` — API key middleware (uses `API_KEY` from config)
+- `app/auth.py` — API key and JWT middleware (accepts `X-API-Key` or `Authorization: Bearer <jwt>`)
+- `app/auth_jwt.py` — JWT create/verify and FastAPI dependencies
+- `app/routers/auth.py` — `POST /auth/login` (returns JWT when `AUTH_USERNAME`/`AUTH_PASSWORD` set)
 - `app/db.py` — database engine, session, and `get_db` dependency (expects env already loaded by config)
 - `app/models.py` — SQLAlchemy models
 - `app/schemas.py` — Pydantic request/response schemas

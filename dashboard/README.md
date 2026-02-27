@@ -8,7 +8,7 @@ Vue 3 + Tailwind dashboard for the Parking API. Shows live parking status, garag
 
 1. Optional: copy `env.example` to `.env`. If you don’t, the dashboard uses `http://localhost:8000` as the API URL. In `.env` you can set:
    - `VITE_API_URL` – backend URL (defaults to `http://localhost:8000` when unset)
-   - `VITE_API_KEY` – optional; set when the backend requires `X-API-Key`
+   - `VITE_API_KEY` – optional; set when the backend requires `X-API-Key`. When using **login**, the dashboard stores the JWT after sign-in; `VITE_API_KEY` is not required for logged-in users.
 2. Install and run:
 
 ```bash
