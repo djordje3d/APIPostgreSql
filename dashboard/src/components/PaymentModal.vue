@@ -3,7 +3,7 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="$emit('close')">
       <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex justify-between">
-          <h3 class="text-lg font-semibold">Payment – Ticket #{{ ticketId }}</h3>
+          <h3 class="text-lg font-semibold">Payment – {{ garageName ? garageName + ' – ' : '' }}Ticket #{{ ticketId }}</h3>
           <button type="button" class="text-gray-500 hover:text-gray-700" @click="$emit('close')">&times;</button>
         </div>
         <p class="mb-1 text-sm text-gray-600">Total fee: {{ formatFeeDisplay(fee) }} RSD</p>
@@ -54,6 +54,7 @@ import { createPayment, getPaymentsByTicket } from '../api/payments'
 const props = defineProps<{
   ticketId: number
   fee: string | null
+  garageName?: string | null
 }>()
 const emit = defineEmits(['close', 'done'])
 

@@ -76,6 +76,7 @@ class TicketDashboardRow(BaseModel):
     spot_id: int | None
     licence_plate: str | None = None
     spot_code: str | None = None
+    garage_name: str | None = None
 
 
 # --- Pagination ---

@@ -12,10 +12,7 @@
       class="by-garage-card"
     >
       <span class="by-garage-card__icon" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+        <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
       </span>
       <div class="by-garage-card__content">
         <span class="by-garage-card__title">View by garage</span>
@@ -46,6 +43,7 @@ import GarageOverviewTable from '../components/GarageOverviewTable.vue'
 import TicketActivityTable from '../components/TicketActivityTable.vue'
 import RevenueSummary from '../components/RevenueSummary.vue'
 import { useDashboardPolling } from '../composables/useDashboardPolling'
+import garageIcon from '../img/urban-parking-garage.svg'
 
 const autoRefreshEnabled = inject<Ref<boolean>>('autoRefreshEnabled', ref(true))
 const statusRef = ref<InstanceType<typeof StatusCards> | null>(null)
@@ -143,15 +141,16 @@ defineExpose({ refreshAll }) // expose refreshAll to parent components
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 4rem;
+  height: 4rem;
   border-radius: 0.375rem;
   background: rgb(241 245 249);
   color: rgb(71 85 105);
 }
-.by-garage-card__icon svg {
-  width: 1.25rem;
-  height: 1.25rem;
+.by-garage-card__icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .by-garage-card__content {
   flex: 1;

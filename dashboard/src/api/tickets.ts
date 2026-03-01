@@ -17,6 +17,7 @@ export interface TicketResponse {
 export interface TicketDashboardRow extends TicketResponse {
   licence_plate: string | null
   spot_code: string | null
+  garage_name: string | null
 }
 
 export function listTickets(params?: {

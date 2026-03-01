@@ -28,6 +28,7 @@ def list_tickets_dashboard(
         .options(
             joinedload(models.Ticket.vehicle),
             joinedload(models.Ticket.spot),
+            joinedload(models.Ticket.garage),
         )
         .order_by(models.Ticket.id.desc())
     )
@@ -56,6 +57,7 @@ def list_tickets_dashboard(
                 spot_id=t.spot_id,
                 licence_plate=t.vehicle.licence_plate if t.vehicle else None,
                 spot_code=t.spot.code if t.spot else None,
+                garage_name=t.garage.name if t.garage else None,
             )
         )
     return schemas.PaginatedResponse(

@@ -90,6 +90,7 @@
       v-if="paymentTicket"
       :ticket-id="paymentTicket.id"
       :fee="paymentTicket.fee"
+      :garage-name="paymentTicket.garage_name ?? undefined"
       @close="closePaymentModal"
       @done="onPaymentDone"
     />

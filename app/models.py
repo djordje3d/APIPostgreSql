@@ -82,6 +82,7 @@ class Ticket(Base):
 
     vehicle = relationship("Vehicle")
     spot = relationship("ParkingSpot")
+    garage = relationship("ParkingConfig")
 
 
 class Payment(Base):
