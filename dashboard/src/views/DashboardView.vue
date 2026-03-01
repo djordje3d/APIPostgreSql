@@ -23,10 +23,18 @@
       </div>
       <span class="by-garage-card__arrow" aria-hidden="true">→</span>
     </router-link>
-    <StatusCards ref="statusRef" />
-    <GarageOverviewTable ref="garageRef" />
-    <TicketActivityTable ref="ticketRef" />
-    <RevenueSummary ref="revenueRef" />
+    <div class="dashboard-fade dashboard-fade--1">
+      <StatusCards ref="statusRef" />
+    </div>
+    <div class="dashboard-fade dashboard-fade--2">
+      <GarageOverviewTable ref="garageRef" />
+    </div>
+    <div class="dashboard-fade dashboard-fade--3">
+      <TicketActivityTable ref="ticketRef" />
+    </div>
+    <div class="dashboard-fade dashboard-fade--4">
+      <RevenueSummary ref="revenueRef" />
+    </div>
   </div>
 </template>
 
@@ -162,6 +170,19 @@ defineExpose({ refreshAll }) // expose refreshAll to parent components
 .by-garage-card__arrow {
   font-size: 1.25rem;
   color: rgb(148 163 184);
+}
+
+/* Staggered fade-in (top to bottom) when dashboard is shown */
+.dashboard-fade {
+  opacity: 0;
+  animation: dashboardFadeIn 0.4s ease-out forwards;
+}
+.dashboard-fade--1 { animation-delay: 0s; }
+.dashboard-fade--2 { animation-delay: 0.15s; }
+.dashboard-fade--3 { animation-delay: 0.3s; }
+.dashboard-fade--4 { animation-delay: 0.45s; }
+@keyframes dashboardFadeIn {
+  to { opacity: 1; }
 }
 
 </style>
