@@ -2,6 +2,12 @@
   <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex flex-wrap items-center gap-3">
+        <router-link
+          to="/"
+          class="back-to-dashboard"
+        >
+          ← Back to dashboard
+        </router-link>
         <label class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-700">Garage</span>
           <select
@@ -13,13 +19,10 @@
           </select>
         </label>
       </div>
-      <button
-        type="button"
-        class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
-        @click="refreshAll"
-      >
-        Refresh
-      </button>
+      <button class="btn" @click="refreshAll">
+    <span class="btn-text-one">Refresh</span>
+    <span class="btn-text-two">Click </span>
+</button>
     </div>
     <template v-if="selectedGarageId != null">
       <StatusCards ref="statusRef" :garage-id="selectedGarageId" />
@@ -47,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import StatusCards from '../components/StatusCards.vue'
 import GarageOverviewTable from '../components/GarageOverviewTable.vue'
 import TicketActivityTable from '../components/TicketActivityTable.vue'
@@ -73,6 +76,12 @@ function refreshAll() {  // refresh all components
   revenueRef.value?.refresh?.()
 }
 
+function onDashboardRefresh() {
+  // ne osvežavaj ako nema izabrane garaže (da ne praviš besmislene pozive)
+  if (selectedGarageId.value == null) return
+  refreshAll()
+}
+
 async function loadGarages() {
   try {
     const res = await listGarages({ limit: 200 })
@@ -92,7 +101,14 @@ watch(selectedGarageId, () => {
   if (selectedGarageId.value != null) refreshAll()
 })
 
-onMounted(loadGarages)
+onMounted(() => {
+  loadGarages()
+  window.addEventListener('dashboard-refresh', onDashboardRefresh)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('dashboard-refresh', onDashboardRefresh)
+})
 
 // expose refreshAll to parent components
 // this allows the parent component to refresh all components
@@ -100,3 +116,67 @@ onMounted(loadGarages)
 // without having to refresh each component individually
 defineExpose({ refreshAll })
 </script>
+
+<style scoped>
+.back-to-dashboard {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(51 65 85);
+  text-decoration: none;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: color 0.2s, background 0.2s;
+}
+.back-to-dashboard:hover {
+  color: rgb(15 23 42);
+  background: rgb(241 245 249);
+}
+
+/* button styles */
+/* https://uiverse.io/mobinkakei/ancient-goose-30 */
+.btn {
+  width: 140px;
+  height: 50px;
+  background: linear-gradient(to top, #00154c, #12376e, #23487f);
+  color: #fff;
+  border-radius: 50px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.btn span {
+  font-size: 16px;
+  /* text-transform: uppercase; */  
+  letter-spacing: 1px;
+  transition: top 0.5s;
+}
+
+.btn-text-one {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.btn-text-two {
+  position: absolute;
+  width: 100%;
+  top: 150%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.btn:hover .btn-text-one {
+  top: -100%;
+}
+
+.btn:hover .btn-text-two {
+  top: 50%;
+}
+
+</style>

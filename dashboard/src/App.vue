@@ -42,18 +42,16 @@
     </Teleport>
     <header v-if="!isLoginPage" class="bg-slate-800 text-white shadow">
       <div
-        class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6"
+        class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-3 gap-x-4 px-4 py-3 sm:px-6"
       >
-        <nav class="flex items-center gap-4">
-          <router-link to="/" class="text-xl font-semibold"
-            >Dashboard</router-link
-          >
+        <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
           <router-link
-            to="/by-garage"
-            class="text-sm text-slate-300 hover:text-white"
-            >By garage</router-link
+            to="/"
+            class="text-base font-semibold sm:text-xl"
           >
-          <label class="checkbox-wrapper">
+            Dashboard
+          </router-link>
+          <label class="checkbox-wrapper" title="Auto refresh">
             <input v-model="autoRefreshEnabled" type="checkbox" />
             <div class="checkmark">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -65,36 +63,50 @@
                 ></path>
               </svg>
             </div>
-            <span class="label">Auto refresh</span>
+            <span class="label hidden sm:inline">Auto refresh</span>
           </label>
+          <div class="toolbar">
+    <RefreshCountdownRing
+      :duration-ms="intervalMs"
+      :remaining-ms="remainingMs"
+      :enabled="isRunning"
+    />
+  </div>
         </nav>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3">
           <button
-    class="group/button relative inline-flex items-center justify-center overflow-hidden rounded-md bg-gray-800/30 backdrop-blur-lg px-6 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 border border-white/20"
-  >
-    <span class="text-lg">Logout</span>
-    <div
-      class="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
-    @click="logout"
-      >
-      <div class="relative h-full w-10 bg-white/20"></div>
-    </div>
-  </button>
-
-          <button class="Download-button" @click="showNewEntry = true">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      height="32"
-      width="32"
-      viewBox="0 0 32 32"
-    >
-      <path
-        d="M23.371 29.529c0 0 0.335-2.012-1.731-4.469 2.011-5.641 2.29-10.778 2.29-10.778s4.133 0.95 4.133 5.026c-0.001 6.981-4.692 10.221-4.692 10.221zM11.979 27.078c0 0-2.768-8.883-2.768-12.568 0-1.658 0.187-3.133 0.478-4.472h12.61c0.293 1.34 0.481 2.816 0.481 4.473 0 3.629-2.76 12.567-2.76 12.567h-8.041zM15.99 12.069c-1.418 0-2.568 1.15-2.568 2.569 0 1.418 1.15 2.569 2.568 2.569s2.569-1.15 2.569-2.569c0.001-1.419-1.15-2.569-2.569-2.569zM15.438 0.596v-3.498h1v3.409c1.143 0.832 4.236 3.478 5.635 8.575h-12.16c1.352-4.957 4.296-7.574 5.525-8.486zM8.629 29.529c0 0-4.691-3.24-4.691-10.221 0-4.076 4.133-5.026 4.133-5.026s0.279 5.137 2.289 10.778c-2.067 2.458-1.731 4.469-1.731 4.469zM17.691 30.045l-0.838-0.838-0.893 2.793-1.062-2.793-0.726 1.451-1.062-2.625h5.752l-1.171 2.012z"
-        fill="white"
-      ></path>
-    </svg>
-    <span>New Vehicle Entry</span>
-  </button>
+            type="button"
+            class="group/button relative inline-flex items-center justify-center overflow-hidden rounded-md border border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 sm:px-6 sm:text-base"
+            @click="logout"
+          >
+            <span class="text-base sm:text-lg">Logout</span>
+            <div
+              class="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
+            >
+              <div class="relative h-full w-10 bg-white/20"></div>
+            </div>
+          </button>
+          <button
+            type="button"
+            class="Download-button"
+            title="New Vehicle Entry"
+            @click="showNewEntry = true"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="32"
+              width="32"
+              viewBox="0 0 32 32"
+              class="shrink-0"
+              aria-hidden="true"
+            >
+              <path
+                d="M23.371 29.529c0 0 0.335-2.012-1.731-4.469 2.011-5.641 2.29-10.778 2.29-10.778s4.133 0.95 4.133 5.026c-0.001 6.981-4.692 10.221-4.692 10.221zM11.979 27.078c0 0-2.768-8.883-2.768-12.568 0-1.658 0.187-3.133 0.478-4.472h12.61c0.293 1.34 0.481 2.816 0.481 4.473 0 3.629-2.76 12.567-2.76 12.567h-8.041zM15.99 12.069c-1.418 0-2.568 1.15-2.568 2.569 0 1.418 1.15 2.569 2.568 2.569s2.569-1.15 2.569-2.569c0.001-1.419-1.15-2.569-2.569-2.569zM15.438 0.596v-3.498h1v3.409c1.143 0.832 4.236 3.478 5.635 8.575h-12.16c1.352-4.957 4.296-7.574 5.525-8.486zM8.629 29.529c0 0-4.691-3.24-4.691-10.221 0-4.076 4.133-5.026 4.133-5.026s0.279 5.137 2.289 10.778c-2.067 2.458-1.731 4.469-1.731 4.469zM17.691 30.045l-0.838-0.838-0.893 2.793-1.062-2.793-0.726 1.451-1.062-2.625h5.752l-1.171 2.012z"
+                fill="white"
+              ></path>
+            </svg>
+            <span class="hidden sm:inline">New Vehicle Entry</span>
+          </button>
         </div>
       </div>
     </header>
@@ -127,6 +139,10 @@ import NewVehicleEntryModal from "./components/NewVehicleEntryModal.vue";
 import { baseURL } from "./api/client";
 import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { refresh as refreshToken } from "./api/auth";
+import { useDashboardPolling } from "./composables/useDashboardPolling";
+import RefreshCountdownRing from "./components/RefreshCountdownRing.vue";
+
+
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */
@@ -328,6 +344,25 @@ function onNewEntryDone() {
     window.dispatchEvent(new CustomEvent("dashboard-refresh"));
   });
 }
+
+const POLL_MS = 10_000;
+
+function refreshDashboardEverywhere() {
+  window.dispatchEvent(new CustomEvent("dashboard-refresh"));
+}
+
+// Bitno: ne radi polling na login strani
+const pollingEnabled = computed(() => autoRefreshEnabled.value && !isLoginPage.value);
+
+const {
+  remainingMs,
+  intervalMs,
+  isRunning,
+} = useDashboardPolling(refreshDashboardEverywhere, {
+  intervalMs: POLL_MS,
+  enabled: pollingEnabled,
+});
+
 </script>
 
 <style scoped>
@@ -362,6 +397,21 @@ function onNewEntryDone() {
     position: relative;
     cursor: pointer;
     padding: 10px;
+    margin-inline: 1.5rem;
+  }
+
+  @media (max-width: 639px) {
+    .checkbox-wrapper {
+      --checkbox-size: 20px;
+      padding: 6px;
+    }
+    .checkbox-wrapper input:checked ~ .checkmark svg {
+      width: 14px;
+      height: 14px;
+    }
+    .checkbox-wrapper .label {
+      margin-left: 0;
+    }
   }
 
   .checkbox-wrapper input {
@@ -521,6 +571,17 @@ function onNewEntryDone() {
   .Download-button svg {
     margin-right: 8px;
     width: 25px;
+  }
+
+  @media (max-width: 639px) {
+    .Download-button {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+    .Download-button svg {
+      margin-right: 0;
+      width: 22px;
+    }
   }
 
   .Download-button:hover {

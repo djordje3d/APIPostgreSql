@@ -1,70 +1,114 @@
-import { ref, watch, onMounted, onUnmounted } from 'vue'
-import type { Ref } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from "vue";
+import type { Ref } from "vue";
 
-const POLL_INTERVAL_MS = 12_000 // 12 seconds – balance between live feel and server load
+const DEFAULT_POLL_MS = 12_000;
+const TICK_MS = 250;
 
-/**
- * Polls while the tab is visible; runs refresh immediately when tab becomes visible again.
- * Use for dashboard and garage detail to keep data in sync with the database.
- * When options.enabled is a ref and false, polling does not run; only manual refresh applies.
- */
 export function useDashboardPolling(
   refresh: () => void,
   options?: { intervalMs?: number; enabled?: Ref<boolean> }
 ) {
-  const intervalMs = options?.intervalMs ?? POLL_INTERVAL_MS
-  const enabled = options?.enabled
-  const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
+  const intervalMs = options?.intervalMs ?? DEFAULT_POLL_MS;
+  const enabled = options?.enabled;
 
-  function isPollingAllowed(): boolean {
-    return enabled === undefined || enabled.value
+  const pollId = ref<ReturnType<typeof setInterval> | null>(null);
+  const tickId = ref<ReturnType<typeof setInterval> | null>(null);
+
+  const remainingMs = ref(intervalMs);
+  const isRunning = ref(false);
+
+  function isAllowed(): boolean {
+    return enabled === undefined || enabled.value;
   }
 
-  function startPolling() {
-    if (intervalId.value != null) return
-    if (!isPollingAllowed()) return
-    intervalId.value = setInterval(refresh, intervalMs)
+  function stopCountdown() {
+    if (tickId.value) {
+      clearInterval(tickId.value);
+      tickId.value = null;
+    }
+    isRunning.value = false;
+  }
+
+  function startCountdown() {
+    stopCountdown();
+    remainingMs.value = intervalMs;
+    isRunning.value = true;
+
+    tickId.value = setInterval(() => {
+      remainingMs.value = Math.max(0, remainingMs.value - TICK_MS);
+    }, TICK_MS);
   }
 
   function stopPolling() {
-    if (intervalId.value != null) {
-      clearInterval(intervalId.value)
-      intervalId.value = null
+    if (pollId.value) {
+      clearInterval(pollId.value);
+      pollId.value = null;
+    }
+    stopCountdown();
+  }
+
+  function doRefreshAndRestartCountdown() {
+    refresh();
+    // countdown ima smisla samo ako poll sme da radi i tab je vidljiv
+    if (document.visibilityState === "visible" && isAllowed()) {
+      startCountdown();
     }
   }
 
+  function startPolling() {
+    if (pollId.value) return;
+    if (!isAllowed()) return;
+    if (document.visibilityState !== "visible") return;
+
+    // start countdown odmah, pa zakazuj refresh
+    startCountdown();
+    pollId.value = setInterval(doRefreshAndRestartCountdown, intervalMs);
+  }
+
   function onVisibilityChange() {
-    if (document.visibilityState === 'visible') {
-      refresh()
-      if (isPollingAllowed()) startPolling()
+    if (document.visibilityState === "visible") {
+      // kad se vrati tab: osveži jednom i pokreni polling
+      stopPolling();
+      if (isAllowed()) {
+        doRefreshAndRestartCountdown();
+        startPolling();
+      }
     } else {
-      stopPolling()
+      stopPolling();
     }
   }
 
   onMounted(() => {
-    if (document.visibilityState === 'visible' && isPollingAllowed()) {
-      startPolling()
+    if (document.visibilityState === "visible" && isAllowed()) {
+      startPolling();
     }
-    document.addEventListener('visibilitychange', onVisibilityChange)
-  })
+    document.addEventListener("visibilitychange", onVisibilityChange);
+  });
 
   if (enabled !== undefined) {
     watch(enabled, (on) => {
-      if (document.visibilityState !== 'visible') return
+      if (document.visibilityState !== "visible") return;
+
       if (on) {
-        refresh()
-        startPolling()
+        // kad user uključi: osveži odmah + kreni
+        doRefreshAndRestartCountdown();
+        startPolling();
       } else {
-        stopPolling()
+        stopPolling();
       }
-    })
+    });
   }
 
   onUnmounted(() => {
-    stopPolling()
-    document.removeEventListener('visibilitychange', onVisibilityChange)
-  })
+    stopPolling();
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+  });
 
-  return { startPolling, stopPolling }
+  return {
+    startPolling,
+    stopPolling,
+    remainingMs,
+    intervalMs,
+    isRunning,
+  };
 }
