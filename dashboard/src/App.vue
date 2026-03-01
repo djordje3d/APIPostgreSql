@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100">
     <div
-      v-if="!isLoginPage && apiConnectionError"
+      v-if="routerReady && !isLoginPage && apiConnectionError"
       class="bg-amber-100 px-4 py-3 text-amber-900 ring-1 ring-amber-300"
       role="alert"
     >
@@ -16,7 +16,7 @@
     <!-- Session expiry modal: only when idle (no click/mouse move). Blocks entire dashboard until "Continue session". -->
     <Teleport to="body">
       <div
-        v-if="!isLoginPage && showIdleExpiryAlert"
+        v-if="routerReady && !isLoginPage && showIdleExpiryAlert"
         class="session-expiry-overlay"
         role="alertdialog"
         aria-modal="true"
@@ -40,87 +40,93 @@
         </div>
       </div>
     </Teleport>
-    <header v-if="!isLoginPage" class="bg-slate-800 text-white shadow">
-      <div
-        class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-3 gap-x-4 px-4 py-3 sm:px-6"
-      >
-        <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
-          <router-link
-            to="/"
-            class="text-base font-semibold sm:text-xl"
+    <Transition name="fade" mode="out-in">
+      <div v-if="!routerReady" key="waiting" class="min-h-screen bg-gray-100" />
+      <div v-else-if="isLoginPage" key="login">
+        <router-view />
+      </div>
+      <div v-else key="dashboard">
+        <header class="bg-slate-800 text-white shadow">
+          <div
+            class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-3 gap-x-4 px-4 py-3 sm:px-6"
           >
-            Dashboard
-          </router-link>
-          <label class="checkbox-wrapper" title="Auto refresh">
-            <input v-model="autoRefreshEnabled" type="checkbox" />
-            <div class="checkmark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  d="M20 6L9 17L4 12"
-                  stroke-width="3"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-              </svg>
-            </div>
-            <span class="label hidden sm:inline">Auto refresh</span>
-          </label>
-          <div class="toolbar">
+            <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
+              <router-link
+                to="/"
+                class="text-base font-semibold sm:text-xl"
+              >
+                Dashboard
+              </router-link>
+              <label class="checkbox-wrapper" title="Auto refresh">
+                <input v-model="autoRefreshEnabled" type="checkbox" />
+                <div class="checkmark">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path
+                      d="M20 6L9 17L4 12"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                </div>
+                <span class="label hidden sm:inline">Auto refresh</span>
+              </label>
+              <div class="toolbar">
     <RefreshCountdownRing
       :duration-ms="intervalMs"
       :remaining-ms="remainingMs"
       :enabled="isRunning"
     />
   </div>
-        </nav>
-        <div class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            class="group/button relative inline-flex items-center justify-center overflow-hidden rounded-md border border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 sm:px-6 sm:text-base"
-            @click="logout"
-          >
-            <span class="text-base sm:text-lg">Logout</span>
-            <div
-              class="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
-            >
-              <div class="relative h-full w-10 bg-white/20"></div>
+            </nav>
+            <div class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                class="group/button relative inline-flex items-center justify-center overflow-hidden rounded-md border border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 sm:px-6 sm:text-base"
+                @click="logout"
+              >
+                <span class="text-base sm:text-lg">Logout</span>
+                <div
+                  class="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
+                >
+                  <div class="relative h-full w-10 bg-white/20"></div>
+                </div>
+              </button>
+              <button
+                type="button"
+                class="Download-button"
+                title="New Vehicle Entry"
+                @click="showNewEntry = true"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="32"
+                  width="32"
+                  viewBox="0 0 32 32"
+                  class="shrink-0"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M23.371 29.529c0 0 0.335-2.012-1.731-4.469 2.011-5.641 2.29-10.778 2.29-10.778s4.133 0.95 4.133 5.026c-0.001 6.981-4.692 10.221-4.692 10.221zM11.979 27.078c0 0-2.768-8.883-2.768-12.568 0-1.658 0.187-3.133 0.478-4.472h12.61c0.293 1.34 0.481 2.816 0.481 4.473 0 3.629-2.76 12.567-2.76 12.567h-8.041zM15.99 12.069c-1.418 0-2.568 1.15-2.568 2.569 0 1.418 1.15 2.569 2.568 2.569s2.569-1.15 2.569-2.569c0.001-1.419-1.15-2.569-2.569-2.569zM15.438 0.596v-3.498h1v3.409c1.143 0.832 4.236 3.478 5.635 8.575h-12.16c1.352-4.957 4.296-7.574 5.525-8.486zM8.629 29.529c0 0-4.691-3.24-4.691-10.221 0-4.076 4.133-5.026 4.133-5.026s0.279 5.137 2.289 10.778c-2.067 2.458-1.731 4.469-1.731 4.469zM17.691 30.045l-0.838-0.838-0.893 2.793-1.062-2.793-0.726 1.451-1.062-2.625h5.752l-1.171 2.012z"
+                    fill="white"
+                  ></path>
+                </svg>
+                <span class="hidden sm:inline">New Vehicle Entry</span>
+              </button>
             </div>
-          </button>
-          <button
-            type="button"
-            class="Download-button"
-            title="New Vehicle Entry"
-            @click="showNewEntry = true"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="32"
-              width="32"
-              viewBox="0 0 32 32"
-              class="shrink-0"
-              aria-hidden="true"
-            >
-              <path
-                d="M23.371 29.529c0 0 0.335-2.012-1.731-4.469 2.011-5.641 2.29-10.778 2.29-10.778s4.133 0.95 4.133 5.026c-0.001 6.981-4.692 10.221-4.692 10.221zM11.979 27.078c0 0-2.768-8.883-2.768-12.568 0-1.658 0.187-3.133 0.478-4.472h12.61c0.293 1.34 0.481 2.816 0.481 4.473 0 3.629-2.76 12.567-2.76 12.567h-8.041zM15.99 12.069c-1.418 0-2.568 1.15-2.568 2.569 0 1.418 1.15 2.569 2.568 2.569s2.569-1.15 2.569-2.569c0.001-1.419-1.15-2.569-2.569-2.569zM15.438 0.596v-3.498h1v3.409c1.143 0.832 4.236 3.478 5.635 8.575h-12.16c1.352-4.957 4.296-7.574 5.525-8.486zM8.629 29.529c0 0-4.691-3.24-4.691-10.221 0-4.076 4.133-5.026 4.133-5.026s0.279 5.137 2.289 10.778c-2.067 2.458-1.731 4.469-1.731 4.469zM17.691 30.045l-0.838-0.838-0.893 2.793-1.062-2.793-0.726 1.451-1.062-2.625h5.752l-1.171 2.012z"
-                fill="white"
-              ></path>
-            </svg>
-            <span class="hidden sm:inline">New Vehicle Entry</span>
-          </button>
-        </div>
+          </div>
+        </header>
+        <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+          <router-view v-slot="{ Component }">
+            <component :is="Component" @open-new-entry="showNewEntry = true" />
+          </router-view>
+        </main>
+        <NewVehicleEntryModal
+          v-model="showNewEntry"
+          @done="onNewEntryDone"
+        />
       </div>
-    </header>
-    <main v-if="!isLoginPage" class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-      <router-view v-if="!isLoginPage" v-slot="{ Component }">
-        <component :is="Component" @open-new-entry="showNewEntry = true" />
-      </router-view>
-    </main>
-    <NewVehicleEntryModal
-      v-if="!isLoginPage"
-      v-model="showNewEntry"
-      @done="onNewEntryDone"
-    />
-    <router-view v-if="isLoginPage" />
+    </Transition>
   </div>
 </template>
 
@@ -168,6 +174,7 @@ function formatCountdown(ms: number): string {
 
 const router = useRouter();
 const route = useRoute();
+const routerReady = ref(false);
 const isLoginPage = computed(() => route.name === "login");
 const sessionExpiryCountdown = computed(() => idleExpiryCountdown.value);
 const showNewEntry = ref(false);
@@ -309,6 +316,9 @@ function onApiOk() {
 }
 
 onMounted(() => {
+  router.isReady().then(() => {
+    routerReady.value = true;
+  });
   window.addEventListener("api-connection-error", onApiError);
   window.addEventListener("api-connection-ok", onApiOk);
   window.addEventListener("mousemove", onActivity);
@@ -366,6 +376,15 @@ const {
 </script>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .session-expiry-overlay {
   position: fixed;
   inset: 0;

@@ -1,8 +1,9 @@
 <template>
   <div class="space-y-6">
+    <span class="icon-pen"></span>
     <div class="flex items-center justify-end">
       <button class="btn" @click="refreshAll">
-    <span class="btn-text-one">Refresh</span>
+    <span class="btn-text-one icon-spinner11" ></span>
     <span class="btn-text-two">Click </span>
 </button>
 
