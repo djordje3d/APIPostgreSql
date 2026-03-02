@@ -28,6 +28,7 @@
       <StatusCards ref="statusRef" :garage-id="selectedGarageId" />
       <GarageOverviewTable ref="garageRef" :garage-id="selectedGarageId" />
       <TicketActivityTable ref="ticketRef" :garage-id="selectedGarageId" />
+      <TicketActivity ref="ticketActivityRef" :garage-id="selectedGarageId" />
 
       <!-- Ticket states explanation -->
       <section class="rounded-lg bg-slate-50 p-4 text-sm ring-1 ring-slate-200"> 
@@ -54,6 +55,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import StatusCards from '../components/StatusCards.vue'
 import GarageOverviewTable from '../components/GarageOverviewTable.vue'
 import TicketActivityTable from '../components/TicketActivityTable.vue'
+import TicketActivity from '../components/TicketActivity.vue'
 import RevenueSummary from '../components/RevenueSummary.vue'
 import { listGarages } from '../api/garages'
 import type { Garage } from '../api/garages'
@@ -66,6 +68,7 @@ const selectedGarageId = ref<number | null>(null)
 const statusRef = ref<InstanceType<typeof StatusCards> | null>(null)  // status cards component reference
 const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null)  // garage overview table component reference
 const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null)  // ticket activity table component reference
+const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null)  // ticket activity (hybrid) component reference
 const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null)  // revenue summary component reference
 
 
@@ -73,6 +76,7 @@ function refreshAll() {  // refresh all components
   statusRef.value?.refresh?.()
   garageRef.value?.refresh?.()
   ticketRef.value?.refresh?.()
+  ticketActivityRef.value?.refresh?.()
   revenueRef.value?.refresh?.()
 }
 

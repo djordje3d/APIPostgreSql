@@ -3,21 +3,19 @@
     <span class="icon-pen"></span>
     <div class="flex items-center justify-end">
       <button class="btn" @click="refreshAll">
-    <span class="btn-text-one icon-spinner11" ></span>
-    <span class="btn-text-two">Click </span>
-</button>
-
+        <span class="btn-text-one icon-spinner11"></span>
+        <span class="btn-text-two">Click </span>
+      </button>
     </div>
-    <router-link
-      to="/by-garage"
-      class="by-garage-card"
-    >
+    <router-link to="/by-garage" class="by-garage-card">
       <span class="by-garage-card__icon" aria-hidden="true">
         <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
       </span>
       <div class="by-garage-card__content">
         <span class="by-garage-card__title">View by garage</span>
-        <span class="by-garage-card__desc">See status and activity per garage</span>
+        <span class="by-garage-card__desc"
+          >See status and activity per garage</span
+        >
       </div>
       <span class="by-garage-card__arrow" aria-hidden="true">→</span>
     </router-link>
@@ -31,45 +29,55 @@
       <TicketActivityTable ref="ticketRef" />
     </div>
     <div class="dashboard-fade dashboard-fade--4">
+      <TicketActivity ref="ticketActivityRef" />
+    </div>
+    <div class="dashboard-fade dashboard-fade--5">
       <RevenueSummary ref="revenueRef" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted } from 'vue'
-import type { Ref } from 'vue'
-import StatusCards from '../components/StatusCards.vue'
-import GarageOverviewTable from '../components/GarageOverviewTable.vue'
-import TicketActivityTable from '../components/TicketActivityTable.vue'
-import RevenueSummary from '../components/RevenueSummary.vue'
-import { useDashboardPolling } from '../composables/useDashboardPolling'
-import garageIcon from '../img/urban-parking-garage.svg'
+import { ref, inject, onMounted, onUnmounted } from "vue";
+import type { Ref } from "vue";
+import StatusCards from "../components/StatusCards.vue";
+import GarageOverviewTable from "../components/GarageOverviewTable.vue";
+import TicketActivityTable from "../components/TicketActivityTable.vue";
+import TicketActivity from "../components/TicketActivity.vue";
+import RevenueSummary from "../components/RevenueSummary.vue";
+import { useDashboardPolling } from "../composables/useDashboardPolling";
+import garageIcon from "../img/urban-parking-garage.svg";
 
-const autoRefreshEnabled = inject<Ref<boolean>>('autoRefreshEnabled', ref(true))
-const statusRef = ref<InstanceType<typeof StatusCards> | null>(null)
-const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null)
-const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null)
-const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null)
+const autoRefreshEnabled = inject<Ref<boolean>>(
+  "autoRefreshEnabled",
+  ref(true),
+);
+const statusRef = ref<InstanceType<typeof StatusCards> | null>(null);
+const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null);
+const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null);
+const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
+const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null);
 
 function refreshAll() {
-  statusRef.value?.refresh?.()
-  garageRef.value?.refresh?.()
-  ticketRef.value?.refresh?.()
-  revenueRef.value?.refresh?.()
+  statusRef.value?.refresh?.();
+  garageRef.value?.refresh?.();
+  ticketRef.value?.refresh?.();
+  revenueRef.value?.refresh?.();
+  ticketActivityRef.value?.refresh?.();
 }
 
-useDashboardPolling(refreshAll, { enabled: autoRefreshEnabled })
+useDashboardPolling(refreshAll, { enabled: autoRefreshEnabled });
 
 onMounted(() => {
-  refreshAll() // load data immediately so it appears without clicking Refresh
-  window.addEventListener('dashboard-refresh', refreshAll)
-})
-onUnmounted(() => {  // cleanup event listener
-  window.removeEventListener('dashboard-refresh', refreshAll)
-})
+  refreshAll(); // load data immediately so it appears without clicking Refresh
+  window.addEventListener("dashboard-refresh", refreshAll);
+});
+onUnmounted(() => {
+  // cleanup event listener
+  window.removeEventListener("dashboard-refresh", refreshAll);
+});
 
-defineExpose({ refreshAll }) // expose refreshAll to parent components
+defineExpose({ refreshAll }); // expose refreshAll to parent components
 </script>
 
 <style scoped>
@@ -91,7 +99,7 @@ defineExpose({ refreshAll }) // expose refreshAll to parent components
 
 .btn span {
   font-size: 16px;
-  /* text-transform: uppercase; */  
+  /* text-transform: uppercase; */
   letter-spacing: 1px;
   transition: top 0.5s;
 }
@@ -132,7 +140,9 @@ defineExpose({ refreshAll }) // expose refreshAll to parent components
   border: 1px solid rgb(226 232 240);
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
 .by-garage-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -177,12 +187,21 @@ defineExpose({ refreshAll }) // expose refreshAll to parent components
   opacity: 0;
   animation: dashboardFadeIn 0.4s ease-out forwards;
 }
-.dashboard-fade--1 { animation-delay: 0s; }
-.dashboard-fade--2 { animation-delay: 0.15s; }
-.dashboard-fade--3 { animation-delay: 0.3s; }
-.dashboard-fade--4 { animation-delay: 0.45s; }
-@keyframes dashboardFadeIn {
-  to { opacity: 1; }
+.dashboard-fade--1 {
+  animation-delay: 0s;
 }
-
+.dashboard-fade--2 {
+  animation-delay: 0.15s;
+}
+.dashboard-fade--3 {
+  animation-delay: 0.3s;
+}
+.dashboard-fade--4 {
+  animation-delay: 0.45s;
+}
+@keyframes dashboardFadeIn {
+  to {
+    opacity: 1;
+  }
+}
 </style>

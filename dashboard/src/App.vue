@@ -51,10 +51,7 @@
             class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-3 gap-x-4 px-4 py-3 sm:px-6"
           >
             <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
-              <router-link
-                to="/"
-                class="text-base font-semibold sm:text-xl"
-              >
+              <router-link to="/" class="text-base font-semibold sm:text-xl">
                 Dashboard
               </router-link>
               <label class="checkbox-wrapper" title="Auto refresh">
@@ -72,14 +69,16 @@
                 <span class="label hidden sm:inline">Auto refresh</span>
               </label>
               <div class="toolbar">
-    <RefreshCountdownRing
-      :duration-ms="intervalMs"
-      :remaining-ms="remainingMs"
-      :enabled="isRunning"
-    />
-  </div>
+                <RefreshCountdownRing
+                  :duration-ms="intervalMs"
+                  :remaining-ms="remainingMs"
+                  :enabled="isRunning"
+                />
+              </div>
             </nav>
-            <div class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3">
+            <div
+              class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
+            >
               <button
                 type="button"
                 class="group/button relative inline-flex items-center justify-center overflow-hidden rounded-md border border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 sm:px-6 sm:text-base"
@@ -121,10 +120,7 @@
             <component :is="Component" @open-new-entry="showNewEntry = true" />
           </router-view>
         </main>
-        <NewVehicleEntryModal
-          v-model="showNewEntry"
-          @done="onNewEntryDone"
-        />
+        <NewVehicleEntryModal v-model="showNewEntry" @done="onNewEntryDone" />
       </div>
     </Transition>
   </div>
@@ -147,8 +143,6 @@ import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { refresh as refreshToken } from "./api/auth";
 import { useDashboardPolling } from "./composables/useDashboardPolling";
 import RefreshCountdownRing from "./components/RefreshCountdownRing.vue";
-
-
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */
@@ -362,17 +356,17 @@ function refreshDashboardEverywhere() {
 }
 
 // Bitno: ne radi polling na login strani
-const pollingEnabled = computed(() => autoRefreshEnabled.value && !isLoginPage.value);
+const pollingEnabled = computed(
+  () => autoRefreshEnabled.value && !isLoginPage.value,
+);
 
-const {
-  remainingMs,
-  intervalMs,
-  isRunning,
-} = useDashboardPolling(refreshDashboardEverywhere, {
-  intervalMs: POLL_MS,
-  enabled: pollingEnabled,
-});
-
+const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
+  refreshDashboardEverywhere,
+  {
+    intervalMs: POLL_MS,
+    enabled: pollingEnabled,
+  },
+);
 </script>
 
 <style scoped>
@@ -407,254 +401,254 @@ const {
 
 /* Neon checkbox */
 .checkbox-wrapper {
-    --checkbox-size: 25px;
-    --checkbox-color: #00ff88;
-    --checkbox-shadow: rgba(0, 255, 136, 0.3);
-    --checkbox-border: rgba(0, 255, 136, 0.7);
-    display: flex;
-    align-items: center;
-    position: relative;
-    cursor: pointer;
-    padding: 10px;
-    margin-inline: 1.5rem;
-  }
+  --checkbox-size: 25px;
+  --checkbox-color: #00ff88;
+  --checkbox-shadow: rgba(0, 255, 136, 0.3);
+  --checkbox-border: rgba(0, 255, 136, 0.7);
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding: 10px;
+  margin-inline: 1.5rem;
+}
 
-  @media (max-width: 639px) {
-    .checkbox-wrapper {
-      --checkbox-size: 20px;
-      padding: 6px;
-    }
-    .checkbox-wrapper input:checked ~ .checkmark svg {
-      width: 14px;
-      height: 14px;
-    }
-    .checkbox-wrapper .label {
-      margin-left: 0;
-    }
+@media (max-width: 639px) {
+  .checkbox-wrapper {
+    --checkbox-size: 20px;
+    padding: 6px;
   }
-
-  .checkbox-wrapper input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-  }
-
-  .checkbox-wrapper .checkmark {
-    position: relative;
-    width: var(--checkbox-size);
-    height: var(--checkbox-size);
-    border: 2px solid var(--checkbox-border);
-    border-radius: 8px;
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 0 15px var(--checkbox-shadow);
-    overflow: hidden;
-  }
-
-  .checkbox-wrapper .checkmark::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(45deg, var(--checkbox-color), #00ffcc);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    transform: scale(0) rotate(-45deg);
-  }
-
-  .checkbox-wrapper input:checked ~ .checkmark::before {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
-
-  .checkbox-wrapper .checkmark svg {
-    width: 0;
-    height: 0;
-    color: #1a1a1a;
-    z-index: 1;
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
-  }
-
   .checkbox-wrapper input:checked ~ .checkmark svg {
-    width: 18px;
-    height: 18px;
-    transform: rotate(360deg);
+    width: 14px;
+    height: 14px;
   }
-
-  .checkbox-wrapper:hover .checkmark {
-    border-color: var(--checkbox-color);
-    transform: scale(1.1);
-    box-shadow:
-      0 0 20px var(--checkbox-shadow),
-      0 0 40px var(--checkbox-shadow),
-      inset 0 0 10px var(--checkbox-shadow);
-  }
-
-  .checkbox-wrapper input:checked ~ .checkmark {
-    animation: pulse 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-      box-shadow: 0 0 20px var(--checkbox-shadow);
-    }
-    50% {
-      transform: scale(0.9);
-      box-shadow:
-        0 0 30px var(--checkbox-shadow),
-        0 0 50px var(--checkbox-shadow);
-    }
-    100% {
-      transform: scale(1);
-      box-shadow: 0 0 20px var(--checkbox-shadow);
-    }
-  }
-
   .checkbox-wrapper .label {
-    margin-left: 15px;
-    font-family: "Segoe UI", sans-serif;
-    color: var(--checkbox-color);
-    font-size: 18px;
-    text-shadow: 0 0 10px var(--checkbox-shadow);
-    opacity: 0.9;
-    transition: all 0.3s;
+    margin-left: 0;
   }
+}
 
-  .checkbox-wrapper:hover .label {
-    opacity: 1;
-    transform: translateX(5px);
+.checkbox-wrapper input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-wrapper .checkmark {
+  position: relative;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  border: 2px solid var(--checkbox-border);
+  border-radius: 8px;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 15px var(--checkbox-shadow);
+  overflow: hidden;
+}
+
+.checkbox-wrapper .checkmark::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, var(--checkbox-color), #00ffcc);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform: scale(0) rotate(-45deg);
+}
+
+.checkbox-wrapper input:checked ~ .checkmark::before {
+  opacity: 1;
+  transform: scale(1) rotate(0);
+}
+
+.checkbox-wrapper .checkmark svg {
+  width: 0;
+  height: 0;
+  color: #1a1a1a;
+  z-index: 1;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.checkbox-wrapper input:checked ~ .checkmark svg {
+  width: 18px;
+  height: 18px;
+  transform: rotate(360deg);
+}
+
+.checkbox-wrapper:hover .checkmark {
+  border-color: var(--checkbox-color);
+  transform: scale(1.1);
+  box-shadow:
+    0 0 20px var(--checkbox-shadow),
+    0 0 40px var(--checkbox-shadow),
+    inset 0 0 10px var(--checkbox-shadow);
+}
+
+.checkbox-wrapper input:checked ~ .checkmark {
+  animation: pulse 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 20px var(--checkbox-shadow);
   }
-
-  /* Glowing dots animation */
-  .checkbox-wrapper::after,
-  .checkbox-wrapper::before {
-    content: "";
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--checkbox-color);
-    opacity: 0;
-    transition: all 0.5s;
+  50% {
+    transform: scale(0.9);
+    box-shadow:
+      0 0 30px var(--checkbox-shadow),
+      0 0 50px var(--checkbox-shadow);
   }
-
-  .checkbox-wrapper::before {
-    left: -10px;
-    top: 50%;
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px var(--checkbox-shadow);
   }
+}
 
-  .checkbox-wrapper::after {
-    right: -10px;
-    top: 50%;
-  }
+.checkbox-wrapper .label {
+  margin-left: 15px;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--checkbox-color);
+  font-size: 18px;
+  text-shadow: 0 0 10px var(--checkbox-shadow);
+  opacity: 0.9;
+  transition: all 0.3s;
+}
 
-  .checkbox-wrapper:hover::before {
-    opacity: 1;
-    transform: translateX(-10px);
-    box-shadow: 0 0 10px var(--checkbox-color);
-  }
+.checkbox-wrapper:hover .label {
+  opacity: 1;
+  transform: translateX(5px);
+}
 
-  .checkbox-wrapper:hover::after {
-    opacity: 1;
-    transform: translateX(10px);
-    box-shadow: 0 0 10px var(--checkbox-color);
-  }
+/* Glowing dots animation */
+.checkbox-wrapper::after,
+.checkbox-wrapper::before {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--checkbox-color);
+  opacity: 0;
+  transition: all 0.5s;
+}
 
-  /* New vehicle entry button styles */
-  /* https://uiverse.io/riyaz7us/hard-chipmunk-76 */
+.checkbox-wrapper::before {
+  left: -10px;
+  top: 50%;
+}
+
+.checkbox-wrapper::after {
+  right: -10px;
+  top: 50%;
+}
+
+.checkbox-wrapper:hover::before {
+  opacity: 1;
+  transform: translateX(-10px);
+  box-shadow: 0 0 10px var(--checkbox-color);
+}
+
+.checkbox-wrapper:hover::after {
+  opacity: 1;
+  transform: translateX(10px);
+  box-shadow: 0 0 10px var(--checkbox-color);
+}
+
+/* New vehicle entry button styles */
+/* https://uiverse.io/riyaz7us/hard-chipmunk-76 */
+.Download-button {
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 17px;
+  padding: 12px 20px;
+  color: white;
+  background: linear-gradient(144deg, #166534, #169934 50%, #168844);
+  border: none;
+  box-shadow: 0 0.7em 1.5em -0.5em rgba(59, 78, 48, 0.527);
+  letter-spacing: 0.05em;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.Download-button svg {
+  margin-right: 8px;
+  width: 25px;
+}
+
+@media (max-width: 639px) {
   .Download-button {
-    display: flex;
-    align-items: center;
-    font-family: inherit;
-    font-weight: 500;
-    font-size: 17px;
-    padding: 12px 20px;
-    color: white;
-    background: linear-gradient(144deg, #166534, #169934 50%, #168844);
-    border: none;
-    box-shadow: 0 0.7em 1.5em -0.5em rgba(59, 78, 48, 0.527);
-    letter-spacing: 0.05em;
-    border-radius: 8px;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s;
+    padding: 8px 12px;
+    font-size: 14px;
   }
-
   .Download-button svg {
-    margin-right: 8px;
-    width: 25px;
+    margin-right: 0;
+    width: 22px;
   }
+}
 
-  @media (max-width: 639px) {
-    .Download-button {
-      padding: 8px 12px;
-      font-size: 14px;
-    }
-    .Download-button svg {
-      margin-right: 0;
-      width: 22px;
-    }
-  }
+.Download-button:hover {
+  box-shadow: 0 0.5em 1.5em -0.5em #3b9982;
+  border-top-left-radius: 40px;
+  border-bottom-right-radius: 40px;
+}
 
-  .Download-button:hover {
-    box-shadow: 0 0.5em 1.5em -0.5em #3b9982;
-    border-top-left-radius: 40px;
-    border-bottom-right-radius: 40px;
-  }
+.Download-button:active {
+  box-shadow: 0 0.3em 1em -0.5em #3bf682;
+}
 
-  .Download-button:active {
-    box-shadow: 0 0.3em 1em -0.5em #3bf682;
-  }
+.Download-button::before {
+  content: "";
+  width: 4px;
+  height: 40%;
+  background-color: white;
+  position: absolute;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  left: 0;
+  transition: all 0.2s;
+}
 
-  .Download-button::before {
-    content: "";
-    width: 4px;
-    height: 40%;
-    background-color: white;
-    position: absolute;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-    left: 0;
-    transition: all 0.2s;
-  }
+.Download-button::after {
+  content: "";
+  width: 4px;
+  height: 40%;
+  background-color: white;
+  position: absolute;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  right: 0;
+  transition: all 0.2s;
+}
 
-  .Download-button::after {
-    content: "";
-    width: 4px;
-    height: 40%;
-    background-color: white;
-    position: absolute;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    right: 0;
-    transition: all 0.2s;
-  }
+.Download-button:hover::before,
+.Download-button:hover::after {
+  height: 60%;
+}
 
-  .Download-button:hover::before,
-  .Download-button:hover::after {
-    height: 60%;
-  }
+.Download-button:hover::before {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  transform: translate(5px, -15px) rotate(45deg);
+}
 
-  .Download-button:hover::before {
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-    transform: translate(5px, -15px) rotate(45deg);
-  }
-
-  .Download-button:hover::after {
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-    border-top-left-radius: 0px;
-    border-bottom-left-radius: 0px;
-    transform: translate(-5px, 15px) rotate(45deg);
-  }
+.Download-button:hover::after {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  transform: translate(-5px, 15px) rotate(45deg);
+}
 </style>
