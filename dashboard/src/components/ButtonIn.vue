@@ -3,6 +3,7 @@
     v-bind="restAttrs"
     :type="type"
     :disabled="isDisabled"
+    @click="onClick"
     @mousemove="onMove"
     @mouseleave="onLeave"
     class="btn-in group relative overflow-hidden rounded-lg px-4 py-2 font-medium transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
@@ -49,6 +50,8 @@ const props = defineProps<{
   variant?: "primary" | "danger" | "outline"
 }>()
 
+const emit = defineEmits<{ click: [e?: MouseEvent] }>()
+
 const attrs = useAttrs()
 
 const attrsClass = computed(() => attrs.class)
@@ -76,6 +79,11 @@ const variantClasses = computed(() => {
 })
 
 const hoverGlow = ref<Record<string, string> | null>(null)
+
+function onClick(e: MouseEvent) {
+  if (isDisabled.value) return
+  emit("click", e)
+}
 
 function onMove(e: MouseEvent) {
   if (isDisabled.value) return
