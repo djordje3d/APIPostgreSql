@@ -4,7 +4,9 @@
     <div class="bg-layer" aria-hidden="true"></div>
 
     <!-- Content -->
-    <div class="login-content flex min-h-screen items-center justify-center px-4">
+    <div
+      class="login-content flex min-h-screen items-center justify-center px-4"
+    >
       <div class="card w-full max-w-sm rounded-lg bg-white px-6 py-8 shadow-md">
         <h1 class="mb-6 text-center text-xl font-semibold text-slate-800">
           Dashboard Login
@@ -12,7 +14,10 @@
 
         <form @submit.prevent="onSubmit" class="space-y-4">
           <div>
-            <label for="username" class="mb-1 block text-sm font-medium text-slate-700">
+            <label
+              for="username"
+              class="mb-1 block text-sm font-medium text-slate-700"
+            >
               Username
             </label>
             <input
@@ -21,14 +26,15 @@
               type="text"
               required
               autocomplete="username"
-              class="w-full rounded border border-slate-300 px-3 py-2
-                     focus:border-emerald-500 focus:outline-none focus:ring-1
-                     focus:ring-emerald-500"
+              class="w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label for="password" class="mb-1 block text-sm font-medium text-slate-700">
+            <label
+              for="password"
+              class="mb-1 block text-sm font-medium text-slate-700"
+            >
               Password
             </label>
             <input
@@ -37,17 +43,20 @@
               type="password"
               required
               autocomplete="current-password"
-              class="w-full rounded border border-slate-300 px-3 py-2
-                     focus:border-emerald-500 focus:outline-none focus:ring-1
-                     focus:ring-emerald-500"
+              class="w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
           <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
 
-          <GlowButton type="submit" :loading="loading" className="w-full">
-            {{ loading ? "Signing in…" : "Sign in" }}
-          </GlowButton>
+          <Button
+            type="submit"
+            :loading="isSubmitting"
+            :disabled="!canSubmit"
+            class="w-full"
+          >
+            Sign in
+          </Button>
         </form>
       </div>
     </div>
@@ -55,10 +64,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { login } from "../api/auth"
-import GlowButton from "../components/GlowButton.vue"
+import Button from "../components/Button.vue"
 
 const router = useRouter()
 const route = useRoute()
@@ -66,11 +75,17 @@ const route = useRoute()
 const username = ref("")
 const password = ref("")
 const error = ref("")
-const loading = ref(false)
+const isSubmitting = ref(false)
+
+const canSubmit = computed(() => {
+  return username.value.trim().length > 0 && password.value.trim().length > 0
+})
 
 async function onSubmit() {
+  if (!canSubmit.value || isSubmitting.value) return
+
   error.value = ""
-  loading.value = true
+  isSubmitting.value = true
 
   try {
     await login(username.value, password.value)
@@ -84,7 +99,7 @@ async function onSubmit() {
 
     error.value = msg || "Login failed. Check username and password."
   } finally {
-    loading.value = false
+    isSubmitting.value = false
   }
 }
 </script>
@@ -104,8 +119,16 @@ async function onSubmit() {
 
   /* final look */
   background:
-    radial-gradient(900px 500px at 20% 15%, rgba(16, 185, 129, 0.16), transparent 60%),
-    radial-gradient(900px 500px at 80% 85%, rgba(59, 130, 246, 0.12), transparent 60%),
+    radial-gradient(
+      900px 500px at 20% 15%,
+      rgba(16, 185, 129, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at 80% 85%,
+      rgba(59, 130, 246, 0.12),
+      transparent 60%
+    ),
     linear-gradient(to bottom, #f8fafc, #f1f5f9);
 
   opacity: 0;

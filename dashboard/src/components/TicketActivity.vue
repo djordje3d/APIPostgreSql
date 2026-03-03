@@ -40,7 +40,7 @@
               >
                 View
               </button>
-              <template v-if="t.ticket_state === 'OPEN'">
+              <template v-if="t.ticket_state === 'OPEN'"> <!-- Close ticket -->
                 <button
                   type="button"
                   class="ml-2 text-amber-600 hover:text-amber-800"
@@ -76,15 +76,16 @@
       @close="closePaymentModal"
       @done="onPaymentDone"
     />
-    <!-- View ticket detail modal: barcode + evidence of payments -->
-    <div
-      v-if="viewingTicket"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      @click.self="viewingTicket = null"
-    >
+    <!-- View ticket detail modal: barcode + evidence of payments (Teleport so it stays above RevenueSummary when scrolling) -->
+    <Teleport to="body">
+      <div
+        v-if="viewingTicket"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
+        @click.self="viewingTicket = null"
+      >
       <div class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">Ticket #{{ viewingTicket.id }}</h3>
+          <h3 class="text-lg font-semibold text-gray-900">{{ viewingTicket.garage_name ?? '–' }} — Ticket #{{ viewingTicket.id }}</h3>
           <button type="button" class="text-gray-500 hover:text-gray-700" @click="viewingTicket = null">&times;</button>
         </div>
         <dl class="space-y-2 text-sm">
@@ -95,6 +96,7 @@
           <div><dt class="text-gray-500">Exit time</dt><dd>{{ formatTime(viewingTicket.exit_time) || '–' }}</dd></div>
           <div><dt class="text-gray-500">Fee</dt><dd>{{ formatMoney(viewingTicket.fee) }}</dd></div>
         </dl>
+        <!-- Ticket ID (barcode) -->
         <div class="mt-4 border-t border-gray-200 pt-4">
           <dt class="text-gray-500 text-xs font-medium uppercase">Ticket ID (barcode)</dt>
           <dd class="mt-2 flex flex-col items-center gap-2">
@@ -106,6 +108,7 @@
             <span class="font-mono text-sm tracking-[0.35em] text-gray-600">{{ viewingTicket.id }}</span>
           </dd>
         </div>
+        <!-- Evidence of payments -->
         <div class="mt-4 border-t border-gray-200 pt-4">
           <h4 class="text-sm font-semibold text-gray-800">Evidence of payments</h4>
           <p class="mt-0.5 text-xs text-gray-500">All payments for this ticket (amount and when paid).</p>
@@ -113,7 +116,7 @@
           <div v-else-if="!viewPayments.length" class="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm text-gray-500">
             No payments recorded.
           </div>
-          <div v-else class="mt-3 overflow-hidden rounded-lg border border-gray-200">
+          <div v-else class="mt-3 overflow-hidden rounded-lg border border-gray-200"> <!-- Payments table -->
             <table class="min-w-full divide-y divide-gray-200 text-sm">
               <thead class="bg-gray-50">
                 <tr>
@@ -123,7 +126,7 @@
                   <th scope="col" class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Method</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
+              <tbody class="divide-y divide-gray-200 bg-white"> <!-- Payments list -->
                 <tr v-for="(p, idx) in viewPaymentsSorted" :key="p.id" class="hover:bg-gray-50">
                   <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ idx + 1 }}</td>
                   <td class="whitespace-nowrap px-3 py-2 text-right font-medium text-gray-900">{{ formatMoney(p.amount) }}</td>
@@ -131,7 +134,7 @@
                   <td class="px-3 py-2 text-gray-600">{{ p.method ?? '–' }}</td>
                 </tr>
               </tbody>
-              <tfoot class="bg-gray-50">
+              <tfoot class="bg-gray-50"> <!-- Total paid -->
                 <tr>
                   <td colspan="2" class="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-600">Total paid</td>
                   <td colspan="2" class="whitespace-nowrap px-3 py-2 text-right font-semibold text-gray-900">{{ formatMoney(String(viewPaymentsTotal)) }}</td>
@@ -140,7 +143,7 @@
             </table>
           </div>
         </div>
-        <div class="mt-4 flex gap-2">
+        <div class="mt-4 flex gap-2"> <!-- Buttons: go to payment, close -->
           <button
             v-if="viewingTicket.ticket_state === 'CLOSED' && viewingTicket.payment_status !== 'PAID'"
             type="button"
@@ -159,6 +162,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
@@ -217,6 +221,7 @@ function formatMoney(value: string | null | undefined): string {
   return new Intl.NumberFormat('sr-RS', { style: 'decimal', maximumFractionDigits: 0 }).format(n) + ' RSD'
 }
 
+/** Fetch payments for the view ticket modal. */
 async function fetchPaymentsForView(ticketId: number) {
   viewPaymentsLoading.value = true
   viewPayments.value = []
@@ -243,7 +248,7 @@ async function closeTicket(id: number) {
   try {
     await ticketExit(id)
     await fetch()
-    window.dispatchEvent(new CustomEvent('dashboard-refresh'))
+    window.dispatchEvent(new CustomEvent('dashboard-refresh')) // Refresh the page
   } catch {
     // could show toast
   }

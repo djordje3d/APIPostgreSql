@@ -2,9 +2,12 @@
   <Teleport to="body">
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="$emit('close')">
       <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-        <div class="mb-4 flex justify-between">
-          <h3 class="text-lg font-semibold">Payment – {{ garageName ? garageName + ' – ' : '' }}Ticket #{{ ticketId }}</h3>
-          <button type="button" class="text-gray-500 hover:text-gray-700" @click="$emit('close')">&times;</button>
+        <div class="mb-4">
+          <div class="flex justify-between">
+            <h3 class="text-lg font-semibold">Payment{{ garageName ? ' – ' + garageName : '' }}</h3>
+            <button type="button" class="text-gray-500 hover:text-gray-700" @click="$emit('close')">&times;</button>
+          </div>
+          <p class="mt-1 text-sm text-gray-600">Ticket #{{ ticketId }}</p>
         </div>
         <p class="mb-1 text-sm text-gray-600">Total fee: {{ formatFeeDisplay(fee) }} RSD</p>
         <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">Rest to pay: {{ formatMoney(restToPay) }} RSD</p>
@@ -25,7 +28,10 @@
             </div>
             <div>
               <label class="mb-1 block text-sm font-medium text-gray-700">Method *</label>
-              <input v-model="method" type="text" required class="w-full rounded border border-gray-300 px-3 py-2" placeholder="e.g. CASH, CARD" />
+              <select v-model="method" required class="w-full rounded border border-gray-300 px-3 py-2">
+                <option value="CASH">CASH</option>
+                <option value="CARD">CARD</option>
+              </select>
             </div>
           </div>
           <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
