@@ -4,69 +4,114 @@
       <h2 class="text-lg font-semibold text-gray-900">Ticket activity (last 10)</h2>
     </div>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Plate</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Spot</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Fee</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Ticket ID</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white">
-          <tr v-if="loading" class="text-center text-gray-500">
-            <td colspan="8" class="px-4 py-6">Loading…</td>
-          </tr>
-          <tr v-for="t in (tickets || [])" :key="t.id" class="hover:bg-gray-50">
-            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ t.garage_name ?? '–' }}</td>
-            <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ t.licence_plate ?? '–' }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ t.spot_code ?? '–' }}</td>
-            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.entry_time) }}</td>
-            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.exit_time) }}</td>
-            <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">{{ formatMoney(t.fee) }}</td>
-            <td class="px-4 py-3">
-              <span class="font-mono text-sm tracking-[0.25em] text-gray-800" aria-label="Ticket ID">{{ t.id }}</span>
-            </td>
-            <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
-              <button
-                type="button"
-                class="text-slate-600 hover:text-slate-900"
-                title="View ticket & payments"
-                @click="viewTicket(t)"
-              >
-                View
-              </button>
-              <template v-if="t.ticket_state === 'OPEN'"> <!-- Close ticket -->
+      <!-- Error: retry -->
+      <div
+        v-if="error"
+        class="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center"
+        role="alert"
+      >
+        <button
+          type="button"
+          class="text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+          @click="retry"
+        >
+          Failed to fetch data, click here to retry
+        </button>
+      </div>
+
+      <!-- Loading (no data yet): spinner + text -->
+      <div
+        v-else-if="loading"
+        class="flex flex-col items-center justify-center gap-3 px-4 py-12 text-gray-500"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <span class="icon-spinner11 inline-block text-2xl animate-spin" aria-hidden="true"></span>
+        <span>loading data...</span>
+      </div>
+
+      <!-- Idle: nothing loaded, no loading in progress -->
+      <div
+        v-else-if="!hasLoadedOnce && !refreshing"
+        class="px-4 py-12 text-center text-gray-400"
+      >
+        —
+      </div>
+
+      <!-- Content: table with optional refreshing overlay -->
+      <div v-else class="relative min-h-[120px]">
+        <!-- Refreshing overlay -->
+        <div
+          v-if="refreshing"
+          class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+          aria-busy="true"
+          aria-label="Refreshing"
+        >
+          <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
+        </div>
+
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Plate</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Spot</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Fee</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Ticket ID</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr v-for="t in (tickets || [])" :key="t.id" class="hover:bg-gray-50">
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ t.garage_name ?? '–' }}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ t.licence_plate ?? '–' }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700">{{ t.spot_code ?? '–' }}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.entry_time) }}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.exit_time) }}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">{{ formatMoney(t.fee) }}</td>
+              <td class="px-4 py-3">
+                <span class="font-mono text-sm tracking-[0.25em] text-gray-800" aria-label="Ticket ID">{{ t.id }}</span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
                 <button
                   type="button"
-                  class="ml-2 text-amber-600 hover:text-amber-800"
-                  title="Close ticket"
-                  @click="closeTicket(t.id)"
+                  class="text-slate-600 hover:text-slate-900"
+                  title="View ticket & payments"
+                  @click="viewTicket(t)"
                 >
-                  Close
+                  View
                 </button>
-              </template>
-              <template v-else-if="t.ticket_state === 'CLOSED' && t.payment_status !== 'PAID'">
-                <button
-                  type="button"
-                  class="ml-2 text-emerald-600 hover:text-emerald-800"
-                  title="Go to payment"
-                  @click="openPayment(t)"
-                >
-                  Payment
-                </button>
-              </template>
-            </td>
-          </tr>
-          <tr v-if="!loading && (!tickets || tickets.length === 0)">
-            <td colspan="8" class="px-4 py-6 text-center text-gray-500">No tickets</td>
-          </tr>
-        </tbody>
-      </table>
+                <template v-if="t.ticket_state === 'OPEN'"> <!-- Close ticket -->
+                  <button
+                    type="button"
+                    class="ml-2 text-amber-600 hover:text-amber-800"
+                    title="Close ticket"
+                    @click="closeTicket(t.id)"
+                  >
+                    Close
+                  </button>
+                </template>
+                <template v-else-if="t.ticket_state === 'CLOSED' && t.payment_status !== 'PAID'">
+                  <button
+                    type="button"
+                    class="ml-2 text-emerald-600 hover:text-emerald-800"
+                    title="Go to payment"
+                    @click="openPayment(t)"
+                  >
+                    Payment
+                  </button>
+                </template>
+              </td>
+            </tr>
+            <!-- Loaded empty -->
+            <tr v-if="(tickets || []).length === 0">
+              <td colspan="8" class="px-4 py-6 text-center text-gray-500">No tickets</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     <PaymentModal
       v-if="paymentTicket"
@@ -180,7 +225,10 @@ const props = withDefaults(
   { garageId: undefined }
 )
 
-const loading = ref(true)
+const loading = ref(false)
+const refreshing = ref(false)
+const error = ref(false)
+const hasLoadedOnce = ref(false)
 const tickets = ref<TicketDashboardRow[]>([])
 const viewingTicket = ref<TicketDashboardRow | null>(null)
 const viewPayments = ref<Payment[]>([])
@@ -248,7 +296,7 @@ async function closeTicket(id: number) {
   try {
     await ticketExit(id)
     await fetch()
-    window.dispatchEvent(new CustomEvent('dashboard-refresh')) // Refresh the page
+    window.dispatchEvent(new CustomEvent('dashboard-refresh'))
   } catch {
     // could show toast
   }
@@ -269,7 +317,13 @@ function onPaymentDone() {
 }
 
 async function fetch() {
-  loading.value = true
+  const hasData = tickets.value.length > 0 || hasLoadedOnce.value
+  if (!hasData) {
+    loading.value = true
+    error.value = false
+  } else {
+    refreshing.value = true
+  }
   try {
     const res = await listTicketsDashboard({
       ...(props.garageId != null ? { garage_id: props.garageId } : {}),
@@ -277,11 +331,20 @@ async function fetch() {
       offset: 0,
     })
     tickets.value = res.data.items
+    hasLoadedOnce.value = true
+    error.value = false
   } catch {
-    tickets.value = []
+    error.value = true
+    if (!hasData) tickets.value = []
   } finally {
     loading.value = false
+    refreshing.value = false
   }
+}
+
+function retry() {
+  error.value = false
+  fetch()
 }
 
 function renderBarcodeImage(ticketId: number) {
@@ -309,8 +372,8 @@ watch(viewingTicket, (t) => {
   nextTick(() => renderBarcodeImage(t.id))
 })
 
-onMounted(fetch)
-watch(() => props.garageId, fetch)
+onMounted(() => fetch())
+watch(() => props.garageId, () => fetch())
 
-defineExpose({ refresh: fetch })
+defineExpose({ refresh: () => fetch() })
 </script>

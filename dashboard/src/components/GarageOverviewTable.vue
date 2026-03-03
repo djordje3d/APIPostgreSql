@@ -4,37 +4,79 @@
       <h2 class="text-lg font-semibold text-gray-900">Garage overview</h2>
     </div>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th v-if="!garageId" class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Total spots</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Free</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Occupied</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Rentable</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white">
-          <tr v-if="loading" class="text-center text-gray-500">
-            <td :colspan="garageId ? 4 : 5" class="px-4 py-6">Loading…</td>
-          </tr>
-          <tr
-            v-for="row in rows"
-            :key="row.garage_id"
-            :class="garageId ? '' : 'cursor-pointer hover:bg-gray-50'"
-            @click="!garageId && $router.push({ name: 'garage-detail', params: { id: row.garage_id } })"
-          >
-            <td v-if="!garageId" class="px-4 py-3 font-medium text-gray-900">{{ row.name }}</td>
-            <td class="px-4 py-3 text-right text-gray-700">{{ row.total_spots }}</td>
-            <td class="px-4 py-3 text-right text-green-700">{{ row.free }}</td>
-            <td class="px-4 py-3 text-right text-red-700">{{ row.occupied }}</td>
-            <td class="px-4 py-3 text-right text-gray-700">{{ row.rentable }}</td>
-          </tr>
-          <tr v-if="!loading && rows.length === 0">
-            <td :colspan="garageId ? 4 : 5" class="px-4 py-6 text-center text-gray-500">No garages</td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Error: retry -->
+      <div
+        v-if="error"
+        class="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center"
+        role="alert"
+      >
+        <button
+          type="button"
+          class="text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+          @click="retry"
+        >
+          Failed to fetch data, click here to retry
+        </button>
+      </div>
+
+      <!-- Loading (no data yet) -->
+      <div
+        v-else-if="loading"
+        class="flex flex-col items-center justify-center gap-3 px-4 py-12 text-gray-500"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <span class="icon-spinner11 inline-block text-2xl animate-spin" aria-hidden="true"></span>
+        <span>loading data...</span>
+      </div>
+
+      <!-- Idle -->
+      <div
+        v-else-if="!hasLoadedOnce && !refreshing"
+        class="px-4 py-12 text-center text-gray-400"
+      >
+        —
+      </div>
+
+      <!-- Content with refreshing overlay -->
+      <div v-else class="relative min-h-[120px]">
+        <div
+          v-if="refreshing"
+          class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+          aria-busy="true"
+          aria-label="Refreshing"
+        >
+          <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
+        </div>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th v-if="!garageId" class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Total spots</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Free</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Occupied</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Rentable</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr
+              v-for="row in rows"
+              :key="row.garage_id"
+              :class="garageId ? '' : 'cursor-pointer hover:bg-gray-50'"
+              @click="!garageId && $router.push({ name: 'garage-detail', params: { id: row.garage_id } })"
+            >
+              <td v-if="!garageId" class="px-4 py-3 font-medium text-gray-900">{{ row.name }}</td>
+              <td class="px-4 py-3 text-right text-gray-700">{{ row.total_spots }}</td>
+              <td class="px-4 py-3 text-right text-green-700">{{ row.free }}</td>
+              <td class="px-4 py-3 text-right text-red-700">{{ row.occupied }}</td>
+              <td class="px-4 py-3 text-right text-gray-700">{{ row.rentable }}</td>
+            </tr>
+            <tr v-if="rows.length === 0">
+              <td :colspan="garageId ? 4 : 5" class="px-4 py-6 text-center text-gray-500">No garages</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -59,11 +101,20 @@ interface Row {
   rentable: number
 }
 
-const loading = ref(true)
+const loading = ref(false)
+const refreshing = ref(false)
+const error = ref(false)
+const hasLoadedOnce = ref(false)
 const rows = ref<Row[]>([])
 
 async function fetch() {
-  loading.value = true
+  const hasData = rows.value.length > 0 || hasLoadedOnce.value
+  if (!hasData) {
+    loading.value = true
+    error.value = false
+  } else {
+    refreshing.value = true
+  }
   try {
     const garages: Garage[] = props.garageId != null
       ? [(await getGarage(props.garageId)).data]
@@ -88,15 +139,24 @@ async function fetch() {
       })
     }
     rows.value = result
+    hasLoadedOnce.value = true
+    error.value = false
   } catch {
-    rows.value = []
+    error.value = true
+    if (!hasData) rows.value = []
   } finally {
     loading.value = false
+    refreshing.value = false
   }
 }
 
-onMounted(fetch)
-watch(() => props.garageId, fetch)
+function retry() {
+  error.value = false
+  fetch()
+}
 
-defineExpose({ refresh: fetch })
+onMounted(() => fetch())
+watch(() => props.garageId, () => fetch())
+
+defineExpose({ refresh: () => fetch() })
 </script>

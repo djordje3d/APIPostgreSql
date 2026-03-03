@@ -4,24 +4,66 @@
       <h2 class="text-lg font-semibold text-gray-900">Ticket activity (last 10)</h2>
     </div>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>  
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Spot</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Plate</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Status</th>
-            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Payment</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Fee</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Rest to pay</th>
-            <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white">
-          <tr v-if="loading" class="text-center text-gray-500">
-            <td colspan="9" class="px-4 py-6">Loading…</td>
-          </tr>
+      <!-- Error: retry -->
+      <div
+        v-if="error"
+        class="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center"
+        role="alert"
+      >
+        <button
+          type="button"
+          class="text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+          @click="retry"
+        >
+          Failed to fetch data, click here to retry
+        </button>
+      </div>
+
+      <!-- Loading (no data yet) -->
+      <div
+        v-else-if="loading"
+        class="flex flex-col items-center justify-center gap-3 px-4 py-12 text-gray-500"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <span class="icon-spinner11 inline-block text-2xl animate-spin" aria-hidden="true"></span>
+        <span>loading data...</span>
+      </div>
+
+      <!-- Idle -->
+      <div
+        v-else-if="!hasLoadedOnce && !refreshing"
+        class="px-4 py-12 text-center text-gray-400"
+      >
+        —
+      </div>
+
+      <!-- Content with refreshing overlay -->
+      <div v-else class="relative min-h-[120px]">
+        <div
+          v-if="refreshing"
+          class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+          aria-busy="true"
+          aria-label="Refreshing"
+        >
+          <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
+        </div>
+
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Spot</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Plate</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Status</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Payment</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Fee</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Rest to pay</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
           <tr v-for="t in (tickets || [])" :key="t.id" class="hover:bg-gray-50">
             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.entry_time) }}</td>
             <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.exit_time) }}</td>
@@ -80,11 +122,12 @@
               </template>
             </td>
           </tr>
-          <tr v-if="!loading && (!tickets || tickets.length === 0)">
-            <td colspan="9" class="px-4 py-6 text-center text-gray-500">No tickets</td>
-          </tr>
-        </tbody>
-      </table>
+            <tr v-if="(tickets || []).length === 0">
+              <td colspan="9" class="px-4 py-6 text-center text-gray-500">No tickets</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     <PaymentModal
       v-if="paymentTicket"
@@ -134,7 +177,10 @@ const props = withDefaults(
   { garageId: undefined }
 )
 
-const loading = ref(true)
+const loading = ref(false)
+const refreshing = ref(false)
+const error = ref(false)
+const hasLoadedOnce = ref(false)
 const tickets = ref<TicketDashboardRow[]>([])
 const viewingTicket = ref<TicketDashboardRow | null>(null)
 const paymentTicket = ref<TicketDashboardRow | null>(null)
@@ -205,8 +251,14 @@ async function fetchRestToPayForTickets(items: TicketDashboardRow[]) {
 }
 
 async function fetch() {
-  loading.value = true
-  restToPayMap.value = {}
+  const hasData = tickets.value.length > 0 || hasLoadedOnce.value
+  if (!hasData) {
+    loading.value = true
+    error.value = false
+    restToPayMap.value = {}
+  } else {
+    refreshing.value = true
+  }
   try {
     const res = await listTicketsDashboard({
       ...(props.garageId != null ? { garage_id: props.garageId } : {}),
@@ -215,11 +267,23 @@ async function fetch() {
     })
     tickets.value = res.data.items
     await fetchRestToPayForTickets(tickets.value)
+    hasLoadedOnce.value = true
+    error.value = false
   } catch {
-    tickets.value = []
+    error.value = true
+    if (!hasData) {
+      tickets.value = []
+      restToPayMap.value = {}
+    }
   } finally {
     loading.value = false
+    refreshing.value = false
   }
+}
+
+function retry() {
+  error.value = false
+  fetch()
 }
 
 function viewTicket(t: TicketDashboardRow) {
@@ -255,8 +319,8 @@ function onPaymentDone() {
   })
 }
 
-onMounted(fetch)
-watch(() => props.garageId, fetch)
+onMounted(() => fetch())
+watch(() => props.garageId, () => fetch())
 
-defineExpose({ refresh: fetch })
+defineExpose({ refresh: () => fetch() })
 </script>
