@@ -79,39 +79,24 @@
             <div
               class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
             >
-              <button
+              <ButtonIn
                 type="button"
-                class="group/button relative inline-flex items-center justify-center overflow-hidden rounded-md border border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 sm:px-6 sm:text-base"
+                variant="outline"
+                class="border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-gray-600/80 sm:px-6 sm:text-base"
                 @click="logout"
+                title="Logout"
               >
-                <span class="text-base sm:text-lg">Logout</span>
-                <div
-                  class="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
-                >
-                  <div class="relative h-full w-10 bg-white/20"></div>
-                </div>
-              </button>
-              <button
+                Logout
+              </ButtonIn>
+              <ButtonIn 
                 type="button"
-                class="Download-button"
-                title="New Vehicle Entry"
+                variant="outline"
+                class="border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
                 @click="showNewEntry = true"
+                title="New Vehicle Entry"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="32"
-                  width="32"
-                  viewBox="0 0 32 32"
-                  class="shrink-0"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M23.371 29.529c0 0 0.335-2.012-1.731-4.469 2.011-5.641 2.29-10.778 2.29-10.778s4.133 0.95 4.133 5.026c-0.001 6.981-4.692 10.221-4.692 10.221zM11.979 27.078c0 0-2.768-8.883-2.768-12.568 0-1.658 0.187-3.133 0.478-4.472h12.61c0.293 1.34 0.481 2.816 0.481 4.473 0 3.629-2.76 12.567-2.76 12.567h-8.041zM15.99 12.069c-1.418 0-2.568 1.15-2.568 2.569 0 1.418 1.15 2.569 2.568 2.569s2.569-1.15 2.569-2.569c0.001-1.419-1.15-2.569-2.569-2.569zM15.438 0.596v-3.498h1v3.409c1.143 0.832 4.236 3.478 5.635 8.575h-12.16c1.352-4.957 4.296-7.574 5.525-8.486zM8.629 29.529c0 0-4.691-3.24-4.691-10.221 0-4.076 4.133-5.026 4.133-5.026s0.279 5.137 2.289 10.778c-2.067 2.458-1.731 4.469-1.731 4.469zM17.691 30.045l-0.838-0.838-0.893 2.793-1.062-2.793-0.726 1.451-1.062-2.625h5.752l-1.171 2.012z"
-                    fill="white"
-                  ></path>
-                </svg>
-                <span class="hidden sm:inline">New Vehicle Entry</span>
-              </button>
+                New Vehicle Entry
+              </ButtonIn>
             </div>
           </div>
         </header>
@@ -143,6 +128,7 @@ import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { refresh as refreshToken } from "./api/auth";
 import { useDashboardPolling } from "./composables/useDashboardPolling";
 import RefreshCountdownRing from "./components/RefreshCountdownRing.vue";
+import ButtonIn from "./components/ButtonIn.vue";
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */
@@ -561,94 +547,4 @@ const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
   box-shadow: 0 0 10px var(--checkbox-color);
 }
 
-/* New vehicle entry button styles */
-/* https://uiverse.io/riyaz7us/hard-chipmunk-76 */
-.Download-button {
-  display: flex;
-  align-items: center;
-  font-family: inherit;
-  font-weight: 500;
-  font-size: 17px;
-  padding: 12px 20px;
-  color: white;
-  background: linear-gradient(144deg, #166534, #169934 50%, #168844);
-  border: none;
-  box-shadow: 0 0.7em 1.5em -0.5em rgba(59, 78, 48, 0.527);
-  letter-spacing: 0.05em;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-}
-
-.Download-button svg {
-  margin-right: 8px;
-  width: 25px;
-}
-
-@media (max-width: 639px) {
-  .Download-button {
-    padding: 8px 12px;
-    font-size: 14px;
-  }
-  .Download-button svg {
-    margin-right: 0;
-    width: 22px;
-  }
-}
-
-.Download-button:hover {
-  box-shadow: 0 0.5em 1.5em -0.5em #3b9982;
-  border-top-left-radius: 40px;
-  border-bottom-right-radius: 40px;
-}
-
-.Download-button:active {
-  box-shadow: 0 0.3em 1em -0.5em #3bf682;
-}
-
-.Download-button::before {
-  content: "";
-  width: 4px;
-  height: 40%;
-  background-color: white;
-  position: absolute;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  left: 0;
-  transition: all 0.2s;
-}
-
-.Download-button::after {
-  content: "";
-  width: 4px;
-  height: 40%;
-  background-color: white;
-  position: absolute;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  right: 0;
-  transition: all 0.2s;
-}
-
-.Download-button:hover::before,
-.Download-button:hover::after {
-  height: 60%;
-}
-
-.Download-button:hover::before {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  transform: translate(5px, -15px) rotate(45deg);
-}
-
-.Download-button:hover::after {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px;
-  transform: translate(-5px, 15px) rotate(45deg);
-}
 </style>

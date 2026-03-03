@@ -69,6 +69,8 @@
     fill: none;
     stroke-width: 10px;
     stroke-linecap: round;
+    transform: rotate(90deg);
+    transform-origin: center;
   }
   .countdown__icon__circle {
     stroke: #76e19e;

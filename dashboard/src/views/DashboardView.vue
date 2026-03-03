@@ -2,10 +2,15 @@
   <div class="space-y-6">
     <span class="icon-pen"></span>
     <div class="flex items-center justify-end">
-      <button class="btn" @click="refreshAll">
-        <span class="btn-text-one icon-spinner11"></span>
-        <span class="btn-text-two">Click </span>
-      </button>
+      <ButtonIn
+        type="button"
+        variant="outline"
+        class="min-w-[50px] min-h-[50px] border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
+        @click="refreshAll"
+        title="Refresh"
+      >
+        <span class="icon-spinner11"></span>
+      </ButtonIn>
     </div>
     <router-link to="/by-garage" class="by-garage-card">
       <span class="by-garage-card__icon" aria-hidden="true">
@@ -45,6 +50,7 @@ import GarageOverviewTable from "../components/GarageOverviewTable.vue";
 import TicketActivityTable from "../components/TicketActivityTable.vue";
 import TicketActivity from "../components/TicketActivity.vue";
 import RevenueSummary from "../components/RevenueSummary.vue";
+import ButtonIn from "../components/ButtonIn.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import garageIcon from "../img/urban-parking-garage.svg";
 
@@ -81,53 +87,6 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
 </script>
 
 <style scoped>
-/* button styles */
-/* https://uiverse.io/mobinkakei/ancient-goose-30 */
-.btn {
-  width: 140px;
-  height: 50px;
-  background: linear-gradient(to top, #00154c, #12376e, #23487f);
-  color: #fff;
-  border-radius: 50px;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  position: relative;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-}
-
-.btn span {
-  font-size: 16px;
-  /* text-transform: uppercase; */
-  letter-spacing: 1px;
-  transition: top 0.5s;
-}
-
-.btn-text-one {
-  position: absolute;
-  width: 100%;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-}
-
-.btn-text-two {
-  position: absolute;
-  width: 100%;
-  top: 150%;
-  left: 0;
-  transform: translateY(-50%);
-}
-
-.btn:hover .btn-text-one {
-  top: -100%;
-}
-
-.btn:hover .btn-text-two {
-  top: 50%;
-}
-
 /* By garage entry card */
 .by-garage-card {
   display: flex;
