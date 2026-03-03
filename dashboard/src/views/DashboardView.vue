@@ -12,38 +12,44 @@
         <span class="icon-spinner11"></span>
       </ButtonIn>
     </div>
-    <router-link to="/by-garage" class="by-garage-card">
+    <div class="by-garage-card dashboard-fade dashboard-fade--0">
       <span class="by-garage-card__icon" aria-hidden="true">
         <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
       </span>
       <div class="by-garage-card__content">
         <span class="by-garage-card__title">View by garage</span>
-        <span class="by-garage-card__desc"
-          >See status and activity per garage</span
-        >
+        <span class="by-garage-card__desc">See status and activity per garage</span>
+        <label class="mt-2 flex items-center gap-2">
+          <select
+            v-model="selectedGarageId"
+            class="garage-select rounded border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <option :value="null">All garages</option>
+            <option v-for="g in garages" :key="g.id" :value="g.id">{{ g.name }}</option>
+          </select>
+        </label>
       </div>
-      <span class="by-garage-card__arrow" aria-hidden="true">→</span>
-    </router-link>
+    </div>
     <div class="dashboard-fade dashboard-fade--1">
-      <StatusCards ref="statusRef" />
+      <StatusCards ref="statusRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--2">
-      <GarageOverviewTable ref="garageRef" />
+      <GarageOverviewTable ref="garageRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--3">
-      <TicketActivityTable ref="ticketRef" />
+      <TicketActivityTable ref="ticketRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--4">
-      <TicketActivity ref="ticketActivityRef" />
+      <TicketActivity ref="ticketActivityRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--5">
-      <RevenueSummary ref="revenueRef" />
+      <RevenueSummary ref="revenueRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted } from "vue";
+import { ref, inject, onMounted, onUnmounted, watch } from "vue";
 import type { Ref } from "vue";
 import StatusCards from "../components/StatusCards.vue";
 import GarageOverviewTable from "../components/GarageOverviewTable.vue";
@@ -52,12 +58,16 @@ import TicketActivity from "../components/TicketActivity.vue";
 import RevenueSummary from "../components/RevenueSummary.vue";
 import ButtonIn from "../components/ButtonIn.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
+import { listGarages } from "../api/garages";
+import type { Garage } from "../api/garages";
 import garageIcon from "../img/urban-parking-garage.svg";
 
 const autoRefreshEnabled = inject<Ref<boolean>>(
   "autoRefreshEnabled",
   ref(true),
 );
+const garages = ref<Garage[]>([]);
+const selectedGarageId = ref<number | null>(null);
 const statusRef = ref<InstanceType<typeof StatusCards> | null>(null);
 const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null);
 const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null);
@@ -72,14 +82,30 @@ function refreshAll() {
   ticketActivityRef.value?.refresh?.();
 }
 
+async function loadGarages() {
+  try {
+    const res = await listGarages({ limit: 200 });
+    garages.value = res.data.items;
+    if (garages.value.length === 1 && selectedGarageId.value == null) {
+      selectedGarageId.value = garages.value[0].id;
+    }
+  } catch {
+    garages.value = [];
+  }
+}
+
+watch(selectedGarageId, () => {
+  refreshAll();
+});
+
 useDashboardPolling(refreshAll, { enabled: autoRefreshEnabled });
 
 onMounted(() => {
+  loadGarages();
   refreshAll(); // load data immediately so it appears without clicking Refresh
   window.addEventListener("dashboard-refresh", refreshAll);
 });
 onUnmounted(() => {
-  // cleanup event listener
   window.removeEventListener("dashboard-refresh", refreshAll);
 });
 
@@ -87,7 +113,7 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
 </script>
 
 <style scoped>
-/* By garage entry card */
+/* By garage selector card */
 .by-garage-card {
   display: flex;
   align-items: center;
@@ -97,7 +123,6 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid rgb(226 232 240);
-  text-decoration: none;
   color: inherit;
   transition:
     box-shadow 0.2s,
@@ -106,6 +131,9 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
 .by-garage-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: rgb(148 163 184);
+}
+.garage-select {
+  min-width: 12rem;
 }
 .by-garage-card__icon {
   display: flex;
@@ -136,27 +164,29 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
   font-size: 0.875rem;
   color: rgb(100 116 139);
 }
-.by-garage-card__arrow {
-  font-size: 1.25rem;
-  color: rgb(148 163 184);
-}
 
 /* Staggered fade-in (top to bottom) when dashboard is shown */
 .dashboard-fade {
   opacity: 0;
   animation: dashboardFadeIn 0.4s ease-out forwards;
 }
-.dashboard-fade--1 {
+.dashboard-fade--0 {
   animation-delay: 0s;
 }
-.dashboard-fade--2 {
+.dashboard-fade--1 {
   animation-delay: 0.15s;
 }
-.dashboard-fade--3 {
+.dashboard-fade--2 {
   animation-delay: 0.3s;
 }
-.dashboard-fade--4 {
+.dashboard-fade--3 {
   animation-delay: 0.45s;
+}
+.dashboard-fade--4 {
+  animation-delay: 0.6s;
+}
+.dashboard-fade--5 {
+  animation-delay: 0.75s;
 }
 @keyframes dashboardFadeIn {
   to {
