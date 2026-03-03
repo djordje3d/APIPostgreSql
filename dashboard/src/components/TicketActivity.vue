@@ -77,30 +77,28 @@
               <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
                 <button
                   type="button"
-                  class="text-slate-600 hover:text-slate-900"
+                  class="icon-barcode text-2xl font-bold text-slate-800 hover:text-slate-900"
                   title="View ticket & payments"
                   @click="viewTicket(t)"
+                  style="line-height: 1"
                 >
-                  View
                 </button>
                 <template v-if="t.ticket_state === 'OPEN'"> <!-- Close ticket -->
                   <button
                     type="button"
-                    class="ml-2 text-amber-600 hover:text-amber-800"
+                    class="icon-exit text-2xl font-bold ml-2 text-amber-600 hover:text-amber-800"
                     title="Close ticket"
                     @click="closeTicket(t.id)"
                   >
-                    Close
                   </button>
                 </template>
                 <template v-else-if="t.ticket_state === 'CLOSED' && t.payment_status !== 'PAID'">
                   <button
                     type="button"
-                    class="ml-2 text-emerald-600 hover:text-emerald-800"
+                    class="icon-credit-card text-2xl font-bold ml-2 text-emerald-600 hover:text-emerald-800"
                     title="Go to payment"
                     @click="openPayment(t)"
                   >
-                    Payment
                   </button>
                 </template>
               </td>
