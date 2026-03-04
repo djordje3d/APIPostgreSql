@@ -137,7 +137,7 @@
       @close="closePaymentModal"
       @done="onPaymentDone"
     />
-    <div v-if="viewingTicket" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="viewingTicket = null">
+    <div v-if="viewingTicket" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" style="pointer-events: auto">
       <div class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex justify-between">
           <h3 class="text-lg font-semibold">Ticket #{{ viewingTicket.id }}</h3>

@@ -12,41 +12,36 @@
       </ButtonIn>
     </div>
     <div class="by-garage-card dashboard-fade dashboard-fade--0">
-      <span class="by-garage-card__icon" aria-hidden="true">
+      <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
         <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
       </span>
-      <div class="by-garage-card__content">
-        <span class="by-garage-card__title">View by garage</span>
-        <span class="by-garage-card__desc">See status and activity per garage</span>
-        <label class="mt-2 flex items-center gap-2">
-          <select
-            v-model="selectedGarageId"
-            class="garage-select rounded border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          >
-            <option :value="null">All garages</option>
-            <option v-for="g in garages" :key="g.id" :value="g.id">{{ g.name }}</option>
-          </select>
-        </label>
+      <div class="by-garage-card__dropdown-wrap by-garage-card__cell">
+        <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
       </div>
       <div
         v-if="selectedGarageId != null"
-        class="ml-auto flex shrink-0 items-center gap-2"
+        class="by-garage-card__viewing by-garage-card__cell"
       >
-        <span class="text-gray-600">Viewing:</span>
+        <span class="icon-eye text-lg text-gray-600"></span>
         <router-link
           :to="{ name: 'garage-detail', params: { id: selectedGarageId } }"
           class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
         >
-          {{ selectedGarage?.name ?? 'Garage' }}
+          {{ selectedGarage?.name ?? "Garage" }}
         </router-link>
-        <span class="text-sm text-gray-500">— click to open garage detail (spots & vehicles)</span>
+        <span class="text-base text-gray-500"
+          >— click to open garage detail (spots & vehicles)</span
+        >
       </div>
     </div>
     <div class="dashboard-fade dashboard-fade--1">
       <StatusCards ref="statusRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--2">
-      <GarageOverviewTable ref="garageRef" :garage-id="selectedGarageId ?? undefined" />
+      <GarageOverviewTable
+        ref="garageRef"
+        :garage-id="selectedGarageId ?? undefined"
+      />
     </div>
     <div class="dashboard-fade dashboard-fade--4">
       <TicketActivity
@@ -63,13 +58,24 @@
       />
     </div>
     <div class="dashboard-fade dashboard-fade--5">
-      <RevenueSummary ref="revenueRef" :garage-id="selectedGarageId ?? undefined" />
+      <RevenueSummary
+        ref="revenueRef"
+        :garage-id="selectedGarageId ?? undefined"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onUnmounted, watch, nextTick } from "vue";
+import {
+  ref,
+  computed,
+  inject,
+  onMounted,
+  onUnmounted,
+  watch,
+  nextTick,
+} from "vue";
 import type { Ref } from "vue";
 import StatusCards from "../components/StatusCards.vue";
 import GarageOverviewTable from "../components/GarageOverviewTable.vue";
@@ -81,6 +87,7 @@ import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
 import garageIcon from "../img/urban-parking-garage.svg";
+import GarageSelectDropdown from "../components/GarageSelectDropdown.vue";
 
 const autoRefreshEnabled = inject<Ref<boolean>>(
   "autoRefreshEnabled",
@@ -94,8 +101,8 @@ const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null);
 const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
 const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null);
 
-const selectedGarage = computed(() =>
-  garages.value.find((g) => g.id === selectedGarageId.value) ?? null
+const selectedGarage = computed(
+  () => garages.value.find((g) => g.id === selectedGarageId.value) ?? null,
 );
 
 function refreshAll() {
@@ -140,6 +147,7 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
 /* By garage selector card */
 .by-garage-card {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
@@ -156,6 +164,23 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: rgb(148 163 184);
 }
+.by-garage-card__cell {
+  flex-shrink: 0;
+}
+.by-garage-card__icon {
+  width: 5rem; /* fixed width for icon cell */
+}
+.by-garage-card__dropdown-wrap {
+  width: 24rem; /* fixed width for dropdown */
+  min-width: 13rem;
+}
+.by-garage-card__viewing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 16rem;
+  margin-left: auto;
+}
 .garage-select {
   min-width: 12rem;
 }
@@ -163,7 +188,6 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
   height: 4rem;
   border-radius: 0.375rem;
   background: rgb(241 245 249);

@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="close">
+    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" style="pointer-events: auto">
       <div class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="text-lg font-semibold">New Vehicle Entry</h2>

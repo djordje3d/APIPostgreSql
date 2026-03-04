@@ -59,6 +59,7 @@
               <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Entry time</th>
               <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Exit time</th>
               <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Fee</th>
+              <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Rest to pay</th>
               <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Ticket ID</th>
               <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
             </tr>
@@ -71,6 +72,7 @@
               <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.entry_time) }}</td>
               <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ formatTime(t.exit_time) }}</td>
               <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">{{ formatMoney(t.fee) }}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium" :class="restToPayClass(t)">{{ formatRestToPay(t) }}</td>
               <td class="px-4 py-3">
                 <span class="font-mono text-sm tracking-[0.25em] text-gray-800" aria-label="Ticket ID">{{ t.id }}</span>
               </td>
@@ -105,7 +107,7 @@
             </tr>
             <!-- Loaded empty -->
             <tr v-if="(tickets || []).length === 0">
-              <td colspan="8" class="px-4 py-6 text-center text-gray-500">No tickets</td>
+              <td colspan="9" class="px-4 py-6 text-center text-gray-500">No tickets</td>
             </tr>
           </tbody>
         </table>
@@ -124,7 +126,7 @@
       <div
         v-if="viewingTicket"
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
-        @click.self="viewingTicket = null"
+        style="pointer-events: auto"
       >
       <div class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex justify-between">
@@ -232,6 +234,8 @@ const viewingTicket = ref<TicketDashboardRow | null>(null)
 const viewPayments = ref<Payment[]>([])
 const viewPaymentsLoading = ref(false)
 const paymentTicket = ref<TicketDashboardRow | null>(null)
+/** Rest to pay (fee - total paid) per ticket id, for table display. Fetched when tickets load. */
+const restToPayMap = ref<Record<number, number>>({})
 
 /** Cache payments by ticket id so reopening the same ticket doesn't refetch. */
 const paymentsCache = new Map<number, Payment[]>()
@@ -275,6 +279,52 @@ function formatMoney(value: string | null | undefined): string {
   const n = parseFloat(String(value))
   if (Number.isNaN(n)) return '–'
   return new Intl.NumberFormat('sr-RS', { style: 'decimal', maximumFractionDigits: 0 }).format(n) + ' RSD'
+}
+
+function formatRestToPay(t: TicketDashboardRow): string {
+  if (t.ticket_state === 'OPEN') return '–'
+  if (t.payment_status === 'PAID') return '0 RSD'
+  const rest = restToPayMap.value[t.id]
+  if (rest !== undefined) return formatMoney(String(rest))
+  // Still loading rest-to-pay for this ticket
+  if (t.ticket_state === 'CLOSED' && t.payment_status !== 'PAID') return '…'
+  return '–'
+}
+
+function restToPayClass(t: TicketDashboardRow): string {
+  if (t.payment_status === 'PAID' || t.ticket_state === 'OPEN') return 'text-gray-500'
+  return 'text-amber-700'
+}
+
+async function fetchRestToPayForTickets(items: TicketDashboardRow[]) {
+  const needRest = items.filter(
+    (t) => t.ticket_state !== 'OPEN' && t.payment_status !== 'PAID'
+  )
+  if (needRest.length === 0) {
+    restToPayMap.value = {}
+    return
+  }
+  const map: Record<number, number> = {}
+  await Promise.all(
+    needRest.map(async (t) => {
+      const feeNum =
+        t.fee != null && t.fee !== ''
+          ? parseFloat(String(t.fee))
+          : 0
+      const fee = Number.isNaN(feeNum) ? 0 : feeNum
+      try {
+        const res = await getPaymentsByTicket(t.id, { limit: 500 })
+        const totalPaid = res.data.items.reduce(
+          (s, p) => s + parseFloat(p.amount),
+          0
+        )
+        map[t.id] = Math.max(0, fee - totalPaid)
+      } catch {
+        map[t.id] = fee
+      }
+    })
+  )
+  restToPayMap.value = { ...restToPayMap.value, ...map }
 }
 
 /** Fetch payments for the view ticket modal (cached per ticket, limit 50). */
@@ -337,6 +387,7 @@ async function fetch() {
   if (!hasData) {
     loading.value = true
     error.value = false
+    restToPayMap.value = {}
   } else {
     refreshing.value = true
   }
@@ -347,11 +398,15 @@ async function fetch() {
       offset: 0,
     })
     tickets.value = res.data.items
+    await fetchRestToPayForTickets(tickets.value)
     hasLoadedOnce.value = true
     error.value = false
   } catch {
     error.value = true
-    if (!hasData) tickets.value = []
+    if (!hasData) {
+      tickets.value = []
+      restToPayMap.value = {}
+    }
   } finally {
     loading.value = false
     refreshing.value = false

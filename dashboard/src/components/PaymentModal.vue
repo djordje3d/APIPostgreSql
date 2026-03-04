@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="$emit('close')">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" style="pointer-events: auto">
       <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4">
           <div class="flex justify-between">
