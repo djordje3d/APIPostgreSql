@@ -210,7 +210,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 import { listTicketsDashboard, ticketExit } from '../api/tickets'
 import type { TicketDashboardRow } from '../api/tickets'
@@ -232,6 +232,16 @@ const viewingTicket = ref<TicketDashboardRow | null>(null)
 const viewPayments = ref<Payment[]>([])
 const viewPaymentsLoading = ref(false)
 const paymentTicket = ref<TicketDashboardRow | null>(null)
+
+/** Cache payments by ticket id so reopening the same ticket doesn't refetch. */
+const paymentsCache = new Map<number, Payment[]>()
+
+const PAYMENTS_VIEW_LIMIT = 50
+
+function invalidatePaymentsCache(ticketId?: number) {
+  if (ticketId != null) paymentsCache.delete(ticketId)
+  else paymentsCache.clear()
+}
 
 const viewPaymentsTotal = computed(() =>
   viewPayments.value.reduce((sum, p) => sum + parseFloat(p.amount), 0)
@@ -267,13 +277,20 @@ function formatMoney(value: string | null | undefined): string {
   return new Intl.NumberFormat('sr-RS', { style: 'decimal', maximumFractionDigits: 0 }).format(n) + ' RSD'
 }
 
-/** Fetch payments for the view ticket modal. */
+/** Fetch payments for the view ticket modal (cached per ticket, limit 50). */
 async function fetchPaymentsForView(ticketId: number) {
+  const cached = paymentsCache.get(ticketId)
+  if (cached !== undefined) {
+    viewPayments.value = cached
+    return
+  }
   viewPaymentsLoading.value = true
   viewPayments.value = []
   try {
-    const res = await getPaymentsByTicket(ticketId, { limit: 500 })
-    viewPayments.value = res.data.items
+    const res = await getPaymentsByTicket(ticketId, { limit: PAYMENTS_VIEW_LIMIT })
+    const items = res.data.items
+    viewPayments.value = items
+    paymentsCache.set(ticketId, items)
   } catch {
     viewPayments.value = []
   } finally {
@@ -293,7 +310,7 @@ function openPayment(t: TicketDashboardRow) {
 async function closeTicket(id: number) {
   try {
     await ticketExit(id)
-    await fetch()
+    // Let parent refreshAll() drive a single refresh for this and other widgets
     window.dispatchEvent(new CustomEvent('dashboard-refresh'))
   } catch {
     // could show toast
@@ -307,9 +324,10 @@ function closePaymentModal() {
 }
 
 function onPaymentDone() {
+  invalidatePaymentsCache(paymentTicket.value?.id)
   nextTick(() => {
     paymentTicket.value = null
-    fetch()
+    // Let parent refreshAll() drive a single refresh for this and other widgets
     window.dispatchEvent(new CustomEvent('dashboard-refresh'))
   })
 }
@@ -369,9 +387,6 @@ watch(viewingTicket, (t) => {
   }
   nextTick(() => renderBarcodeImage(t.id))
 })
-
-onMounted(() => fetch())
-watch(() => props.garageId, () => fetch())
 
 defineExpose({ refresh: () => fetch() })
 </script>

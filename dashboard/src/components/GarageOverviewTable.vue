@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import { getGarageOverview } from '../api/garages'
 
 const props = withDefaults(
@@ -138,9 +138,6 @@ function retry() {
   error.value = false
   fetch()
 }
-
-onMounted(() => fetch())
-watch(() => props.garageId, () => fetch())
 
 defineExpose({ refresh: () => fetch() })
 </script>

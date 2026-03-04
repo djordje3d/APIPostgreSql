@@ -166,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, nextTick } from 'vue'
 import { listTicketsDashboard, ticketExit } from '../api/tickets'
 import type { TicketDashboardRow } from '../api/tickets'
 import { getPaymentsByTicket } from '../api/payments'
@@ -318,9 +318,6 @@ function onPaymentDone() {
     window.dispatchEvent(new CustomEvent('dashboard-refresh'))
   })
 }
-
-onMounted(() => fetch())
-watch(() => props.garageId, () => fetch())
 
 defineExpose({ refresh: () => fetch() })
 </script>

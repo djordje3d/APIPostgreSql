@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import { listPayments, getOutstanding } from '../api/payments'
 import { listTickets } from '../api/tickets'
 
@@ -161,9 +161,6 @@ function retry() {
   error.value = false
   fetch()
 }
-
-onMounted(() => fetch())
-watch(() => props.garageId, () => fetch())
 
 defineExpose({ refresh: () => fetch() })
 </script>

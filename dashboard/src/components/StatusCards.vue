@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import { listSpots } from '../api/spots'
 import { listTickets } from '../api/tickets'
 
@@ -105,7 +105,7 @@ const openTickets = ref(0)
 
 const spotParams = () => ({
   ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-  limit: 1000,
+  limit: 1,
 })
 const ticketParams = () => ({
   ...(props.garageId != null ? { garage_id: props.garageId } : {}),
@@ -151,9 +151,6 @@ function retry() {
   error.value = false
   fetch()
 }
-
-onMounted(() => fetch())
-watch(() => props.garageId, () => fetch())
 
 defineExpose({ refresh: () => fetch() })
 </script>
