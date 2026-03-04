@@ -51,7 +51,7 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th v-if="!garageId" class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
+              <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Garage</th>
               <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Total spots</th>
               <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Free</th>
               <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">Occupied</th>
@@ -65,14 +65,14 @@
               :class="garageId ? '' : 'cursor-pointer hover:bg-gray-50'"
               @click="!garageId && $router.push({ name: 'garage-detail', params: { id: row.garage_id } })"
             >
-              <td v-if="!garageId" class="px-4 py-3 font-medium text-gray-900">{{ row.name }}</td>
+              <td class="px-4 py-3 font-medium text-gray-900">{{ row.name }}</td>
               <td class="px-4 py-3 text-right text-gray-700">{{ row.total_spots }}</td>
               <td class="px-4 py-3 text-right text-green-700">{{ row.free }}</td>
               <td class="px-4 py-3 text-right text-red-700">{{ row.occupied }}</td>
               <td class="px-4 py-3 text-right text-gray-700">{{ row.rentable }}</td>
             </tr>
             <tr v-if="rows.length === 0">
-              <td :colspan="garageId ? 4 : 5" class="px-4 py-6 text-center text-gray-500">No garages</td>
+              <td colspan="5" class="px-4 py-6 text-center text-gray-500">No garages</td>
             </tr>
           </tbody>
         </table>
@@ -83,9 +83,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { listGarages, getGarage } from '../api/garages'
-import { listSpots } from '../api/spots'
-import type { Garage } from '../api/garages'
+import { getGarageOverview } from '../api/garages'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),
@@ -116,29 +114,15 @@ async function fetch() {
     refreshing.value = true
   }
   try {
-    const garages: Garage[] = props.garageId != null
-      ? [(await getGarage(props.garageId)).data]
-      : (await listGarages({ limit: 100 })).data.items
-    const result: Row[] = []
-    for (const g of garages) {
-      const [allRes, freeRes] = await Promise.all([
-        listSpots({ garage_id: g.id, active_only: false, limit: 1000 }),
-        listSpots({ garage_id: g.id, only_free: true, active_only: true, limit: 1000 }),
-      ])
-      const total = allRes.data.total
-      const free = freeRes.data.total
-      const activeSpots = allRes.data.items.filter((s) => s.is_active)
-      const rentable = activeSpots.filter((s) => s.is_rentable).length
-      result.push({
-        garage_id: g.id,
-        name: g.name,
-        total_spots: total,
-        free,
-        occupied: total - free,
-        rentable,
-      })
-    }
-    rows.value = result
+    const res = await getGarageOverview(props.garageId ?? undefined)
+    rows.value = res.data.map((r) => ({
+      garage_id: r.garage_id,
+      name: r.name,
+      total_spots: r.total_spots,
+      free: r.free_spots,
+      occupied: r.occupied_spots,
+      rentable: r.rentable_spots,
+    }))
     hasLoadedOnce.value = true
     error.value = false
   } catch {

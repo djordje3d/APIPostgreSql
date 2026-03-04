@@ -1,10 +1,61 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 from app.db import get_db
 from app import models, schemas
 
 router = APIRouter(prefix="/garages", tags=["Garages"])
+
+
+@router.get(
+    "/overview",
+    response_model=list[schemas.GarageOverviewRow],
+    summary="Garage overview (counts only)",
+    description=(
+        "Returns one row per garage with spot counts (total, free, occupied, "
+        "rentable). Use for dashboard overview without loading full spot "
+        "lists. Optional garage_id to filter a single garage."
+    ),
+)
+def garage_overview(
+    db: Session = Depends(get_db),
+    garage_id: int | None = Query(
+        default=None,
+        description="If set, return only this garage's overview.",
+    ),
+):
+    # Aggregation in DB: one query for all garages (or one). No spot lists.
+    q = text("""
+        SELECT
+            pc.id AS garage_id,
+            pc.name,
+            COUNT(p.id)::int AS total_spots,
+            COUNT(p.id) FILTER (WHERE p.is_active AND NOT EXISTS (
+                SELECT 1 FROM tickets t
+                WHERE t.spot_id = p.id AND t.ticket_state = 'OPEN'
+            ))::int AS free_spots,
+            COUNT(p.id) FILTER (WHERE p.is_active AND EXISTS (
+                SELECT 1 FROM tickets t
+                WHERE t.spot_id = p.id AND t.ticket_state = 'OPEN'
+            ))::int AS occupied_spots,
+            COUNT(p.id) FILTER (WHERE p.is_active AND p.is_rentable)::int
+                AS rentable_spots
+        FROM parking_config pc
+        LEFT JOIN parking_spot p ON p.garage_id = pc.id
+        WHERE (:garage_id IS NULL OR pc.id = :garage_id)
+        GROUP BY pc.id, pc.name
+        ORDER BY pc.id
+    """)
+    rows = db.execute(q, {"garage_id": garage_id}).mappings().all()
+    return [schemas.GarageOverviewRow(
+        garage_id=r["garage_id"],
+        name=r["name"],
+        total_spots=r["total_spots"],
+        free_spots=r["free_spots"],
+        occupied_spots=r["occupied_spots"],
+        rentable_spots=r["rentable_spots"],
+    ) for r in rows]
 
 
 @router.get(

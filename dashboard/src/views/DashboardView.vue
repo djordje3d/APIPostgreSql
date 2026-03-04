@@ -28,6 +28,19 @@
           </select>
         </label>
       </div>
+      <div
+        v-if="selectedGarageId != null"
+        class="ml-auto flex shrink-0 items-center gap-2"
+      >
+        <span class="text-gray-600">Viewing:</span>
+        <router-link
+          :to="{ name: 'garage-detail', params: { id: selectedGarageId } }"
+          class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+        >
+          {{ selectedGarage?.name ?? 'Garage' }}
+        </router-link>
+        <span class="text-sm text-gray-500">— click to open garage detail (spots & vehicles)</span>
+      </div>
     </div>
     <div class="dashboard-fade dashboard-fade--1">
       <StatusCards ref="statusRef" :garage-id="selectedGarageId ?? undefined" />
@@ -56,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { ref, computed, inject, onMounted, onUnmounted, watch, nextTick } from "vue";
 import type { Ref } from "vue";
 import StatusCards from "../components/StatusCards.vue";
 import GarageOverviewTable from "../components/GarageOverviewTable.vue";
@@ -80,6 +93,10 @@ const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null);
 const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null);
 const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
 const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null);
+
+const selectedGarage = computed(() =>
+  garages.value.find((g) => g.id === selectedGarageId.value) ?? null
+);
 
 function refreshAll() {
   statusRef.value?.refresh?.();

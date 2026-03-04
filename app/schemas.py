@@ -7,6 +7,16 @@ from decimal import Decimal
 # --- Response models (for list/detail endpoints; from_attributes for ORM) ---
 
 
+class GarageOverviewRow(BaseModel):
+    """Per-garage spot counts for dashboard overview (no spot lists)."""
+    garage_id: int
+    name: str
+    total_spots: int
+    free_spots: int
+    occupied_spots: int
+    rentable_spots: int
+
+
 class GarageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
