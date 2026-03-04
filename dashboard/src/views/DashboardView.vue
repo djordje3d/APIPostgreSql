@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-6">
-    <span class="icon-pen"></span>
     <div class="flex items-center justify-end">
       <ButtonIn
         type="button"
@@ -36,11 +35,19 @@
     <div class="dashboard-fade dashboard-fade--2">
       <GarageOverviewTable ref="garageRef" :garage-id="selectedGarageId ?? undefined" />
     </div>
-    <div class="dashboard-fade dashboard-fade--3">
-      <TicketActivityTable ref="ticketRef" :garage-id="selectedGarageId ?? undefined" />
-    </div>
     <div class="dashboard-fade dashboard-fade--4">
-      <TicketActivity ref="ticketActivityRef" :garage-id="selectedGarageId ?? undefined" />
+      <TicketActivity
+        ref="ticketActivityRef"
+        :garage-id="selectedGarageId ?? undefined"
+        :key="selectedGarageId ?? 'all'"
+      />
+    </div>
+    <div class="dashboard-fade dashboard-fade--3">
+      <TicketActivityTable
+        ref="ticketRef"
+        :garage-id="selectedGarageId ?? undefined"
+        :key="selectedGarageId ?? 'all'"
+      />
     </div>
     <div class="dashboard-fade dashboard-fade--5">
       <RevenueSummary ref="revenueRef" :garage-id="selectedGarageId ?? undefined" />
@@ -49,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted, watch } from "vue";
+import { ref, inject, onMounted, onUnmounted, watch, nextTick } from "vue";
 import type { Ref } from "vue";
 import StatusCards from "../components/StatusCards.vue";
 import GarageOverviewTable from "../components/GarageOverviewTable.vue";
@@ -95,7 +102,7 @@ async function loadGarages() {
 }
 
 watch(selectedGarageId, () => {
-  refreshAll();
+  nextTick(refreshAll);
 });
 
 useDashboardPolling(refreshAll, { enabled: autoRefreshEnabled });

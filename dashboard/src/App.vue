@@ -1,18 +1,35 @@
 <template>
   <div class="min-h-screen bg-gray-100">
-    <div
-      v-if="routerReady && !isLoginPage && apiConnectionError"
-      class="bg-amber-100 px-4 py-3 text-amber-900 ring-1 ring-amber-300"
-      role="alert"
-    >
-      <p class="font-medium">
-        Cannot connect to API at {{ apiConnectionError }}.
-      </p>
-      <p class="mt-1 text-sm">
-        Start the backend from the project root:
-        <code class="rounded bg-amber-200 px-1">python -m app.run</code>
-      </p>
-    </div>
+    <!-- Global connection banner: offline or API down -->
+    <Transition name="banner-slide">
+      <div
+        v-if="routerReady && !isLoginPage && connectionBannerMessage"
+        class="connection-banner"
+        :class="connectionBannerVariant"
+        role="alert"
+        aria-live="assertive"
+      >
+        <span class="connection-banner__icon" aria-hidden="true">{{ connectionBannerIcon }}</span>
+        <div class="connection-banner__content">
+          <p class="connection-banner__title">{{ connectionBannerMessage }}</p>
+          <p v-if="connectionBannerDetail" class="connection-banner__detail">{{ connectionBannerDetail }}</p>
+        </div>
+      </div>
+    </Transition>
+    <!-- Brief "Connection restored" toast -->
+    <Teleport to="body">
+      <Transition name="toast-fade">
+        <div
+          v-if="connectionRestoredToast"
+          class="connection-restored-toast"
+          role="status"
+          aria-live="polite"
+        >
+          <span class="connection-restored-toast__icon" aria-hidden="true">✓</span>
+          Connection restored
+        </div>
+      </Transition>
+    </Teleport>
     <!-- Session expiry modal: only when idle (no click/mouse move). Blocks entire dashboard until "Continue session". -->
     <Teleport to="body">
       <div
@@ -159,6 +176,9 @@ const isLoginPage = computed(() => route.name === "login");
 const sessionExpiryCountdown = computed(() => idleExpiryCountdown.value);
 const showNewEntry = ref(false);
 const apiConnectionError = ref<string | null>(null);
+const isOffline = ref(typeof navigator !== "undefined" && !navigator.onLine);
+const connectionRestoredToast = ref(false);
+let connectionRestoredToastId: ReturnType<typeof setTimeout> | null = null;
 const autoRefreshEnabled = ref(loadAutoRefreshEnabled());
 const showIdleExpiryAlert = ref(false);
 const idleExpiryCountdown = ref("");
@@ -288,11 +308,34 @@ watch(
 
 provide("autoRefreshEnabled", autoRefreshEnabled);
 
+function showConnectionRestoredToast() {
+  if (connectionRestoredToastId != null) {
+    clearTimeout(connectionRestoredToastId);
+    connectionRestoredToastId = null;
+  }
+  connectionRestoredToast.value = true;
+  connectionRestoredToastId = setTimeout(() => {
+    connectionRestoredToast.value = false;
+    connectionRestoredToastId = null;
+  }, 3000);
+}
+
 function onApiError(e: Event) {
   apiConnectionError.value = (e as CustomEvent).detail?.baseURL ?? baseURL;
 }
 function onApiOk() {
+  const hadError = apiConnectionError.value != null;
   apiConnectionError.value = null;
+  if (hadError && !isLoginPage.value) showConnectionRestoredToast();
+}
+
+function onBrowserOffline() {
+  isOffline.value = true;
+}
+function onBrowserOnline() {
+  const hadOfflineBanner = !isLoginPage.value && isOffline.value;
+  isOffline.value = false;
+  if (hadOfflineBanner) showConnectionRestoredToast();
 }
 
 onMounted(() => {
@@ -301,6 +344,8 @@ onMounted(() => {
   });
   window.addEventListener("api-connection-error", onApiError);
   window.addEventListener("api-connection-ok", onApiOk);
+  window.addEventListener("offline", onBrowserOffline);
+  window.addEventListener("online", onBrowserOnline);
   window.addEventListener("mousemove", onActivity);
   window.addEventListener("click", onActivity);
   window.addEventListener("keydown", onActivity);
@@ -322,9 +367,14 @@ watch(
 onUnmounted(() => {
   window.removeEventListener("api-connection-error", onApiError);
   window.removeEventListener("api-connection-ok", onApiOk);
+  window.removeEventListener("offline", onBrowserOffline);
+  window.removeEventListener("online", onBrowserOnline);
   window.removeEventListener("mousemove", onActivity);
   window.removeEventListener("click", onActivity);
   window.removeEventListener("keydown", onActivity);
+  if (connectionRestoredToastId != null) {
+    clearTimeout(connectionRestoredToastId);
+  }
   clearAllTimers();
 });
 
@@ -346,6 +396,24 @@ const pollingEnabled = computed(
   () => autoRefreshEnabled.value && !isLoginPage.value,
 );
 
+/** Message for the global connection banner (offline or API down). */
+const connectionBannerMessage = computed(() => {
+  if (isOffline.value) return "You're offline";
+  if (apiConnectionError.value) return "Cannot connect to API";
+  return null;
+});
+const connectionBannerDetail = computed(() => {
+  if (isOffline.value) return "Check your network connection.";
+  if (apiConnectionError.value) {
+    return `API at ${apiConnectionError.value} is unreachable. Start the backend: python -m app.run`;
+  }
+  return null;
+});
+const connectionBannerVariant = computed(() =>
+  isOffline.value ? "connection-banner--offline" : "connection-banner--api-down",
+);
+const connectionBannerIcon = computed(() => (isOffline.value ? "📡" : "⚠"));
+
 const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
   refreshDashboardEverywhere,
   {
@@ -356,6 +424,93 @@ const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
 </script>
 
 <style scoped>
+/* Connection banner (offline / API down) */
+.connection-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 0.75rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.connection-banner__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.connection-banner__content {
+  flex: 1;
+  min-width: 0;
+}
+.connection-banner__title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.connection-banner__detail {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  opacity: 0.95;
+}
+.connection-banner--offline {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: #e2e8f0;
+}
+.connection-banner--offline .connection-banner__detail {
+  color: #94a3b8;
+}
+.connection-banner--api-down {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  color: #1c1917;
+}
+.connection-banner--api-down .connection-banner__detail {
+  color: rgba(28, 25, 23, 0.9);
+}
+
+.banner-slide-enter-active,
+.banner-slide-leave-active {
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+}
+.banner-slide-enter-from,
+.banner-slide-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* Connection restored toast */
+.connection-restored-toast {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #065f46;
+  color: #ecfdf5;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+.connection-restored-toast__icon {
+  font-size: 1rem;
+  color: #6ee7b7;
+}
+
+.toast-fade-enter-active,
+.toast-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast-fade-enter-from,
+.toast-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-0.5rem);
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.25s ease;
