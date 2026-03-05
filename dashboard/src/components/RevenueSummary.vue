@@ -47,22 +47,10 @@
         <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
       </div>
       <div class="space-y-4">
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-600">Today's revenue</span>
-          <span class="font-medium text-gray-900">{{ formatMoney(todayRevenue) }}</span>
-        </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-600">This month</span>
-          <span class="font-medium text-gray-900">{{ formatMoney(monthRevenue) }}</span>
-        </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-600">Unpaid / partially paid tickets</span>
-          <span class="font-medium text-amber-700">{{ unpaidCount }}</span>
-        </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-600">Rest to pay (to full paid)</span>
-          <span class="font-medium text-amber-700">{{ formatMoney(totalOutstanding) }}</span>
-        </div>
+        <SummaryRow label="Today's revenue" :value="formatMoney(todayRevenue)" />
+        <SummaryRow label="This month" :value="formatMoney(monthRevenue)" />
+        <SummaryRow label="Unpaid / partially paid tickets" :value="unpaidCount" value-class="text-amber-700" />
+        <SummaryRow label="Rest to pay (to full paid)" :value="formatMoney(totalOutstanding)" value-class="text-amber-700" />
       </div>
     </div>
   </div>
@@ -70,6 +58,8 @@
 
 <script setup lang="ts">
 import { ref, inject, type Ref } from 'vue'
+import SummaryRow from './SummaryRow.vue'
+import { formatMoney } from '../composables/useFormatters'
 import { listPayments, getOutstanding } from '../api/payments'
 import { listTickets } from '../api/tickets'
 
@@ -91,10 +81,6 @@ const todayRevenue = ref(0)
 const monthRevenue = ref(0)
 const unpaidCount = ref(0)
 const totalOutstanding = ref(0)
-
-function formatMoney(n: number) {
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n) + ' RSD'
-}
 
 function getTodayISO() {
   const d = new Date()

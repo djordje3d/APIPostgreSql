@@ -1,67 +1,60 @@
 <template>
-  <Teleport to="body">
-    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" style="pointer-events: auto">
-      <div class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-lg font-semibold">New Vehicle Entry</h2>
-          <button type="button" class="text-gray-500 hover:text-gray-700" @click="close">&times;</button>
+  <Modal :model-value="modelValue" @update:model-value="close" title="New Vehicle Entry">
+    <form @submit.prevent="submit">
+      <div class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Licence plate *</label>
+          <input
+            v-model="form.licence_plate"
+            type="text"
+            required
+            class="w-full rounded border border-gray-300 px-3 py-2"
+            placeholder="e.g. AB-123-CD"
+          />
         </div>
-        <form @submit.prevent="submit">
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Licence plate *</label>
-              <input
-                v-model="form.licence_plate"
-                type="text"
-                required
-                class="w-full rounded border border-gray-300 px-3 py-2"
-                placeholder="e.g. AB-123-CD"
-              />
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Vehicle type *</label>
-              <select v-model="form.vehicle_type_id" required class="w-full rounded border border-gray-300 px-3 py-2">
-                <option value="">Select type</option>
-                <option v-for="vt in vehicleTypes" :key="vt.id" :value="vt.id">{{ vt.type }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Garage *</label>
-              <select v-model="form.garage_id" required class="w-full rounded border border-gray-300 px-3 py-2" @change="onGarageChange">
-                <option value="">Select garage</option>
-                <option v-for="g in garages" :key="g.id" :value="g.id">{{ g.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Spot (optional, auto if empty)</label>
-              <select v-model="form.spot_id" class="w-full rounded border border-gray-300 px-3 py-2">
-                <option :value="null">Auto-assign first free</option>
-                <option v-for="s in freeSpots" :key="s.id" :value="s.id">{{ s.code }}</option>
-              </select>
-            </div>
-          </div>
-          <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
-          <p v-if="success" class="mt-2 text-sm text-green-600">{{ success }}</p>
-          <div class="mt-6 flex gap-2">
-            <button
-              type="submit"
-              class="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
-              :disabled="loading"
-            >
-              {{ loading ? 'Creating…' : 'Create entry' }}
-            </button>
-            <button type="button" class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50" @click="close">
-              Cancel
-            </button>
-          </div>
-        </form>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Vehicle type *</label>
+          <select v-model="form.vehicle_type_id" required class="w-full rounded border border-gray-300 px-3 py-2">
+            <option value="">Select type</option>
+            <option v-for="vt in vehicleTypes" :key="vt.id" :value="vt.id">{{ vt.type }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Garage *</label>
+          <select v-model="form.garage_id" required class="w-full rounded border border-gray-300 px-3 py-2" @change="onGarageChange">
+            <option value="">Select garage</option>
+            <option v-for="g in garages" :key="g.id" :value="g.id">{{ g.name }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Spot (optional, auto if empty)</label>
+          <select v-model="form.spot_id" class="w-full rounded border border-gray-300 px-3 py-2">
+            <option :value="null">Auto-assign first free</option>
+            <option v-for="s in freeSpots" :key="s.id" :value="s.id">{{ s.code }}</option>
+          </select>
+        </div>
       </div>
-    </div>
-  </Teleport>
+      <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
+      <p v-if="success" class="mt-2 text-sm text-green-600">{{ success }}</p>
+      <div class="mt-6 flex gap-2">
+        <button
+          type="submit"
+          class="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
+          :disabled="loading"
+        >
+          {{ loading ? 'Creating…' : 'Create entry' }}
+        </button>
+        <button type="button" class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50" @click="close">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import Modal from './Modal.vue'
 import { listVehicleTypes } from '../api/vehicleTypes'
 import { listGarages } from '../api/garages'
 import { listSpots } from '../api/spots'

@@ -59,38 +59,12 @@
             </tbody>
           </table>
         </div>
-        <div
-          v-if="spotsTotal > 0"
-          class="flex items-center justify-between border-t border-gray-200 px-4 py-3"
-        >
-          <p class="text-sm text-gray-600">
-            Showing {{ spotsOffset + 1 }}–{{
-              Math.min(spotsOffset + spotsPageSize, spotsTotal)
-            }}
-            of {{ spotsTotal }}
-          </p>
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="spotsPage <= 1"
-              @click="spotsPage = Math.max(1, spotsPage - 1)"
-            >
-              Previous
-            </button>
-            <span class="text-sm text-gray-600">
-              Page {{ spotsPage }} of {{ spotsTotalPages }}
-            </span>
-            <button
-              type="button"
-              class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="spotsPage >= spotsTotalPages"
-              @click="spotsPage = Math.min(spotsTotalPages, spotsPage + 1)"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+        <PaginationBar
+          :page="spotsPage"
+          :page-size="spotsPageSize"
+          :total="spotsTotal"
+          @update:page="spotsPage = $event"
+        />
       </div>
 
       <!-- Open tickets -->
@@ -155,6 +129,8 @@ import { getGarage } from "../api/garages";
 import { listSpots } from "../api/spots";
 import { listTicketsDashboard } from "../api/tickets";
 import RevenueSummary from "../components/RevenueSummary.vue";
+import PaginationBar from "../components/PaginationBar.vue";
+import { formatTime, formatRate } from "../composables/useFormatters";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import type { Garage } from "../api/garages";
 import type { Spot } from "../api/spots";
@@ -181,26 +157,7 @@ const spotsPage = ref(1);
 const spotsPageSize = ref(10);
 const spotsTotal = ref(0);
 const spotsOffset = computed(() => (spotsPage.value - 1) * spotsPageSize.value);
-const spotsTotalPages = computed(() =>
-  Math.max(1, Math.ceil(spotsTotal.value / spotsPageSize.value)),
-);
 const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
-
-function formatTime(s: string | null) {
-  if (!s) return "–";
-  try {
-    return new Date(s).toLocaleString();
-  } catch {
-    return s;
-  }
-}
-
-function formatRate(value: string | null | undefined): string {
-  if (value == null || value === "") return "–";
-  const n = parseFloat(String(value));
-  if (Number.isNaN(n)) return "–";
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
-}
 
 async function fetchSpots() {
   const id = Number(route.params.id);

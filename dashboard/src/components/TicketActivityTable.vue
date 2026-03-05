@@ -137,12 +137,12 @@
       @close="closePaymentModal"
       @done="onPaymentDone"
     />
-    <div v-if="viewingTicket" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" style="pointer-events: auto">
-      <div class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl">
-        <div class="mb-4 flex justify-between">
-          <h3 class="text-lg font-semibold">Ticket #{{ viewingTicket.id }}</h3>
-          <button type="button" class="text-gray-500 hover:text-gray-700" @click="viewingTicket = null">&times;</button>
-        </div>
+    <Modal
+      :model-value="!!viewingTicket"
+      @update:model-value="viewingTicket = null"
+      :title="viewingTicket ? `Ticket #${viewingTicket.id}` : ''"
+    >
+      <template v-if="viewingTicket">
         <dl class="space-y-2 text-sm">
           <div><dt class="text-gray-500">Entry</dt><dd>{{ formatTime(viewingTicket.entry_time) }}</dd></div>
           <div><dt class="text-gray-500">Exit</dt><dd>{{ formatTime(viewingTicket.exit_time) || '–' }}</dd></div>
@@ -160,16 +160,18 @@
         >
           Go to payment
         </button>
-      </div>
-    </div>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick, inject, type Ref } from 'vue'
+import { formatTime, formatMoney } from '../composables/useFormatters'
 import { listTicketsDashboard, ticketExit } from '../api/tickets'
 import type { TicketDashboardRow } from '../api/tickets'
 import { getPaymentsByTicket } from '../api/payments'
+import Modal from './Modal.vue'
 import PaymentModal from './PaymentModal.vue'
 
 const props = withDefaults(
@@ -191,23 +193,6 @@ const viewingTicket = ref<TicketDashboardRow | null>(null)
 const paymentTicket = ref<TicketDashboardRow | null>(null)
 /** Rest to pay (fee - total paid) per ticket id, for table display. Fetched when tickets load. */
 const restToPayMap = ref<Record<number, number>>({})
-
-function formatTime(s: string | null) {
-  if (!s) return '–'
-  try {
-    const d = new Date(s)
-    return d.toLocaleString()
-  } catch {
-    return s
-  }
-}
-
-function formatMoney(value: string | null | undefined): string {
-  if (value == null || value === '') return '–'
-  const n = parseFloat(String(value))
-  if (Number.isNaN(n)) return '–'
-  return new Intl.NumberFormat('sr-RS', { style: 'decimal', maximumFractionDigits: 0 }).format(n) + ' RSD'
-}
 
 function formatRestToPay(t: TicketDashboardRow): string {
   if (t.ticket_state === 'OPEN') return '–'
