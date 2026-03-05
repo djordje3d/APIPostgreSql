@@ -1,6 +1,9 @@
 <template>
-    <div ref="root" class="relative inline-block w-full">
-      <span class="by-garage-card__desc">See status and activity per garage</span>
+  <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
+    <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
+  </span>
+  <div ref="root" class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full">
+    <span class="by-garage-card__desc">See status and activity per garage</span>
   
       <!-- Trigger -->
       <button
@@ -90,11 +93,12 @@
           </div>
         </Transition>
       </Teleport>
-    </div>
-  </template>
-  
-  <script setup lang="ts">
+  </div>
+</template>
+
+<script setup lang="ts">
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+  import garageIcon from "../img/urban-parking-garage.svg"
   
   type Garage = { id: number; name: string }
   
@@ -286,5 +290,28 @@
   .pop-leave-from {
     opacity: 1;
     transform: scale(1);
+  }
+
+  .by-garage-card__cell {
+    flex-shrink: 0;
+  }
+  .by-garage-card__icon {
+    width: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 4rem;
+    border-radius: 0.375rem;
+    background: rgb(241 245 249);
+    color: rgb(71 85 105);
+  }
+  .by-garage-card__icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .by-garage-card__dropdown-wrap {
+    width: 24rem;
+    min-width: 13rem;
   }
   </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="dashboard-sections">
     <div class="flex items-center gap-4">
       <router-link to="/" class="text-gray-600 hover:text-gray-900"
         >&larr; Dashboard</router-link

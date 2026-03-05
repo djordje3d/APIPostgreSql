@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="dashboard-sections">
     <div class="flex items-center justify-end">
       <ButtonIn
         type="button"
@@ -7,17 +7,12 @@
         class="min-w-[50px] min-h-[50px] border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
         @click="refreshAll"
         title="Refresh"
-      >
-        <span class="icon-spinner11"></span>
-      </ButtonIn>
+        icon="icon-spinner11"
+      />
+        
     </div>
     <div class="by-garage-card dashboard-fade dashboard-fade--0">
-      <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
-        <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
-      </span>
-      <div class="by-garage-card__dropdown-wrap by-garage-card__cell">
-        <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
-      </div>
+      <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
       <div
         v-if="selectedGarageId != null"
         class="by-garage-card__viewing by-garage-card__cell"
@@ -43,21 +38,14 @@
         :garage-id="selectedGarageId ?? undefined"
       />
     </div>
-    <div class="dashboard-fade dashboard-fade--4">
+    <div class="dashboard-fade dashboard-fade--3">
       <TicketActivity
         ref="ticketActivityRef"
         :garage-id="selectedGarageId ?? undefined"
         :key="selectedGarageId ?? 'all'"
       />
     </div>
-    <div class="dashboard-fade dashboard-fade--3">
-      <TicketActivityTable
-        ref="ticketRef"
-        :garage-id="selectedGarageId ?? undefined"
-        :key="selectedGarageId ?? 'all'"
-      />
-    </div>
-    <div class="dashboard-fade dashboard-fade--5">
+    <div class="dashboard-fade dashboard-fade--4">
       <RevenueSummary
         ref="revenueRef"
         :garage-id="selectedGarageId ?? undefined"
@@ -87,7 +75,6 @@ import ButtonIn from "../components/ButtonIn.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
-import garageIcon from "../img/urban-parking-garage.svg";
 import GarageSelectDropdown from "../components/GarageSelectDropdown.vue";
 
 const autoRefreshEnabled = inject<Ref<boolean>>(
@@ -165,7 +152,7 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
   flex-wrap: nowrap;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 1rem;
   background: white;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -182,13 +169,6 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
 .by-garage-card__cell {
   flex-shrink: 0;
 }
-.by-garage-card__icon {
-  width: 5rem; /* fixed width for icon cell */
-}
-.by-garage-card__dropdown-wrap {
-  width: 24rem; /* fixed width for dropdown */
-  min-width: 13rem;
-}
 .by-garage-card__viewing {
   display: flex;
   align-items: center;
@@ -198,20 +178,6 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
 }
 .garage-select {
   min-width: 12rem;
-}
-.by-garage-card__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 4rem;
-  border-radius: 0.375rem;
-  background: rgb(241 245 249);
-  color: rgb(71 85 105);
-}
-.by-garage-card__icon-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 .by-garage-card__content {
   flex: 1;

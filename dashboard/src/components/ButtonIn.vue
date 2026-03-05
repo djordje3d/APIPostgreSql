@@ -33,6 +33,7 @@
     >
       <slot />
     </span>
+    <span v-if="typeof(icon)!=='undefined'" :class="icon"></span>
   </button>
 </template>
 
@@ -48,6 +49,7 @@ const props = defineProps<{
   disabled?: boolean
   loading?: boolean
   variant?: "primary" | "danger" | "outline"
+  icon?: string
 }>()
 
 const emit = defineEmits<{ click: [e?: MouseEvent] }>()
@@ -64,6 +66,7 @@ const type = computed(() => props.type ?? "button")
 const loading = computed(() => props.loading ?? false)
 const disabled = computed(() => props.disabled ?? false)
 const variant = computed(() => props.variant ?? "primary")
+const icon = computed(() => props.icon ?? undefined)
 
 const isDisabled = computed(() => disabled.value || loading.value)
 

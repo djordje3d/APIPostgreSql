@@ -34,7 +34,7 @@
   </div>
 
   <!-- Content with refreshing overlay -->
-  <div v-else class="relative min-h-[120px]">
+  <div v-else class="relative">
     <div
       v-if="refreshing"
       class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70"
