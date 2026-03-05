@@ -44,48 +44,17 @@
       <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
     </div>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-        <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700" aria-hidden="true">🟢</span>
-          <div>
-            <p class="text-sm font-medium text-gray-500">Free spots</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ freeSpots }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-        <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700" aria-hidden="true">🔴</span>
-          <div>
-            <p class="text-sm font-medium text-gray-500">Occupied spots</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ occupiedSpots }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-        <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700" aria-hidden="true">🟡</span>
-          <div>
-            <p class="text-sm font-medium text-gray-500">Inactive spots</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ inactiveSpots }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-        <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700" aria-hidden="true">🧾</span>
-          <div>
-            <p class="text-sm font-medium text-gray-500">Open tickets</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ openTickets }}</p>
-          </div>
-        </div>
-      </div>
+      <StatCard label="Free spots" :value="freeSpots" variant="green" />
+      <StatCard label="Occupied spots" :value="occupiedSpots" variant="red" />
+      <StatCard label="Inactive spots" :value="inactiveSpots" variant="amber" />
+      <StatCard label="Open tickets" :value="openTickets" variant="slate" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, inject, type Ref } from 'vue'
+import StatCard from './StatCard.vue'
 import { listSpots } from '../api/spots'
 import { listTickets } from '../api/tickets'
 
