@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, inject, onMounted, computed } from "vue";
+import { ref, watch, inject, onMounted, onUnmounted, computed, provide } from "vue";
 import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import { getGarage } from "../api/garages";
@@ -169,6 +169,13 @@ const garage = ref<Garage | null>(null);
 const spots = ref<Spot[]>([]);
 const openTickets = ref<TicketDashboardRow[]>([]);
 const loading = ref(true);
+
+/** AbortController for this view's refresh; aborted when fetch runs again or on unmount. */
+const refreshAbortControllerRef = ref<AbortController | null>(null);
+provide(
+  "dashboardRefreshAbortSignal",
+  computed(() => refreshAbortControllerRef.value?.signal ?? null),
+);
 
 const spotsPage = ref(1);
 const spotsPageSize = ref(10);
@@ -198,13 +205,18 @@ function formatRate(value: string | null | undefined): string {
 async function fetchSpots() {
   const id = Number(route.params.id);
   if (!id) return;
+  const signal = refreshAbortControllerRef.value?.signal;
+  const config = signal ? { signal } : undefined;
   try {
-    const sRes = await listSpots({
-      garage_id: id,
-      active_only: false,
-      limit: spotsPageSize.value,
-      offset: spotsOffset.value,
-    });
+    const sRes = await listSpots(
+      {
+        garage_id: id,
+        active_only: false,
+        limit: spotsPageSize.value,
+        offset: spotsOffset.value,
+      },
+      config
+    );
     spots.value = sRes.data.items;
     spotsTotal.value = sRes.data.total;
   } catch {
@@ -216,12 +228,18 @@ async function fetchSpots() {
 async function fetch() {
   const id = Number(route.params.id);
   if (!id) return;
+  if (refreshAbortControllerRef.value) {
+    refreshAbortControllerRef.value.abort();
+  }
+  refreshAbortControllerRef.value = new AbortController();
+  const signal = refreshAbortControllerRef.value.signal;
+  const config = { signal };
   spotsPage.value = 1;
   loading.value = true;
   try {
     const [gRes, tRes] = await Promise.all([
-      getGarage(id),
-      listTicketsDashboard({ limit: 100 }),
+      getGarage(id, config),
+      listTicketsDashboard({ limit: 100 }, config),
     ]);
     garage.value = gRes.data;
     openTickets.value = tRes.data.items.filter(
@@ -229,7 +247,8 @@ async function fetch() {
     );
     await fetchSpots();
     revenueRef.value?.refresh?.();
-  } catch {
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === "ERR_CANCELED") return;
     garage.value = null;
     spots.value = [];
     spotsTotal.value = 0;
@@ -246,4 +265,9 @@ watch([spotsPage, spotsPageSize], () => {
 useDashboardPolling(fetch, { intervalMs: 10_000, enabled: autoRefreshEnabled });
 watch(() => route.params.id, fetch, { immediate: true });
 onMounted(fetch);
+onUnmounted(() => {
+  if (refreshAbortControllerRef.value) {
+    refreshAbortControllerRef.value.abort();
+  }
+});
 </script>

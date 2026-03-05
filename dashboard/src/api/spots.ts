@@ -1,3 +1,4 @@
+import type { ApiRequestConfig } from './client'
 import { api } from './client'
 import type { Paginated } from './garages'
 
@@ -9,17 +10,20 @@ export interface Spot {
   is_active: boolean
 }
 
-export function listSpots(params?: {
-  garage_id?: number
-  active_only?: boolean
-  rentable_only?: boolean
-  only_free?: boolean
-  limit?: number
-  offset?: number
-}) {
-  return api.get<Paginated<Spot>>('/spots', { params })
+export function listSpots(
+  params?: {
+    garage_id?: number
+    active_only?: boolean
+    rentable_only?: boolean
+    only_free?: boolean
+    limit?: number
+    offset?: number
+  },
+  config?: ApiRequestConfig
+) {
+  return api.get<Paginated<Spot>>('/spots', { params, ...config })
 }
 
-export function getSpot(id: number) {
-  return api.get<Spot>(`/spots/${id}`)
+export function getSpot(id: number, config?: ApiRequestConfig) {
+  return api.get<Spot>(`/spots/${id}`, config)
 }

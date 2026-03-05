@@ -1,3 +1,4 @@
+import type { ApiRequestConfig } from './client'
 import { api } from './client'
 import type { Paginated } from './garages'
 
@@ -20,26 +21,35 @@ export interface TicketDashboardRow extends TicketResponse {
   garage_name: string | null
 }
 
-export function listTickets(params?: {
-  state?: 'OPEN' | 'CLOSED'
-  payment_status?: string
-  garage_id?: number
-  limit?: number
-  offset?: number
-}) {
-  return api.get<Paginated<TicketResponse>>('/tickets', { params })
+export function listTickets(
+  params?: {
+    state?: 'OPEN' | 'CLOSED'
+    payment_status?: string
+    garage_id?: number
+    limit?: number
+    offset?: number
+  },
+  config?: ApiRequestConfig
+) {
+  return api.get<Paginated<TicketResponse>>('/tickets', { params, ...config })
 }
 
-export function listTicketsDashboard(params?: {
-  garage_id?: number
-  limit?: number
-  offset?: number
-}) {
-  return api.get<Paginated<TicketDashboardRow>>('/tickets/dashboard', { params })
+export function listTicketsDashboard(
+  params?: {
+    garage_id?: number
+    limit?: number
+    offset?: number
+  },
+  config?: ApiRequestConfig
+) {
+  return api.get<Paginated<TicketDashboardRow>>('/tickets/dashboard', {
+    params,
+    ...config,
+  })
 }
 
-export function getTicket(id: number) {
-  return api.get<TicketResponse>(`/tickets/${id}`)
+export function getTicket(id: number, config?: ApiRequestConfig) {
+  return api.get<TicketResponse>(`/tickets/${id}`, config)
 }
 
 export function ticketExit(id: number, data?: { exit_time?: string }) {

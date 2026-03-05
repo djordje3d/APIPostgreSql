@@ -69,13 +69,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject, type Ref } from 'vue'
 import { listPayments, getOutstanding } from '../api/payments'
 import { listTickets } from '../api/tickets'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),
   { garageId: undefined }
+)
+
+const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
+  'dashboardRefreshAbortSignal',
+  ref(null),
 )
 
 const loading = ref(false)
@@ -126,27 +131,33 @@ async function fetch() {
   } else {
     refreshing.value = true
   }
+  const signal = dashboardRefreshAbortSignal?.value ?? undefined
+  const config = signal ? { signal } : undefined
   try {
     const today = getTodayISO()
     const { from: monthFrom, to: monthTo } = getMonthStartEnd()
     const [todayRes, monthRes, unpaidRes, outstandingRes] = await Promise.all([
-      listPayments(paymentParams(today, today)),
-      listPayments(paymentParams(monthFrom, monthTo)),
-      listTickets(ticketParams()),
-      getOutstanding(props.garageId),
+      listPayments(paymentParams(today, today), config),
+      listPayments(paymentParams(monthFrom, monthTo), config),
+      listTickets(ticketParams(), config),
+      getOutstanding(props.garageId, config),
     ])
-    const partialRes = await listTickets({
-      payment_status: 'PARTIALLY_PAID',
-      limit: 1,
-      ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-    })
+    const partialRes = await listTickets(
+      {
+        payment_status: 'PARTIALLY_PAID',
+        limit: 1,
+        ...(props.garageId != null ? { garage_id: props.garageId } : {}),
+      },
+      config
+    )
     todayRevenue.value = todayRes.data.items.reduce((s, p) => s + parseFloat(p.amount), 0)
     monthRevenue.value = monthRes.data.items.reduce((s, p) => s + parseFloat(p.amount), 0)
     unpaidCount.value = unpaidRes.data.total + partialRes.data.total
     totalOutstanding.value = outstandingRes.data.total_outstanding ?? 0
     hasLoadedOnce.value = true
     error.value = false
-  } catch {
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === 'ERR_CANCELED') return
     error.value = true
     if (!hasData) {
       todayRevenue.value = monthRevenue.value = unpaidCount.value = totalOutstanding.value = 0

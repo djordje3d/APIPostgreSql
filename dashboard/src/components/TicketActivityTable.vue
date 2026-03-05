@@ -166,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, inject, type Ref } from 'vue'
 import { listTicketsDashboard, ticketExit } from '../api/tickets'
 import type { TicketDashboardRow } from '../api/tickets'
 import { getPaymentsByTicket } from '../api/payments'
@@ -175,6 +175,11 @@ import PaymentModal from './PaymentModal.vue'
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),
   { garageId: undefined }
+)
+
+const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
+  'dashboardRefreshAbortSignal',
+  ref(null),
 )
 
 const loading = ref(false)
@@ -219,7 +224,10 @@ function restToPayClass(t: TicketDashboardRow): string {
   return 'text-amber-700'
 }
 
-async function fetchRestToPayForTickets(items: TicketDashboardRow[]) {
+async function fetchRestToPayForTickets(
+  items: TicketDashboardRow[],
+  config?: { signal?: AbortSignal }
+) {
   const needRest = items.filter(
     (t) => t.ticket_state !== 'OPEN' && t.payment_status !== 'PAID'
   )
@@ -236,7 +244,7 @@ async function fetchRestToPayForTickets(items: TicketDashboardRow[]) {
           : 0
       const fee = Number.isNaN(feeNum) ? 0 : feeNum
       try {
-        const res = await getPaymentsByTicket(t.id, { limit: 500 })
+        const res = await getPaymentsByTicket(t.id, { limit: 500 }, config)
         const totalPaid = res.data.items.reduce(
           (s, p) => s + parseFloat(p.amount),
           0
@@ -259,17 +267,23 @@ async function fetch() {
   } else {
     refreshing.value = true
   }
+  const signal = dashboardRefreshAbortSignal?.value ?? undefined
+  const config = signal ? { signal } : undefined
   try {
-    const res = await listTicketsDashboard({
-      ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-      limit: 10,
-      offset: 0,
-    })
+    const res = await listTicketsDashboard(
+      {
+        ...(props.garageId != null ? { garage_id: props.garageId } : {}),
+        limit: 10,
+        offset: 0,
+      },
+      config
+    )
     tickets.value = res.data.items
-    await fetchRestToPayForTickets(tickets.value)
+    await fetchRestToPayForTickets(tickets.value, config)
     hasLoadedOnce.value = true
     error.value = false
-  } catch {
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === 'ERR_CANCELED') return
     error.value = true
     if (!hasData) {
       tickets.value = []

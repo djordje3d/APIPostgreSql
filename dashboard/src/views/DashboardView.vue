@@ -71,6 +71,7 @@ import {
   ref,
   computed,
   inject,
+  provide,
   onMounted,
   onUnmounted,
   watch,
@@ -101,11 +102,22 @@ const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null);
 const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
 const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null);
 
+/** AbortController for the current refresh cycle; aborted when a new refresh starts or on unmount. */
+const refreshAbortControllerRef = ref<AbortController | null>(null);
+provide(
+  "dashboardRefreshAbortSignal",
+  computed(() => refreshAbortControllerRef.value?.signal ?? null),
+);
+
 const selectedGarage = computed(
   () => garages.value.find((g) => g.id === selectedGarageId.value) ?? null,
 );
 
 function refreshAll() {
+  if (refreshAbortControllerRef.value) {
+    refreshAbortControllerRef.value.abort();
+  }
+  refreshAbortControllerRef.value = new AbortController();
   statusRef.value?.refresh?.();
   garageRef.value?.refresh?.();
   ticketRef.value?.refresh?.();
@@ -138,6 +150,9 @@ onMounted(() => {
 });
 onUnmounted(() => {
   window.removeEventListener("dashboard-refresh", refreshAll);
+  if (refreshAbortControllerRef.value) {
+    refreshAbortControllerRef.value.abort();
+  }
 });
 
 defineExpose({ refreshAll }); // expose refreshAll to parent components

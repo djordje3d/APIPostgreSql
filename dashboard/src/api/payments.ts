@@ -1,3 +1,4 @@
+import type { ApiRequestConfig } from './client'
 import { api } from './client'
 import type { Paginated } from './garages'
 
@@ -10,28 +11,42 @@ export interface Payment { // TODO: change to PaymentResponse
   paid_at: string | null
 }
 
-export function listPayments(params?: {
-  from?: string
-  to?: string
-  garage_id?: number
-  limit?: number
-  offset?: number
-}) {
-  return api.get<Paginated<Payment>>('/payments', { params })
+export function listPayments(
+  params?: {
+    from?: string
+    to?: string
+    garage_id?: number
+    limit?: number
+    offset?: number
+  },
+  config?: ApiRequestConfig
+) {
+  return api.get<Paginated<Payment>>('/payments', { params, ...config })
 }
 
 export interface OutstandingResponse {
   total_outstanding: number
 }
 
-export function getOutstanding(garageId?: number | null) { // TODO: change to getOutstandingResponse
+export function getOutstanding(
+  garageId?: number | null,
+  config?: ApiRequestConfig
+) {
   return api.get<OutstandingResponse>('/payments/outstanding', {
     params: garageId != null ? { garage_id: garageId } : {},
+    ...config,
   })
 }
 
-export function getPaymentsByTicket(ticketId: number, params?: { limit?: number; offset?: number }) {
-  return api.get<Paginated<Payment>>(`/payments/by-ticket/${ticketId}`, { params })
+export function getPaymentsByTicket(
+  ticketId: number,
+  params?: { limit?: number; offset?: number },
+  config?: ApiRequestConfig
+) {
+  return api.get<Paginated<Payment>>(`/payments/by-ticket/${ticketId}`, {
+    params,
+    ...config,
+  })
 }
 
 export function createPayment(data: {

@@ -1,4 +1,6 @@
 import { api } from './client'
+import type { ApiRequestConfig } from './client'
+export type { ApiRequestConfig } from './client'
 
 export interface Garage {
   id: number
@@ -21,12 +23,15 @@ export interface Paginated<T> {
   items: T[]
 }
 
-export function listGarages(params?: { limit?: number; offset?: number }) {
-  return api.get<Paginated<Garage>>('/garages', { params })
+export function listGarages(
+  params?: { limit?: number; offset?: number },
+  config?: ApiRequestConfig
+) {
+  return api.get<Paginated<Garage>>('/garages', { params, ...config })
 }
 
-export function getGarage(id: number) {
-  return api.get<Garage>(`/garages/${id}`)
+export function getGarage(id: number, config?: ApiRequestConfig) {
+  return api.get<Garage>(`/garages/${id}`, config)
 }
 
 /** Dashboard overview: one row per garage with spot counts only (no spot lists). */
@@ -39,8 +44,12 @@ export interface GarageOverviewRow {
   rentable_spots: number
 }
 
-export function getGarageOverview(garageId?: number | null) {
+export function getGarageOverview(
+  garageId?: number | null,
+  config?: ApiRequestConfig
+) {
   return api.get<GarageOverviewRow[]>('/garages/overview', {
     params: garageId != null ? { garage_id: garageId } : {},
+    ...config,
   })
 }

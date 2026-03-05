@@ -176,6 +176,7 @@ const isLoginPage = computed(() => route.name === "login");
 const sessionExpiryCountdown = computed(() => idleExpiryCountdown.value);
 const showNewEntry = ref(false);
 const apiConnectionError = ref<string | null>(null);
+const apiConnectionTimeout = ref<string | null>(null);
 const isOffline = ref(typeof navigator !== "undefined" && !navigator.onLine);
 const connectionRestoredToast = ref(false);
 let connectionRestoredToastId: ReturnType<typeof setTimeout> | null = null;
@@ -323,9 +324,14 @@ function showConnectionRestoredToast() {
 function onApiError(e: Event) {
   apiConnectionError.value = (e as CustomEvent).detail?.baseURL ?? baseURL;
 }
+function onApiTimeout(e: Event) {
+  apiConnectionTimeout.value = (e as CustomEvent).detail?.baseURL ?? baseURL;
+}
 function onApiOk() {
-  const hadError = apiConnectionError.value != null;
+  const hadError =
+    apiConnectionError.value != null || apiConnectionTimeout.value != null;
   apiConnectionError.value = null;
+  apiConnectionTimeout.value = null;
   if (hadError && !isLoginPage.value) showConnectionRestoredToast();
 }
 
@@ -343,6 +349,7 @@ onMounted(() => {
     routerReady.value = true;
   });
   window.addEventListener("api-connection-error", onApiError);
+  window.addEventListener("api-connection-timeout", onApiTimeout);
   window.addEventListener("api-connection-ok", onApiOk);
   window.addEventListener("offline", onBrowserOffline);
   window.addEventListener("online", onBrowserOnline);
@@ -366,6 +373,7 @@ watch(
 
 onUnmounted(() => {
   window.removeEventListener("api-connection-error", onApiError);
+  window.removeEventListener("api-connection-timeout", onApiTimeout);
   window.removeEventListener("api-connection-ok", onApiOk);
   window.removeEventListener("offline", onBrowserOffline);
   window.removeEventListener("online", onBrowserOnline);
@@ -396,23 +404,33 @@ const pollingEnabled = computed(
   () => autoRefreshEnabled.value && !isLoginPage.value,
 );
 
-/** Message for the global connection banner (offline or API down). */
+/** Message for the global connection banner (offline, timeout, or API down). */
 const connectionBannerMessage = computed(() => {
   if (isOffline.value) return "You're offline";
+  if (apiConnectionTimeout.value) return "Request timed out – slow connection?";
   if (apiConnectionError.value) return "Cannot connect to API";
   return null;
 });
 const connectionBannerDetail = computed(() => {
   if (isOffline.value) return "Check your network connection.";
+  if (apiConnectionTimeout.value) {
+    return "The request took too long. Check your connection or try again.";
+  }
   if (apiConnectionError.value) {
     return `API at ${apiConnectionError.value} is unreachable. Start the backend: python -m app.run`;
   }
   return null;
 });
-const connectionBannerVariant = computed(() =>
-  isOffline.value ? "connection-banner--offline" : "connection-banner--api-down",
-);
-const connectionBannerIcon = computed(() => (isOffline.value ? "📡" : "⚠"));
+const connectionBannerVariant = computed(() => {
+  if (isOffline.value) return "connection-banner--offline";
+  if (apiConnectionTimeout.value) return "connection-banner--timeout";
+  return "connection-banner--api-down";
+});
+const connectionBannerIcon = computed(() => {
+  if (isOffline.value) return "📡";
+  if (apiConnectionTimeout.value) return "⏱";
+  return "⚠";
+});
 
 const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
   refreshDashboardEverywhere,
@@ -459,6 +477,13 @@ const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
 }
 .connection-banner--offline .connection-banner__detail {
   color: #94a3b8;
+}
+.connection-banner--timeout {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #eff6ff;
+}
+.connection-banner--timeout .connection-banner__detail {
+  color: #bfdbfe;
 }
 .connection-banner--api-down {
   background: linear-gradient(135deg, #b45309 0%, #d97706 100%);

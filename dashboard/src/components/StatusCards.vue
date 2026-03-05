@@ -85,13 +85,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject, type Ref } from 'vue'
 import { listSpots } from '../api/spots'
 import { listTickets } from '../api/tickets'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),
   { garageId: undefined }
+)
+
+const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
+  'dashboardRefreshAbortSignal',
+  ref(null),
 )
 
 const loading = ref(false)
@@ -121,12 +126,14 @@ async function fetch() {
   } else {
     refreshing.value = true
   }
+  const signal = dashboardRefreshAbortSignal?.value ?? undefined
+  const config = signal ? { signal } : undefined
   try {
     const [freeRes, allSpotsRes, activeOnlyRes, openRes] = await Promise.all([
-      listSpots({ ...spotParams(), only_free: true, active_only: true }),
-      listSpots({ ...spotParams(), active_only: false }),
-      listSpots({ ...spotParams(), active_only: true }),
-      listTickets(ticketParams()),
+      listSpots({ ...spotParams(), only_free: true, active_only: true }, config),
+      listSpots({ ...spotParams(), active_only: false }, config),
+      listSpots({ ...spotParams(), active_only: true }, config),
+      listTickets(ticketParams(), config),
     ])
     freeSpots.value = freeRes.data.total
     const totalActive = activeOnlyRes.data.total
@@ -136,7 +143,8 @@ async function fetch() {
     openTickets.value = openRes.data.total
     hasLoadedOnce.value = true
     error.value = false
-  } catch {
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === 'ERR_CANCELED') return
     error.value = true
     if (!hasData) {
       freeSpots.value = occupiedSpots.value = inactiveSpots.value = openTickets.value = 0

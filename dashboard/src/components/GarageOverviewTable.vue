@@ -82,12 +82,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject, type Ref } from 'vue'
 import { getGarageOverview } from '../api/garages'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),
   { garageId: undefined }
+)
+
+const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
+  'dashboardRefreshAbortSignal',
+  ref(null),
 )
 
 interface Row {
@@ -113,8 +118,10 @@ async function fetch() {
   } else {
     refreshing.value = true
   }
+  const signal = dashboardRefreshAbortSignal?.value ?? undefined
+  const config = signal ? { signal } : undefined
   try {
-    const res = await getGarageOverview(props.garageId ?? undefined)
+    const res = await getGarageOverview(props.garageId ?? undefined, config)
     rows.value = res.data.map((r) => ({
       garage_id: r.garage_id,
       name: r.name,
@@ -125,7 +132,8 @@ async function fetch() {
     }))
     hasLoadedOnce.value = true
     error.value = false
-  } catch {
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === 'ERR_CANCELED') return
     error.value = true
     if (!hasData) rows.value = []
   } finally {
