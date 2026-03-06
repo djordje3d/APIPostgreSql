@@ -113,6 +113,7 @@
         </table>
       </div>
     </div>
+    <!-- Payment modal -->
     <PaymentModal
       v-if="paymentTicket"
       :ticket-id="paymentTicket.id"
@@ -182,21 +183,17 @@
           </div>
         </div>
         <div class="mt-4 flex gap-2">
-          <button
+          <ButtonIn
             v-if="viewingTicket.ticket_state === 'CLOSED' && viewingTicket.payment_status !== 'PAID'"
             type="button"
-            class="rounded bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700"
+            variant="primary"
             @click="openPayment(viewingTicket); viewingTicket = null"
           >
             Go to payment
-          </button>
-          <button
-            type="button"
-            class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-            @click="viewingTicket = null"
-          >
+          </ButtonIn>
+          <ButtonIn type="button" variant="outline" @click="viewingTicket = null">
             Close
-          </button>
+          </ButtonIn>
         </div>
       </template>
     </Modal>
@@ -213,6 +210,7 @@ import { getPaymentsByTicket } from '../api/payments'
 import type { Payment } from '../api/payments'
 import Modal from './Modal.vue'
 import PaymentModal from './PaymentModal.vue'
+import ButtonIn from './ButtonIn.vue'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),

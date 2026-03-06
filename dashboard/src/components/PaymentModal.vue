@@ -30,16 +30,17 @@
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
       <div class="mt-4 flex gap-2">
-        <button
+        <ButtonIn
           type="submit"
-          class="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
-          :disabled="loading || amountExceedsRest"
+          :loading="loading"
+          :disabled="amountExceedsRest"
+          variant="primary"
         >
           {{ loading ? 'Sending…' : 'Submit payment' }}
-        </button>
-        <button type="button" class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50" @click="$emit('close')">
+        </ButtonIn>
+        <ButtonIn type="button" variant="outline" @click="$emit('close')">
           Cancel
-        </button>
+        </ButtonIn>
       </div>
     </form>
   </Modal>
@@ -49,6 +50,7 @@
 import { ref, watch, nextTick, computed, onMounted } from 'vue'
 import Modal from './Modal.vue'
 import StandardDropdown from './StandardDropdown.vue'
+import ButtonIn from './ButtonIn.vue'
 import { formatMoney } from '../composables/useFormatters'
 import { createPayment, getPaymentsByTicket } from '../api/payments'
 
