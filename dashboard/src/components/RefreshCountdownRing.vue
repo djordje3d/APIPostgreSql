@@ -53,10 +53,12 @@
     updateRing();
   });
   
-  watch(() => props.remainingMs, () => {
-    if (props.enabled === false) return;
-    updateRing();
-  });
+  watch(
+    () => props.remainingMs,
+    () => {
+      updateRing();
+    },
+  );
   </script>
   
   <style scoped>
@@ -65,8 +67,8 @@
   /* Countdown Styles */
   .countdown {
     position: relative;
-    width: 74px;
-    height: 74px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     background: #121b1c;
     border: 3px solid grey;
@@ -86,17 +88,19 @@
   .countdown--paused .countdown__icon__circle {
     stroke: #666;
   }
+  /* Countdown Icon Styles */
   .countdown__icon {
     position: absolute;
     top: -6px;
     left: -6px;
-    width: 80px;
+    width: 64px;
     fill: none;
     stroke-width: 10px;
     stroke-linecap: round;
     transform: rotate(90deg);
     transform-origin: center;
   }
+  /* Countdown Icon Circle Styles */
   .countdown__icon__circle {
     stroke: #76e19e;
     transition: stroke-dashoffset 0.25s linear;

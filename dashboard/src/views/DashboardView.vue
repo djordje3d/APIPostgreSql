@@ -2,7 +2,7 @@
   <div class="dashboard-sections">
     <div class="dashboard-toolbar flex items-center justify-end gap-3">
       <div class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1">
-        <span class="text-sm text-gray-500">Auto-refresh</span>
+        <span class="text-base text-gray-900 font-semibold">Auto-refresh</span>
       </div>
       <RefreshCountdownRing
         :duration-ms="intervalMs"
@@ -11,14 +11,16 @@
         :auto-refresh-enabled="autoRefreshEnabled"
         @toggle-auto-refresh="toggleAutoRefresh"
       />
-      <ButtonIn
-        type="button"
-        variant="outline"
-        class="min-w-[50px] min-h-[50px] border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
-        @click="refreshAll"
+      <div
+        role="button"
+        tabindex="0"
         title="Refresh now"
-        icon="icon-spinner11"
-      />
+        class="flex min-h-[50px] min-w-[50px] cursor-pointer items-center justify-center rounded-lg bg-green-800 text-white transition-opacity hover:opacity-80 focus:outline focus:ring-2 focus:ring-emerald-500/50"
+        @click="refreshAll"
+        @keydown.enter.space.prevent="refreshAll"
+      >
+        <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
+      </div>
     </div>
     <div class="by-garage-card dashboard-fade dashboard-fade--0">
       <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
@@ -80,7 +82,6 @@ import GarageOverviewTable from "../components/GarageOverviewTable.vue";
 import TicketActivityTable from "../components/TicketActivityTable.vue";
 import TicketActivity from "../components/TicketActivity.vue";
 import RevenueSummary from "../components/RevenueSummary.vue";
-import ButtonIn from "../components/ButtonIn.vue";
 import RefreshCountdownRing from "../components/RefreshCountdownRing.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";

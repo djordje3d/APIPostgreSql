@@ -1,7 +1,7 @@
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import type { Ref } from "vue";
 
-const DEFAULT_POLL_MS = 12_000;
+const DEFAULT_POLL_MS = 10_000;
 const TICK_MS = 250;
 
 export function useDashboardPolling(
@@ -21,12 +21,15 @@ export function useDashboardPolling(
     return enabled === undefined || enabled.value;
   }
 
-  function stopCountdown() {
+  function stopCountdown(resetToFull = false) {
     if (tickId.value) {
       clearInterval(tickId.value);
       tickId.value = null;
     }
     isRunning.value = false;
+    if (resetToFull) {
+      remainingMs.value = intervalMs;
+    }
   }
 
   function startCountdown() {
@@ -39,12 +42,12 @@ export function useDashboardPolling(
     }, TICK_MS);
   }
 
-  function stopPolling() {
+  function stopPolling(resetCountdownToFull = false) {
     if (pollId.value) {
       clearInterval(pollId.value);
       pollId.value = null;
     }
-    stopCountdown();
+    stopCountdown(resetCountdownToFull);
   }
 
   function doRefreshAndRestartCountdown() {
@@ -94,7 +97,8 @@ export function useDashboardPolling(
         doRefreshAndRestartCountdown();
         startPolling();
       } else {
-        stopPolling();
+        // when user pauses: reset ring and number to full so it doesn't stay mid-count
+        stopPolling(true);
       }
     });
   }
