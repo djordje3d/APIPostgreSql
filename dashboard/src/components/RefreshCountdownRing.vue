@@ -1,7 +1,15 @@
 <template>
-    <div class="countdown">
+    <div
+      class="countdown"
+      :class="{ 'countdown--paused': !autoRefreshEnabled }"
+      role="button"
+      tabindex="0"
+      title="Click to toggle auto refresh"
+      @click="emit('toggle-auto-refresh')"
+      @keydown.enter.space.prevent="emit('toggle-auto-refresh')"
+    >
       <span class="countdown__number">{{ secondsLeft }}</span>
-  
+
       <svg class="countdown__icon" viewBox="0 0 130 130">
         <path
           ref="circlePath"
@@ -11,14 +19,19 @@
       </svg>
     </div>
   </template>
-  
+
   <script setup lang="ts">
   import { computed, onMounted, ref, watch } from "vue";
-  
+
   const props = defineProps<{
     durationMs: number;
     remainingMs: number;
     enabled?: boolean;
+    autoRefreshEnabled: boolean;
+  }>();
+
+  const emit = defineEmits<{
+    "toggle-auto-refresh": [];
   }>();
   
   const circlePath = ref<SVGPathElement | null>(null);
@@ -60,6 +73,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s, border-color 0.2s;
+  }
+  .countdown:hover {
+    opacity: 0.9;
+  }
+  .countdown--paused {
+    opacity: 0.6;
+    border-color: #555;
+  }
+  .countdown--paused .countdown__icon__circle {
+    stroke: #666;
   }
   .countdown__icon {
     position: absolute;

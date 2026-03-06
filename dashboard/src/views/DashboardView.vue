@@ -1,15 +1,24 @@
 <template>
   <div class="dashboard-sections">
-    <div class="flex items-center justify-end">
+    <div class="dashboard-toolbar flex items-center justify-end gap-3">
+      <div class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1">
+        <span class="text-sm text-gray-500">Auto-refresh</span>
+      </div>
+      <RefreshCountdownRing
+        :duration-ms="intervalMs"
+        :remaining-ms="remainingMs"
+        :enabled="isRunning"
+        :auto-refresh-enabled="autoRefreshEnabled"
+        @toggle-auto-refresh="toggleAutoRefresh"
+      />
       <ButtonIn
         type="button"
         variant="outline"
         class="min-w-[50px] min-h-[50px] border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
         @click="refreshAll"
-        title="Refresh"
+        title="Refresh now"
         icon="icon-spinner11"
       />
-        
     </div>
     <div class="by-garage-card dashboard-fade dashboard-fade--0">
       <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
@@ -72,6 +81,7 @@ import TicketActivityTable from "../components/TicketActivityTable.vue";
 import TicketActivity from "../components/TicketActivity.vue";
 import RevenueSummary from "../components/RevenueSummary.vue";
 import ButtonIn from "../components/ButtonIn.vue";
+import RefreshCountdownRing from "../components/RefreshCountdownRing.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
@@ -128,7 +138,14 @@ watch(selectedGarageId, () => {
   nextTick(refreshAll);
 });
 
-useDashboardPolling(refreshAll, { enabled: autoRefreshEnabled });
+const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
+  refreshAll,
+  { enabled: autoRefreshEnabled },
+);
+
+function toggleAutoRefresh() {
+  autoRefreshEnabled.value = !autoRefreshEnabled.value;
+}
 
 onMounted(() => {
   loadGarages();
