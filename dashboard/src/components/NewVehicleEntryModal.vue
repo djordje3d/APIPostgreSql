@@ -13,25 +13,33 @@
           />
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Vehicle type *</label>
-          <select v-model="form.vehicle_type_id" required class="w-full rounded border border-gray-300 px-3 py-2">
-            <option value="">Select type</option>
-            <option v-for="vt in vehicleTypes" :key="vt.id" :value="vt.id">{{ vt.type }}</option>
-          </select>
+          <StandardDropdown
+            label="Vehicle type *"
+            :options="vehicleTypeOptions"
+            :model-value="form.vehicle_type_id || null"
+            placeholder="Select type"
+            :nullable="false"
+            @update:model-value="form.vehicle_type_id = $event ?? ''"
+          />
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Garage *</label>
-          <select v-model="form.garage_id" required class="w-full rounded border border-gray-300 px-3 py-2" @change="onGarageChange">
-            <option value="">Select garage</option>
-            <option v-for="g in garages" :key="g.id" :value="g.id">{{ g.name }}</option>
-          </select>
+          <StandardDropdown
+            label="Garage *"
+            :options="garageOptions"
+            :model-value="form.garage_id || null"
+            placeholder="Select garage"
+            :nullable="false"
+            @update:model-value="onGarageSelect($event)"
+          />
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Spot (optional, auto if empty)</label>
-          <select v-model="form.spot_id" class="w-full rounded border border-gray-300 px-3 py-2">
-            <option :value="null">Auto-assign first free</option>
-            <option v-for="s in freeSpots" :key="s.id" :value="s.id">{{ s.code }}</option>
-          </select>
+          <StandardDropdown
+            label="Spot (optional, auto if empty)"
+            :options="spotOptions"
+            v-model="form.spot_id"
+            :nullable="true"
+            null-option-label="Auto-assign first free"
+          />
         </div>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
@@ -53,8 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Modal from './Modal.vue'
+import StandardDropdown from './StandardDropdown.vue'
 import { listVehicleTypes } from '../api/vehicleTypes'
 import { listGarages } from '../api/garages'
 import { listSpots } from '../api/spots'
@@ -77,6 +86,16 @@ const vehicleTypes = ref<VehicleType[]>([])
 const garages = ref<Garage[]>([])
 const freeSpots = ref<Spot[]>([])
 const loading = ref(false)
+
+const vehicleTypeOptions = computed(() =>
+  vehicleTypes.value.map((vt) => ({ id: vt.id, label: vt.type }))
+)
+const garageOptions = computed(() =>
+  garages.value.map((g) => ({ id: g.id, label: g.name }))
+)
+const spotOptions = computed(() =>
+  freeSpots.value.map((s) => ({ id: s.id, label: s.code }))
+)
 const error = ref('')
 const success = ref('')
 
@@ -111,6 +130,12 @@ async function onGarageChange() {
   } catch {
     freeSpots.value = []
   }
+}
+
+function onGarageSelect(value: number | null) {
+  form.value.garage_id = value ?? ''
+  form.value.spot_id = null
+  onGarageChange()
 }
 
 watch(

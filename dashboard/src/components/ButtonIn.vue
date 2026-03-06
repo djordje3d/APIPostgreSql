@@ -20,7 +20,10 @@
     />
 
     <!-- Loading spinner -->
-    <span v-if="loading" class="absolute inset-0 flex items-center justify-center">
+    <span
+      v-if="loading"
+      class="absolute inset-0 flex items-center justify-center"
+    >
       <span
         class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
       />
@@ -33,78 +36,78 @@
     >
       <slot />
     </span>
-    <span v-if="typeof(icon)!=='undefined'" :class="icon"></span>
+    <span v-if="typeof icon !== 'undefined'" :class="icon"></span>
   </button>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useAttrs } from "vue"
+import { computed, ref, useAttrs } from "vue";
 
 defineOptions({
   inheritAttrs: false,
-})
+});
 
 const props = defineProps<{
-  type?: "button" | "submit" | "reset"
-  disabled?: boolean
-  loading?: boolean
-  variant?: "primary" | "danger" | "outline"
-  icon?: string
-}>()
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  loading?: boolean;
+  variant?: "primary" | "danger" | "outline";
+  icon?: string;
+}>();
 
-const emit = defineEmits<{ click: [e?: MouseEvent] }>()
+const emit = defineEmits<{ click: [e?: MouseEvent] }>();
 
-const attrs = useAttrs()
+const attrs = useAttrs();
 
-const attrsClass = computed(() => attrs.class)
+const attrsClass = computed(() => attrs.class);
 const restAttrs = computed(() => {
-  const { class: _c, ...rest } = attrs as Record<string, unknown>
-  return rest
-})
+  const { class: _c, ...rest } = attrs as Record<string, unknown>;
+  return rest;
+});
 
-const type = computed(() => props.type ?? "button")
-const loading = computed(() => props.loading ?? false)
-const disabled = computed(() => props.disabled ?? false)
-const variant = computed(() => props.variant ?? "primary")
-const icon = computed(() => props.icon ?? undefined)
+const type = computed(() => props.type ?? "button");
+const loading = computed(() => props.loading ?? false);
+const disabled = computed(() => props.disabled ?? false);
+const variant = computed(() => props.variant ?? "primary");
+const icon = computed(() => props.icon ?? undefined);
 
-const isDisabled = computed(() => disabled.value || loading.value)
+const isDisabled = computed(() => disabled.value || loading.value);
 
 const variantClasses = computed(() => {
   switch (variant.value) {
     case "danger":
-      return "bg-red-600 text-white hover:bg-red-700"
+      return "bg-red-600 text-white hover:bg-red-700";
     case "outline":
-      return "border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50"
+      return "border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50";
     default:
-      return "bg-emerald-600 text-white hover:bg-emerald-700"
+      return "bg-emerald-600 text-white hover:bg-emerald-700";
   }
-})
+});
 
-const hoverGlow = ref<Record<string, string> | null>(null)
+const hoverGlow = ref<Record<string, string> | null>(null);
 
 function onClick(e: MouseEvent) {
-  if (isDisabled.value) return
-  emit("click", e)
+  if (isDisabled.value) return;
+  emit("click", e);
 }
 
 function onMove(e: MouseEvent) {
-  if (isDisabled.value) return
+  if (isDisabled.value) return;
 
-  const el = e.currentTarget as HTMLElement
-  const rect = el.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
+  const el = e.currentTarget as HTMLElement;
+  const rect = el.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
 
   hoverGlow.value = {
     background: `radial-gradient(circle at ${x}px ${y}px,
       rgba(255,255,255,0.35),
       transparent 60%)`,
-  }
+  };
 }
 
 function onLeave() {
-  hoverGlow.value = null
+  hoverGlow.value = null;
 }
 </script>
 

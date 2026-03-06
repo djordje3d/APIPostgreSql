@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="body"> <!-- Teleport to the body to avoid z-index issues -->
     <div
       v-if="modelValue"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -13,7 +13,10 @@
         :aria-labelledby="title ? 'modal-title' : undefined"
       >
         <div v-if="title" class="mb-4 flex items-center justify-between">
-          <h2 :id="title ? 'modal-title' : undefined" class="text-lg font-semibold text-gray-900">
+          <h2
+            :id="title ? 'modal-title' : undefined"
+            class="text-lg font-semibold text-gray-900"
+          >
             {{ title }}
           </h2>
           <button
@@ -38,15 +41,15 @@
 
 <script setup lang="ts">
 defineProps<{
-  modelValue: boolean
-  title?: string
-}>()
+  modelValue: boolean;
+  title?: string;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+  "update:modelValue": [value: boolean];
+}>();
 
 function close() {
-  emit('update:modelValue', false)
+  emit("update:modelValue", false);
 }
 </script>

@@ -19,11 +19,13 @@
           <p v-if="amountExceedsRest" class="mt-1 text-sm font-medium text-red-600">Amount exceeds remaining balance. Rest to pay: {{ formatMoney(restToPay!) }}.</p>
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Method *</label>
-          <select v-model="method" required class="w-full rounded border border-gray-300 px-3 py-2">
-            <option value="CASH">CASH</option>
-            <option value="CARD">CARD</option>
-          </select>
+          <StandardDropdown
+            label="Method *"
+            :options="methodOptions"
+            v-model="method"
+            placeholder="Select method"
+            :nullable="false"
+          />
         </div>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
@@ -46,6 +48,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed, onMounted } from 'vue'
 import Modal from './Modal.vue'
+import StandardDropdown from './StandardDropdown.vue'
 import { formatMoney } from '../composables/useFormatters'
 import { createPayment, getPaymentsByTicket } from '../api/payments'
 
@@ -61,7 +64,12 @@ const modalTitle = computed(() =>
 )
 
 const amount = ref<number>(0)
-const method = ref('CASH')
+const method = ref<string | null>('CASH')
+
+const methodOptions = [
+  { id: 'CASH' as const, label: 'Cash' },
+  { id: 'CARD' as const, label: 'Card' },
+]
 const loading = ref(false)
 const error = ref('')
 const totalPaid = ref<number>(0)
@@ -116,7 +124,7 @@ async function submit() {
     await createPayment({
       ticket_id: props.ticketId,
       amount: amount.value,
-      method: method.value,
+      method: method.value ?? 'CASH',
       currency: 'RSD',
     })
     loading.value = false

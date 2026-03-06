@@ -1,18 +1,15 @@
 <template>
-  <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
-    <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
-  </span>
-  <div
-    ref="root"
-    class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
-  >
-    <span class="by-garage-card__desc">See status and activity per garage</span>
+  <div ref="root" class="standard-dropdown relative inline-block w-full">
+    <label v-if="label" class="mb-1 block text-sm font-medium text-gray-700">
+      {{ label }}
+    </label>
 
     <!-- Trigger -->
     <button
       ref="trigger"
       type="button"
-      class="mt-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-gray-400 transition"
+      class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-gray-400 transition"
+      :class="{ 'mt-1': label }"
       :aria-expanded="open"
       @click="toggle"
       @keydown.down.prevent="openAndFocusFirst()"
@@ -24,7 +21,6 @@
           {{ selectedLabel }}
         </span>
         <span class="shrink-0 text-gray-500">
-          <!-- chevron -->
           <svg
             class="h-4 w-4 transition-transform"
             :class="{ 'rotate-180': open }"
@@ -45,11 +41,9 @@
     <Teleport to="body">
       <Transition name="pop">
         <div v-if="open" ref="menu" class="fixed zPopup" :style="menuStyle">
-          <!-- popup box -->
           <div
             class="rounded-lg border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 overflow-hidden"
           >
-            <!-- nub/arrow -->
             <div class="pointer-events-none absolute left-6" :style="nubStyle">
               <div
                 class="h-3 w-3 rotate-45 bg-white border border-gray-200 shadow-sm"
@@ -57,7 +51,6 @@
               ></div>
             </div>
 
-            <!-- scroll area -->
             <ul
               class="max-h-64 overflow-auto py-1 text-sm"
               role="listbox"
@@ -67,7 +60,7 @@
               @keydown.up.prevent="focusPrev()"
               @keydown.enter.prevent="selectFocused()"
             >
-              <li>
+              <li v-if="nullable">
                 <button
                   ref="items"
                   type="button"
@@ -77,21 +70,21 @@
                   }"
                   @click="choose(null)"
                 >
-                  All garages
+                  {{ nullOptionLabel }}
                 </button>
               </li>
 
-              <li v-for="g in garages" :key="g.id">
+              <li v-for="opt in options" :key="opt.id">
                 <button
                   ref="items"
                   type="button"
                   class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
                   :class="{
-                    'font-semibold text-emerald-700': modelValue === g.id,
+                    'font-semibold text-emerald-700': modelValue === opt.id,
                   }"
-                  @click="choose(g.id)"
+                  @click="choose(opt.id)"
                 >
-                  {{ g.name }}
+                  {{ opt.label }}
                 </button>
               </li>
             </ul>
@@ -111,20 +104,30 @@ import {
   ref,
   watch,
 } from "vue";
-import garageIcon from "../img/urban-parking-garage.svg";
 
-type Garage = { id: number; name: string };
+export type DropdownOption = { id: number | string; label: string };
 
-const props = defineProps<{
-  garages: Garage[];
-  modelValue: number | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    label?: string;
+    options: DropdownOption[];
+    modelValue: number | string | null;
+    placeholder?: string;
+    nullable?: boolean;
+    nullOptionLabel?: string;
+  }>(),
+  {
+    placeholder: "Select…",
+    nullable: false,
+    nullOptionLabel: "",
+  }
+);
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: number | null): void;
+  (e: "update:modelValue", value: number | string | null): void;
+  (e: "change", value: number | string | null): void;
 }>();
 
-const root = ref<HTMLElement | null>(null);
 const trigger = ref<HTMLElement | null>(null);
 const menu = ref<HTMLElement | null>(null);
 const items = ref<HTMLButtonElement[] | null>(null);
@@ -137,15 +140,16 @@ const nubStyle = ref<Record<string, string>>({});
 const focusedIndex = ref(0);
 
 const selectedLabel = computed(() => {
-  if (props.modelValue == null) return "All garages";
+  if (props.modelValue == null) {
+    return props.nullable ? props.nullOptionLabel : props.placeholder;
+  }
   return (
-    props.garages.find((g) => g.id === props.modelValue)?.name ??
-    "Select a garage…"
+    props.options.find((o) => o.id === props.modelValue)?.label ??
+    props.placeholder
   );
 });
 
 const nubBorderAdjustClass = computed(() => {
-  // hide the border edge touching the box, so it looks like a single shape
   return openUp.value
     ? "border-b-0 border-r-0 -mb-[1px]"
     : "border-t-0 border-l-0 -mt-[1px]";
@@ -159,16 +163,15 @@ function close() {
   open.value = false;
 }
 
-function choose(id: number | null) {
+function choose(id: number | string | null) {
   emit("update:modelValue", id);
+  emit("change", id);
   close();
   nextTick(() => trigger.value?.focus());
 }
 
 function getAllItemButtons(): HTMLButtonElement[] {
-  // Vue collects multiple refs with same name into array
-  // @ts-ignore
-  return (items.value as any) ?? [];
+  return (items.value as unknown as HTMLButtonElement[]) ?? [];
 }
 
 function focusItem(index: number) {
@@ -204,16 +207,17 @@ function openAndFocusLast() {
   else focusItem(count - 1);
 }
 
+function getSelectedIndex(): number {
+  if (props.modelValue == null) return props.nullable ? 0 : -1;
+  const idx = props.options.findIndex((o) => o.id === props.modelValue);
+  return idx >= 0 ? (props.nullable ? 1 + idx : idx) : -1;
+}
+
 function openMenu(after?: () => void) {
   open.value = true;
   nextTick(() => {
     positionMenu();
-    // focus selected item if possible
-    const els = getAllItemButtons();
-    const selectedIdx =
-      props.modelValue == null
-        ? 0
-        : 1 + props.garages.findIndex((g) => g.id === props.modelValue);
+    const selectedIdx = getSelectedIndex();
     focusItem(selectedIdx >= 0 ? selectedIdx : 0);
     after?.();
   });
@@ -228,8 +232,8 @@ function positionMenu() {
   const viewportH = window.innerHeight;
 
   const margin = 10;
-  const menuMaxH = 256; // matches max-h-64 (64*4px)
-  const estimatedH = Math.min(menuMaxH + 20, 320); // rough including padding/border
+  const menuMaxH = 256;
+  const estimatedH = Math.min(menuMaxH + 20, 320);
 
   const spaceBelow = viewportH - rect.bottom - margin;
   const spaceAbove = rect.top - margin;
@@ -239,10 +243,9 @@ function positionMenu() {
   const width = rect.width;
   const left = Math.min(
     Math.max(rect.left, margin),
-    viewportW - width - margin,
+    viewportW - width - margin
   );
 
-  // We’ll place the menu either under or above trigger
   const top = openUp.value
     ? Math.max(margin, rect.top - estimatedH)
     : Math.min(viewportH - estimatedH - margin, rect.bottom + 8);
@@ -253,10 +256,9 @@ function positionMenu() {
     width: `${width}px`,
   };
 
-  // nub position: if opening down, nub is on top edge; if opening up, nub is on bottom edge
   nubStyle.value = openUp.value
-    ? { bottom: "-6px" } // sits at bottom of box, pointing down to trigger
-    : { top: "-6px" }; // sits at top of box, pointing up to trigger
+    ? { bottom: "-6px" }
+    : { top: "-6px" };
 }
 
 function onClickOutside(e: MouseEvent) {
@@ -278,7 +280,7 @@ function onResizeOrScroll() {
 onMounted(() => {
   document.addEventListener("mousedown", onClickOutside);
   window.addEventListener("resize", onResizeOrScroll);
-  window.addEventListener("scroll", onResizeOrScroll, true); // true = capture, catches inner scroll containers too
+  window.addEventListener("scroll", onResizeOrScroll, true);
 });
 
 onBeforeUnmount(() => {
@@ -288,10 +290,10 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => props.garages,
+  () => props.options,
   () => {
     if (open.value) nextTick(positionMenu);
-  },
+  }
 );
 </script>
 
@@ -313,28 +315,5 @@ watch(
 .pop-leave-from {
   opacity: 1;
   transform: scale(1);
-}
-
-.by-garage-card__cell {
-  flex-shrink: 0;
-}
-.by-garage-card__icon {
-  width: 5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 4rem;
-  border-radius: 0.375rem;
-  background: rgb(241 245 249);
-  color: rgb(71 85 105);
-}
-.by-garage-card__icon-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.by-garage-card__dropdown-wrap {
-  width: 24rem;
-  min-width: 13rem;
 }
 </style>
