@@ -9,7 +9,7 @@
             type="text"
             required
             class="w-full rounded border border-gray-300 px-3 py-2"
-            placeholder="e.g. AB-123-CD"
+            placeholder="e.g. AB123CD"
           />
         </div>
         <div>

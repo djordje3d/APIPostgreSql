@@ -113,12 +113,12 @@
         </table>
       </div>
     </div>
-    <!-- Payment modal -->
+    <!-- Payment modal (always mounted so leave transition can run) -->
     <PaymentModal
-      v-if="paymentTicket"
-      :ticket-id="paymentTicket.id"
-      :fee="paymentTicket.fee"
-      :garage-name="paymentTicket.garage_name ?? undefined"
+      v-model="showPaymentModal"
+      :ticket-id="paymentTicket?.id ?? 0"
+      :fee="paymentTicket?.fee ?? null"
+      :garage-name="paymentTicket?.garage_name ?? undefined"
       @close="closePaymentModal"
       @done="onPaymentDone"
     />
@@ -231,6 +231,7 @@ const viewingTicket = ref<TicketDashboardRow | null>(null)
 const viewPayments = ref<Payment[]>([])
 const viewPaymentsLoading = ref(false)
 const paymentTicket = ref<TicketDashboardRow | null>(null)
+const showPaymentModal = ref(false)
 /** Rest to pay (fee - total paid) per ticket id, for table display. Fetched when tickets load. */
 const restToPayMap = ref<Record<number, number>>({})
 
@@ -346,6 +347,7 @@ function viewTicket(t: TicketDashboardRow) {
 
 function openPayment(t: TicketDashboardRow) {
   paymentTicket.value = t
+  showPaymentModal.value = true
 }
 
 async function closeTicket(id: number) {
@@ -359,6 +361,7 @@ async function closeTicket(id: number) {
 }
 
 function closePaymentModal() {
+  showPaymentModal.value = false
   nextTick(() => {
     paymentTicket.value = null
   })
@@ -366,9 +369,9 @@ function closePaymentModal() {
 
 function onPaymentDone() {
   invalidatePaymentsCache(paymentTicket.value?.id)
+  showPaymentModal.value = false
   nextTick(() => {
     paymentTicket.value = null
-    // Let parent refreshAll() drive a single refresh for this and other widgets
     window.dispatchEvent(new CustomEvent('dashboard-refresh'))
   })
 }

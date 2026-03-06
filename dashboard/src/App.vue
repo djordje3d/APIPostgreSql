@@ -120,7 +120,13 @@
         </header>
         <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
           <router-view v-slot="{ Component }">
-            <component :is="Component" @open-new-entry="showNewEntry = true" />
+            <Transition name="fade" mode="out-in">
+              <component
+                :is="Component"
+                :key="$route.fullPath"
+                @open-new-entry="showNewEntry = true"
+              />
+            </Transition>
           </router-view>
         </main>
         <NewVehicleEntryModal v-model="showNewEntry" @done="onNewEntryDone" />

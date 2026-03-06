@@ -1,5 +1,5 @@
 <template>
-  <Modal :model-value="true" @update:model-value="$emit('close')" :title="modalTitle">
+  <Modal :model-value="modelValue" @update:model-value="close" :title="modalTitle">
     <p class="mt-1 text-sm text-gray-600">Ticket #{{ ticketId }}</p>
     <p class="mb-1 text-sm text-gray-600">Total fee: {{ formatMoney(fee) }}</p>
     <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">Rest to pay: {{ formatMoney(restToPay) }}</p>
@@ -38,7 +38,7 @@
         >
           {{ loading ? 'Sending…' : 'Submit payment' }}
         </ButtonIn>
-        <ButtonIn type="button" variant="outline" @click="$emit('close')">
+        <ButtonIn type="button" variant="outline" @click="close">
           Cancel
         </ButtonIn>
       </div>
@@ -55,11 +55,16 @@ import { formatMoney } from '../composables/useFormatters'
 import { createPayment, getPaymentsByTicket } from '../api/payments'
 
 const props = defineProps<{
+  modelValue: boolean
   ticketId: number
   fee: string | null
   garageName?: string | null
 }>()
-const emit = defineEmits(['close', 'done'])
+const emit = defineEmits<{ close: []; done: []; 'update:modelValue': [value: boolean] }>()
+function close() {
+  emit('update:modelValue', false)
+  emit('close')
+}
 
 const modalTitle = computed(() =>
   props.garageName ? `Payment – ${props.garageName}` : 'Payment'
@@ -132,7 +137,7 @@ async function submit() {
     loading.value = false
     nextTick(() => {
       emit('done')
-      emit('close')
+      close()
     })
   } catch (e: unknown) {
     const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail

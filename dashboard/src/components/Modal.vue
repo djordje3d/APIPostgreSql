@@ -1,17 +1,18 @@
 <template>
-  <Teleport to="body"> <!-- Teleport to the body to avoid z-index issues -->
-    <div
-      v-if="modelValue"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      style="pointer-events: auto"
-      @click.self="close"
-    >
+  <Teleport to="body">
+    <Transition name="modal-fade">
       <div
-        class="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl"
-        role="dialog"
-        aria-modal="true"
-        :aria-labelledby="title ? 'modal-title' : undefined"
+        v-if="modelValue"
+        class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        style="pointer-events: auto"
+        @click.self="close"
       >
+        <div
+          class="modal-dialog max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="title ? 'modal-title' : undefined"
+        >
         <div v-if="title" class="mb-4 flex items-center justify-between">
           <h2
             :id="title ? 'modal-title' : undefined"
@@ -34,8 +35,9 @@
         <div v-if="$slots.footer" class="mt-4 border-t border-gray-200 pt-4">
           <slot name="footer" />
         </div>
+        </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -53,3 +55,30 @@ function close() {
   emit("update:modelValue", false);
 }
 </script>
+
+<style scoped>
+/* Backdrop: fades in first (0.25s ease-out), fades out after dialog (0.2s ease-in, delayed) */
+.modal-fade-enter-active.modal-backdrop {
+  transition: opacity 0.6s ease-out; 
+}
+.modal-fade-leave-active.modal-backdrop {
+  transition: opacity 0.6s ease-in;
+  transition-delay: 0.1s;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+/* Dialog: fades in slightly after backdrop (0.25s ease-out, delayed); fades out first (0.2s ease-in) */
+.modal-fade-enter-active .modal-dialog {
+  transition: opacity 0.25s ease-out 0.07s;
+}
+.modal-fade-leave-active .modal-dialog {
+  transition: opacity 0.2s ease-in 0s;
+}
+.modal-fade-enter-from .modal-dialog,
+.modal-fade-leave-to .modal-dialog {
+  opacity: 0;
+}
+</style>
