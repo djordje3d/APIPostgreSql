@@ -9,10 +9,14 @@
         role="alert"
         aria-live="assertive"
       >
-        <span class="connection-banner__icon" aria-hidden="true">{{ connectionBannerIcon }}</span>
+        <span class="connection-banner__icon" aria-hidden="true">{{
+          connectionBannerIcon
+        }}</span>
         <div class="connection-banner__content">
           <p class="connection-banner__title">{{ connectionBannerMessage }}</p>
-          <p v-if="connectionBannerDetail" class="connection-banner__detail">{{ connectionBannerDetail }}</p>
+          <p v-if="connectionBannerDetail" class="connection-banner__detail">
+            {{ connectionBannerDetail }}
+          </p>
         </div>
       </div>
     </Transition>
@@ -25,8 +29,23 @@
           role="status"
           aria-live="polite"
         >
-          <span class="connection-restored-toast__icon" aria-hidden="true">✓</span>
+          <span class="connection-restored-toast__icon" aria-hidden="true"
+            >✓</span
+          >
           Connection restored
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- Snackbar toast: only on dashboard and only when entry is created -->
+    <Teleport to="body">
+      <Transition name="toast-snackbar-fade">
+        <div
+          v-if="!isLoginPage && toastMessage.trim()"
+          class="toast-snackbar"
+          role="status"
+          aria-live="polite"
+        >
+          {{ toastMessage }}
         </div>
       </Transition>
     </Teleport>
@@ -72,7 +91,8 @@
             Your session has expired.
           </p>
           <p class="mt-1 text-sm opacity-90">
-            You will be redirected to the login page in {{ sessionExpiredRedirectCountdown }}.
+            You will be redirected to the login page in
+            {{ sessionExpiredRedirectCountdown }}.
           </p>
           <ButtonIn
             type="button"
@@ -112,7 +132,7 @@
               >
                 Logout
               </ButtonIn>
-              <ButtonIn 
+              <ButtonIn
                 type="button"
                 variant="outline"
                 class="border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
@@ -153,6 +173,7 @@ import {
 } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import NewVehicleEntryModal from "./components/NewVehicleEntryModal.vue";
+import { useToast } from "./composables/useToast";
 import { baseURL } from "./api/client";
 import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { refresh as refreshToken } from "./api/auth";
@@ -185,8 +206,21 @@ const router = useRouter();
 const route = useRoute();
 const routerReady = ref(false);
 const isLoginPage = computed(() => route.name === "login");
+const isDashboard = computed(() => route.name === "dashboard");
 const sessionExpiryCountdown = computed(() => idleExpiryCountdown.value);
 const showNewEntry = ref(false);
+const toast = useToast();
+const { message: toastMessage, showToast, clearToast } = useToast();
+
+provide("toast", {
+  message: toastMessage,
+  showToast,
+  clearToast,
+});
+
+watch(showNewEntry, (open) => {
+  if (open) clearToast();
+});
 const apiConnectionError = ref<string | null>(null);
 const apiConnectionTimeout = ref<string | null>(null);
 const isOffline = ref(typeof navigator !== "undefined" && !navigator.onLine);
@@ -197,8 +231,10 @@ const showIdleExpiryAlert = ref(false);
 const idleExpiryCountdown = ref("");
 const showSessionExpiredModal = ref(false);
 const sessionExpiredRedirectCountdown = ref("3");
-let sessionExpiredRedirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
-let sessionExpiredCountdownIntervalId: ReturnType<typeof setInterval> | null = null;
+let sessionExpiredRedirectTimeoutId: ReturnType<typeof setTimeout> | null =
+  null;
+let sessionExpiredCountdownIntervalId: ReturnType<typeof setInterval> | null =
+  null;
 let tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let idleTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let idleCountdownIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -241,7 +277,9 @@ function onSessionExpired() {
   sessionExpiredRedirectCountdown.value = String(Math.ceil(remainingMs / 1000));
   sessionExpiredCountdownIntervalId = setInterval(() => {
     remainingMs -= 1000;
-    sessionExpiredRedirectCountdown.value = String(Math.max(0, Math.ceil(remainingMs / 1000)));
+    sessionExpiredRedirectCountdown.value = String(
+      Math.max(0, Math.ceil(remainingMs / 1000)),
+    );
     if (remainingMs <= 0 && sessionExpiredCountdownIntervalId != null) {
       clearInterval(sessionExpiredCountdownIntervalId);
       sessionExpiredCountdownIntervalId = null;
@@ -453,6 +491,7 @@ onUnmounted(() => {
 function onNewEntryDone() {
   nextTick(() => {
     showNewEntry.value = false;
+    showToast("Vehicle entry created.");
     window.dispatchEvent(new CustomEvent("dashboard-refresh"));
   });
 }
@@ -556,7 +595,9 @@ useDashboardPolling(refreshDashboardEverywhere, {
 
 .banner-slide-enter-active,
 .banner-slide-leave-active {
-  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+  transition:
+    transform 0.25s ease-out,
+    opacity 0.25s ease-out;
 }
 .banner-slide-enter-from,
 .banner-slide-leave-to {
@@ -589,12 +630,30 @@ useDashboardPolling(refreshDashboardEverywhere, {
 
 .toast-fade-enter-active,
 .toast-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 .toast-fade-enter-from,
 .toast-fade-leave-to {
   opacity: 0;
   transform: translateX(-50%) translateY(-0.5rem);
+}
+
+/* Entry-created snackbar (bottom-right), only in DOM when message is set */
+.toast-snackbar {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 10001;
+  padding: 0.75rem 1.25rem;
+  background: #065f46;
+  color: #ecfdf5;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  max-width: min(22rem, calc(100vw - 2.5rem));
 }
 
 .fade-enter-active,
@@ -635,4 +694,14 @@ useDashboardPolling(refreshDashboardEverywhere, {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
+.toast-snackbar-fade-enter-active,
+.toast-snackbar-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast-snackbar-fade-enter-from,
+.toast-snackbar-fade-leave-to {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
 </style>

@@ -86,8 +86,10 @@ import RefreshCountdownRing from "../components/RefreshCountdownRing.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
+import type { ToastApi } from "../composables/useToast";
 import GarageSelectDropdown from "../components/GarageSelectDropdown.vue";
 
+const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(
   "autoRefreshEnabled",
   ref(true),
@@ -153,6 +155,7 @@ function toggleAutoRefresh() {
 
 /** Load garages and start polling when the component mounts. */
 onMounted(() => {
+  toast?.clearToast();
   loadGarages();
   refreshAll(); // load data immediately so it appears without clicking Refresh
   window.addEventListener("dashboard-refresh", refreshAll);
