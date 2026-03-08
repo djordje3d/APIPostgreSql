@@ -50,7 +50,7 @@
           aria-label="Refreshing"
         >
           <span
-            class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500"
+            class="icon-spinner2 inline-block text-3xl animate-spin text-gray-500"
             aria-hidden="true"
           ></span>
         </div>

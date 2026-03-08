@@ -21,7 +21,7 @@
     aria-busy="true"
     aria-live="polite"
   >
-    <span class="icon-spinner11 inline-block text-2xl animate-spin" aria-hidden="true"></span>
+    <span class="icon-spinner inline-block text-2xl animate-spin" aria-hidden="true"></span>
     <span>loading data...</span>
   </div>
 
@@ -41,7 +41,7 @@
       aria-busy="true"
       aria-label="Refreshing"
     >
-      <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
+      <span class="icon-spinner inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
     </div>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard label="Free spots" :value="freeSpots" variant="green" />

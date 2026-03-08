@@ -103,7 +103,7 @@ const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null);
 /** AbortController for the current refresh cycle; aborted when a new refresh starts or on unmount. */
 const refreshAbortControllerRef = ref<AbortController | null>(null);
 provide(
-  "dashboardRefreshAbortSignal",
+  "dashboardRefreshAbortSignal", //  provide a signal for all components to abort their refreshes when a new refresh starts
   computed(() => refreshAbortControllerRef.value?.signal ?? null),
 );
 
@@ -135,19 +135,23 @@ async function loadGarages() {
   }
 }
 
+/** Refresh all data when the selected garage changes. */
 watch(selectedGarageId, () => {
   nextTick(refreshAll);
 });
 
+/** Use dashboard polling to refresh data periodically. */
 const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
   refreshAll,
   { enabled: autoRefreshEnabled },
 );
 
+/** Toggle auto-refresh. */
 function toggleAutoRefresh() {
   autoRefreshEnabled.value = !autoRefreshEnabled.value;
 }
 
+/** Load garages and start polling when the component mounts. */
 onMounted(() => {
   loadGarages();
   refreshAll(); // load data immediately so it appears without clicking Refresh

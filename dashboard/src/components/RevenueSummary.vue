@@ -24,7 +24,7 @@
       aria-busy="true"
       aria-live="polite"
     >
-      <span class="icon-spinner11 inline-block text-2xl animate-spin" aria-hidden="true"></span>
+      <span class="icon-spinner5 inline-block text-2xl animate-spin" aria-hidden="true"></span>
       <span>loading data...</span>
     </div>
 
@@ -44,7 +44,7 @@
         aria-busy="true"
         aria-label="Refreshing"
       >
-        <span class="icon-spinner11 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
+        <span class="icon-spinner3 inline-block text-3xl animate-spin text-gray-500" aria-hidden="true"></span>
       </div>
       <div class="space-y-4">
         <SummaryRow label="Today's revenue" :value="formatMoney(todayRevenue)" />

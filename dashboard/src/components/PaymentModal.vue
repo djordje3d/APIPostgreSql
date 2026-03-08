@@ -1,12 +1,20 @@
 <template>
-  <Modal :model-value="modelValue" @update:model-value="close" :title="modalTitle">
+  <Modal
+    :model-value="modelValue"
+    @update:model-value="close"
+    :title="modalTitle"
+  >
     <p class="mt-1 text-sm text-gray-600">Ticket #{{ ticketId }}</p>
     <p class="mb-1 text-sm text-gray-600">Total fee: {{ formatMoney(fee) }}</p>
-    <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">Rest to pay: {{ formatMoney(restToPay) }}</p>
+    <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">
+      Rest to pay: {{ formatMoney(restToPay) }}
+    </p>
     <form @submit.prevent="submit">
       <div class="space-y-3">
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Amount (RSD) *</label>
+          <label class="mb-1 block text-sm font-medium text-gray-700"
+            >Amount (RSD) *</label
+          >
           <input
             v-model.number="amount"
             type="number"
@@ -14,9 +22,17 @@
             min="1"
             required
             class="w-full rounded border px-3 py-2"
-            :class="amountExceedsRest ? 'border-red-500 bg-red-50' : 'border-gray-300'"
+            :class="
+              amountExceedsRest ? 'border-red-500 bg-red-50' : 'border-gray-300'
+            "
           />
-          <p v-if="amountExceedsRest" class="mt-1 text-sm font-medium text-red-600">Amount exceeds remaining balance. Rest to pay: {{ formatMoney(restToPay!) }}.</p>
+          <p
+            v-if="amountExceedsRest"
+            class="mt-1 text-sm font-medium text-red-600"
+          >
+            Amount exceeds remaining balance. Rest to pay:
+            {{ formatMoney(restToPay!) }}.
+          </p>
         </div>
         <div>
           <StandardDropdown
@@ -36,7 +52,7 @@
           :disabled="amountExceedsRest"
           variant="primary"
         >
-          {{ loading ? 'Sending…' : 'Submit payment' }}
+          {{ loading ? "Sending…" : "Submit payment" }}
         </ButtonIn>
         <ButtonIn type="button" variant="outline" @click="close">
           Cancel
@@ -47,102 +63,109 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, computed, onMounted } from 'vue'
-import Modal from './Modal.vue'
-import StandardDropdown from './StandardDropdown.vue'
-import ButtonIn from './ButtonIn.vue'
-import { formatMoney } from '../composables/useFormatters'
-import { createPayment, getPaymentsByTicket } from '../api/payments'
+import { ref, watch, nextTick, computed, onMounted } from "vue";
+import Modal from "./Modal.vue";
+import StandardDropdown from "./StandardDropdown.vue";
+import ButtonIn from "./ButtonIn.vue";
+import { formatMoney } from "../composables/useFormatters";
+import { createPayment, getPaymentsByTicket } from "../api/payments";
 
 const props = defineProps<{
-  modelValue: boolean
-  ticketId: number
-  fee: string | null
-  garageName?: string | null
-}>()
-const emit = defineEmits<{ close: []; done: []; 'update:modelValue': [value: boolean] }>()
+  modelValue: boolean;
+  ticketId: number;
+  fee: string | null;
+  garageName?: string | null;
+}>();
+const emit = defineEmits<{
+  close: [];
+  done: [];
+  "update:modelValue": [value: boolean];
+}>();
 function close() {
-  emit('update:modelValue', false)
-  emit('close')
+  emit("update:modelValue", false);
+  emit("close");
 }
 
 const modalTitle = computed(() =>
-  props.garageName ? `Payment – ${props.garageName}` : 'Payment'
-)
+  props.garageName ? `Payment – ${props.garageName}` : "Payment",
+);
 
-const amount = ref<number>(0)
-const method = ref<string | null>('CASH')
+const amount = ref<number>(0);
+const method = ref<string | null>("CASH");
 
 const methodOptions = [
-  { id: 'CASH' as const, label: 'Cash' },
-  { id: 'CARD' as const, label: 'Card' },
-]
-const loading = ref(false)
-const error = ref('')
-const totalPaid = ref<number>(0)
+  { id: "CASH" as const, label: "Cash" },
+  { id: "CARD" as const, label: "Card" },
+];
+const loading = ref(false);
+const error = ref("");
+const totalPaid = ref<number>(0);
 
 const feeNum = computed(() => {
-  const f = props.fee ? parseFloat(props.fee) : 0
-  return Number.isNaN(f) ? 0 : f
-})
+  const f = props.fee ? parseFloat(props.fee) : 0;
+  return Number.isNaN(f) ? 0 : f;
+});
 
 const restToPay = computed(() => {
-  const rest = feeNum.value - totalPaid.value
-  return rest < 0 ? 0 : rest
-})
+  const rest = feeNum.value - totalPaid.value;
+  return rest < 0 ? 0 : rest;
+});
 
 const amountExceedsRest = computed(() => {
-  if (restToPay.value == null || restToPay.value <= 0) return false
-  return amount.value > restToPay.value
-})
+  if (restToPay.value == null || restToPay.value <= 0) return false;
+  return amount.value > restToPay.value;
+});
 
 async function loadPayments() {
   try {
-    const res = await getPaymentsByTicket(props.ticketId, { limit: 500 })
-    const sum = res.data.items.reduce((s, p) => s + parseFloat(p.amount), 0)
-    totalPaid.value = sum
-    const fee = props.fee ? parseFloat(props.fee) : 0
-    amount.value = Math.max(0, (Number.isNaN(fee) ? 0 : fee) - sum)
+    const res = await getPaymentsByTicket(props.ticketId, { limit: 500 });
+    const sum = res.data.items.reduce((s, p) => s + parseFloat(p.amount), 0);
+    totalPaid.value = sum;
+    const fee = props.fee ? parseFloat(props.fee) : 0;
+    amount.value = Math.max(0, (Number.isNaN(fee) ? 0 : fee) - sum);
   } catch {
-    totalPaid.value = 0
+    totalPaid.value = 0;
   }
 }
 
 watch(
   () => [props.fee, props.ticketId],
-  () => { loadPayments() },
-  { immediate: true }
-)
+  () => {
+    loadPayments();
+  },
+  { immediate: true },
+);
 
-onMounted(loadPayments)
+onMounted(loadPayments);
 
 async function submit() {
-  error.value = ''
+  error.value = "";
   if (amount.value <= 0) {
-    error.value = 'Amount must be positive'
-    return
+    error.value = "Amount must be positive";
+    return;
   }
   if (amountExceedsRest.value) {
-    error.value = `Amount exceeds remaining balance. Rest to pay: ${formatMoney(restToPay.value!)}.`
-    return
+    error.value = `Amount exceeds remaining balance. Rest to pay: ${formatMoney(restToPay.value!)}.`;
+    return;
   }
-  loading.value = true
+  loading.value = true;
   try {
     await createPayment({
       ticket_id: props.ticketId,
       amount: amount.value,
-      method: method.value ?? 'CASH',
-      currency: 'RSD',
-    })
-    loading.value = false
+      method: method.value ?? "CASH",
+      currency: "RSD",
+    });
+    loading.value = false;
     nextTick(() => {
-      emit('done')
-      close()
-    })
+      emit("done");
+      close();
+    });
   } catch (e: unknown) {
-    const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-    error.value = typeof msg === 'string' ? msg : 'Payment failed'
-    loading.value = false
+    const msg = (e as { response?: { data?: { detail?: string } } })?.response
+      ?.data?.detail;
+    error.value = typeof msg === "string" ? msg : "Payment failed";
+    loading.value = false;
   }
 }
 </script>
