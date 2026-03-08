@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { clearStoredToken, getStoredToken } from './auth-storage'
+import { getStoredToken } from './auth-storage'
 
 // Default to backend dev URL so dashboard works without .env; override with VITE_API_URL.
 export const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -43,10 +43,10 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      clearStoredToken()
       const path = window.location.pathname
       if (path !== '/login') {
-        window.location.href = '/login'
+        // Let App.vue show "session expired" modal and then redirect
+        window.dispatchEvent(new CustomEvent('session-expired'))
       }
     }
     if (error.code === 'ERR_CANCELED' && typeof window !== 'undefined') {

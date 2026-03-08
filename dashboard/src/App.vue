@@ -58,6 +58,33 @@
         </div>
       </div>
     </Teleport>
+    <!-- Session expired (401): shown when API returns unauthorized, then redirect to login. -->
+    <Teleport to="body">
+      <div
+        v-if="showSessionExpiredModal"
+        class="session-expiry-overlay"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="session-expired-title"
+      >
+        <div class="session-expired-modal">
+          <p id="session-expired-title" class="font-medium">
+            Your session has expired.
+          </p>
+          <p class="mt-1 text-sm opacity-90">
+            You will be redirected to the login page in {{ sessionExpiredRedirectCountdown }}.
+          </p>
+          <ButtonIn
+            type="button"
+            variant="primary"
+            class="mt-4 shrink-0 !bg-slate-700 hover:!bg-slate-800 focus:ring-slate-500"
+            @click="goToLoginAfterExpired"
+          >
+            Go to login now
+          </ButtonIn>
+        </div>
+      </div>
+    </Teleport>
     <Transition name="fade" mode="out-in">
       <div v-if="!routerReady" key="waiting" class="min-h-screen bg-gray-100" />
       <div v-else-if="isLoginPage" key="login">
@@ -168,6 +195,10 @@ let connectionRestoredToastId: ReturnType<typeof setTimeout> | null = null;
 const autoRefreshEnabled = ref(loadAutoRefreshEnabled());
 const showIdleExpiryAlert = ref(false);
 const idleExpiryCountdown = ref("");
+const showSessionExpiredModal = ref(false);
+const sessionExpiredRedirectCountdown = ref("3");
+let sessionExpiredRedirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let sessionExpiredCountdownIntervalId: ReturnType<typeof setInterval> | null = null;
 let tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let idleTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let idleCountdownIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -185,6 +216,46 @@ function logout() {
   }
   clearStoredToken();
   router.push("/login");
+}
+
+const SESSION_EXPIRED_REDIRECT_MS = 3000;
+
+function goToLoginAfterExpired() {
+  if (sessionExpiredRedirectTimeoutId != null) {
+    clearTimeout(sessionExpiredRedirectTimeoutId);
+    sessionExpiredRedirectTimeoutId = null;
+  }
+  if (sessionExpiredCountdownIntervalId != null) {
+    clearInterval(sessionExpiredCountdownIntervalId);
+    sessionExpiredCountdownIntervalId = null;
+  }
+  showSessionExpiredModal.value = false;
+  router.push({ path: "/login", query: { reason: "expired" } });
+}
+
+function onSessionExpired() {
+  if (showSessionExpiredModal.value) return;
+  clearStoredToken();
+  showSessionExpiredModal.value = true;
+  let remainingMs = SESSION_EXPIRED_REDIRECT_MS;
+  sessionExpiredRedirectCountdown.value = String(Math.ceil(remainingMs / 1000));
+  sessionExpiredCountdownIntervalId = setInterval(() => {
+    remainingMs -= 1000;
+    sessionExpiredRedirectCountdown.value = String(Math.max(0, Math.ceil(remainingMs / 1000)));
+    if (remainingMs <= 0 && sessionExpiredCountdownIntervalId != null) {
+      clearInterval(sessionExpiredCountdownIntervalId);
+      sessionExpiredCountdownIntervalId = null;
+    }
+  }, 1000);
+  sessionExpiredRedirectTimeoutId = setTimeout(() => {
+    sessionExpiredRedirectTimeoutId = null;
+    if (sessionExpiredCountdownIntervalId != null) {
+      clearInterval(sessionExpiredCountdownIntervalId);
+      sessionExpiredCountdownIntervalId = null;
+    }
+    showSessionExpiredModal.value = false;
+    router.push({ path: "/login", query: { reason: "expired" } });
+  }, SESSION_EXPIRED_REDIRECT_MS);
 }
 
 /** Clear only token-expiry timers (used when rescheduling). Leaves idle timer intact. */
@@ -341,6 +412,7 @@ onMounted(() => {
   window.addEventListener("mousemove", onActivity);
   window.addEventListener("click", onActivity);
   window.addEventListener("keydown", onActivity);
+  window.addEventListener("session-expired", onSessionExpired);
   if (!isLoginPage.value) startSessionTimers();
 });
 
@@ -365,8 +437,15 @@ onUnmounted(() => {
   window.removeEventListener("mousemove", onActivity);
   window.removeEventListener("click", onActivity);
   window.removeEventListener("keydown", onActivity);
+  window.removeEventListener("session-expired", onSessionExpired);
   if (connectionRestoredToastId != null) {
     clearTimeout(connectionRestoredToastId);
+  }
+  if (sessionExpiredRedirectTimeoutId != null) {
+    clearTimeout(sessionExpiredRedirectTimeoutId);
+  }
+  if (sessionExpiredCountdownIntervalId != null) {
+    clearInterval(sessionExpiredCountdownIntervalId);
   }
   clearAllTimers();
 });
@@ -543,6 +622,15 @@ useDashboardPolling(refreshDashboardEverywhere, {
   padding: 1.5rem;
   background: rgb(245 158 11); /* amber-500 */
   color: rgb(30 27 75); /* amber-950 */
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.session-expired-modal {
+  pointer-events: auto;
+  max-width: 24rem;
+  padding: 1.5rem;
+  background: rgb(51 65 85); /* slate-700 */
+  color: rgb(248 250 252); /* slate-50 */
   border-radius: 0.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }

@@ -12,6 +12,14 @@
           Dashboard Login
         </h1>
 
+        <p
+          v-if="sessionExpiredMessage"
+          class="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800"
+          role="status"
+        >
+          {{ sessionExpiredMessage }}
+        </p>
+
         <form @submit.prevent="onSubmit" class="space-y-4">
           <div>
             <label
@@ -76,6 +84,12 @@ const username = ref("")
 const password = ref("")
 const error = ref("")
 const isSubmitting = ref(false)
+
+const sessionExpiredMessage = computed(() =>
+  route.query.reason === "expired"
+    ? "You were logged out because your session expired. Please sign in again."
+    : ""
+)
 
 const canSubmit = computed(() => {
   return username.value.trim().length > 0 && password.value.trim().length > 0
