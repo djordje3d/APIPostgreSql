@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { inject } from "vue";
-import type { ToastApi } from "../composables/useToast";
+import type { ToastApi } from "../../composables/useToast";
 
 const toast = inject<ToastApi>("toast");
 </script>

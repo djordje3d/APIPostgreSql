@@ -366,14 +366,14 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, inject, type Ref } from "vue";
 import JsBarcode from "jsbarcode";
-import { formatTime, formatMoney } from "../composables/useFormatters";
-import { listTicketsDashboard, ticketExit } from "../api/tickets";
-import type { TicketDashboardRow } from "../api/tickets";
-import { getPaymentsByTicket } from "../api/payments";
-import type { Payment } from "../api/payments";
-import Modal from "./Modal.vue";
+import { formatTime, formatMoney } from "../../composables/useFormatters";
+import { listTicketsDashboard, ticketExit } from "../../api/tickets";
+import type { TicketDashboardRow } from "../../api/tickets";
+import { getPaymentsByTicket } from "../../api/payments";
+import type { Payment } from "../../api/payments";
+import Modal from "../ui/Modal.vue";
 import PaymentModal from "./PaymentModal.vue";
-import ButtonIn from "./ButtonIn.vue";
+import ButtonIn from "../ui/ButtonIn.vue";
 
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
   garageId: undefined,

@@ -111,7 +111,7 @@ import {
   ref,
   watch,
 } from "vue";
-import garageIcon from "../img/urban-parking-garage.svg";
+import garageIcon from "../../assets/images/urban-parking-garage.svg";
 
 type Garage = { id: number; name: string };
 

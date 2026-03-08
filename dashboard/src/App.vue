@@ -172,13 +172,13 @@ import {
   onUnmounted,
 } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import NewVehicleEntryModal from "./components/NewVehicleEntryModal.vue";
+import NewVehicleEntryModal from "./components/dashboard/NewVehicleEntryModal.vue";
 import { useToast } from "./composables/useToast";
 import { baseURL } from "./api/client";
 import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { refresh as refreshToken } from "./api/auth";
 import { useDashboardPolling } from "./composables/useDashboardPolling";
-import ButtonIn from "./components/ButtonIn.vue";
+import ButtonIn from "./components/ui/ButtonIn.vue";
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */

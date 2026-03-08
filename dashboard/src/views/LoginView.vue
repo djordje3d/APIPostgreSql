@@ -75,7 +75,7 @@
 import { ref, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { login } from "../api/auth"
-import Button from "../components/Button.vue"
+import Button from "../components/ui/Button.vue"
 
 const router = useRouter()
 const route = useRoute()

@@ -127,7 +127,7 @@
 
 <script setup lang="ts">
 import { ref, inject, type Ref } from "vue";
-import { getGarageOverview } from "../api/garages";
+import { getGarageOverview } from "../../api/garages";
 
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
   garageId: undefined,

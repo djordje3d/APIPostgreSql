@@ -62,16 +62,16 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import Modal from './Modal.vue'
-import StandardDropdown from './StandardDropdown.vue'
-import { listVehicleTypes } from '../api/vehicleTypes'
-import { listGarages } from '../api/garages'
-import { listSpots } from '../api/spots'
-import { getVehicleByPlate, createVehicle } from '../api/vehicles'
-import { ticketEntry } from '../api/tickets'
-import type { VehicleType } from '../api/vehicleTypes'
-import type { Garage } from '../api/garages'
-import type { Spot } from '../api/spots'
+import Modal from '../ui/Modal.vue'
+import StandardDropdown from '../ui/StandardDropdown.vue'
+import { listVehicleTypes } from '../../api/vehicleTypes'
+import { listGarages } from '../../api/garages'
+import { listSpots } from '../../api/spots'
+import { getVehicleByPlate, createVehicle } from '../../api/vehicles'
+import { ticketEntry } from '../../api/tickets'
+import type { VehicleType } from '../../api/vehicleTypes'
+import type { Garage } from '../../api/garages'
+import type { Spot } from '../../api/spots'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue', 'done'])

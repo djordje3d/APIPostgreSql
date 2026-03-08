@@ -59,9 +59,9 @@
 <script setup lang="ts">
 import { ref, inject, type Ref } from 'vue'
 import SummaryRow from './SummaryRow.vue'
-import { formatMoney } from '../composables/useFormatters'
-import { listPayments, getOutstanding } from '../api/payments'
-import { listTickets } from '../api/tickets'
+import { formatMoney } from '../../composables/useFormatters'
+import { listPayments, getOutstanding } from '../../api/payments'
+import { listTickets } from '../../api/tickets'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),

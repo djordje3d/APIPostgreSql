@@ -55,8 +55,8 @@
 <script setup lang="ts">
 import { ref, inject, type Ref } from 'vue'
 import StatCard from './StatCard.vue'
-import { listSpots } from '../api/spots'
-import { listTickets } from '../api/tickets'
+import { listSpots } from '../../api/spots'
+import { listTickets } from '../../api/tickets'
 
 const props = withDefaults(
   defineProps<{ garageId?: number | null }>(),

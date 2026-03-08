@@ -77,17 +77,17 @@ import {
   nextTick,
 } from "vue";
 import type { Ref } from "vue";
-import StatusCards from "../components/StatusCards.vue";
-import GarageOverviewTable from "../components/GarageOverviewTable.vue";
-import TicketActivityTable from "../components/TicketActivityTable.vue";
-import TicketActivity from "../components/TicketActivity.vue";
-import RevenueSummary from "../components/RevenueSummary.vue";
-import RefreshCountdownRing from "../components/RefreshCountdownRing.vue";
+import StatusCards from "../components/dashboard/StatusCards.vue";
+import GarageOverviewTable from "../components/dashboard/GarageOverviewTable.vue";
+import TicketActivityTable from "../components/dashboard/TicketActivityTable.vue";
+import TicketActivity from "../components/dashboard/TicketActivity.vue";
+import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
+import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
 import type { ToastApi } from "../composables/useToast";
-import GarageSelectDropdown from "../components/GarageSelectDropdown.vue";
+import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
 
 const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(

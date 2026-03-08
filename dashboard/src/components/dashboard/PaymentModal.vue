@@ -64,11 +64,11 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick, computed, onMounted } from "vue";
-import Modal from "./Modal.vue";
-import StandardDropdown from "./StandardDropdown.vue";
-import ButtonIn from "./ButtonIn.vue";
-import { formatMoney } from "../composables/useFormatters";
-import { createPayment, getPaymentsByTicket } from "../api/payments";
+import Modal from "../ui/Modal.vue";
+import StandardDropdown from "../ui/StandardDropdown.vue";
+import ButtonIn from "../ui/ButtonIn.vue";
+import { formatMoney } from "../../composables/useFormatters";
+import { createPayment, getPaymentsByTicket } from "../../api/payments";
 
 const props = defineProps<{
   modelValue: boolean;

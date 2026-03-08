@@ -167,11 +167,11 @@
 
 <script setup lang="ts">
 import { ref, nextTick, inject, type Ref } from 'vue'
-import { formatTime, formatMoney } from '../composables/useFormatters'
-import { listTicketsDashboard, ticketExit } from '../api/tickets'
-import type { TicketDashboardRow } from '../api/tickets'
-import { getPaymentsByTicket } from '../api/payments'
-import Modal from './Modal.vue'
+import { formatTime, formatMoney } from '../../composables/useFormatters'
+import { listTicketsDashboard, ticketExit } from '../../api/tickets'
+import type { TicketDashboardRow } from '../../api/tickets'
+import { getPaymentsByTicket } from '../../api/payments'
+import Modal from '../ui/Modal.vue'
 import PaymentModal from './PaymentModal.vue'
 
 const props = withDefaults(
