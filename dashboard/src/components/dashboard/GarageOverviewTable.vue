@@ -3,8 +3,8 @@
     <div class="border-b border-gray-200 px-4 py-3">
       <h2 class="text-lg font-semibold text-gray-900">Garage overview</h2>
     </div>
+
     <div class="overflow-x-auto">
-      <!-- Error: retry -->
       <div
         v-if="error"
         class="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center"
@@ -19,7 +19,6 @@
         </button>
       </div>
 
-      <!-- Loading (no data yet) -->
       <div
         v-else-if="loading"
         class="flex flex-col items-center justify-center gap-3 px-4 py-12 text-gray-500"
@@ -33,7 +32,6 @@
         <span>loading data...</span>
       </div>
 
-      <!-- Idle -->
       <div
         v-else-if="!hasLoadedOnce && !refreshing"
         class="px-4 py-12 text-center text-gray-400"
@@ -41,7 +39,6 @@
         —
       </div>
 
-      <!-- Content with refreshing overlay -->
       <div v-else class="relative min-h-[120px]">
         <div
           v-if="refreshing"
@@ -54,6 +51,7 @@
             aria-hidden="true"
           ></span>
         </div>
+
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -84,6 +82,7 @@
               </th>
             </tr>
           </thead>
+
           <tbody class="divide-y divide-gray-200 bg-white">
             <tr
               v-for="row in rows"
@@ -113,6 +112,7 @@
                 {{ row.rentable }}
               </td>
             </tr>
+
             <tr v-if="rows.length === 0">
               <td colspan="5" class="px-4 py-6 text-center text-gray-500">
                 No garages
@@ -126,8 +126,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted, type Ref } from "vue";
+import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import { getGarageOverview } from "../../api/garages";
+
+const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
   garageId: undefined,
@@ -155,14 +157,17 @@ const rows = ref<Row[]>([]);
 
 async function fetch() {
   const hasData = rows.value.length > 0 || hasLoadedOnce.value;
+
   if (!hasData) {
     loading.value = true;
     error.value = false;
   } else {
     refreshing.value = true;
   }
+
   const signal = dashboardRefreshAbortSignal?.value ?? undefined;
   const config = signal ? { signal } : undefined;
+
   try {
     const res = await getGarageOverview(props.garageId ?? undefined, config);
     rows.value = res.data.map((r) => ({
@@ -194,12 +199,19 @@ function onDashboardRefresh() {
   fetch();
 }
 
+watch(
+  () => props.garageId,
+  () => {
+    fetch();
+  },
+);
+
 onMounted(() => {
-  window.addEventListener("dashboard-refresh", onDashboardRefresh);
-});
-onUnmounted(() => {
-  window.removeEventListener("dashboard-refresh", onDashboardRefresh);
+  window.addEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);
+  fetch();
 });
 
-defineExpose({ refresh: () => fetch() });
+onUnmounted(() => {
+  window.removeEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);
+});
 </script>

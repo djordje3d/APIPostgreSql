@@ -6,6 +6,7 @@
       >
         <span class="text-base text-gray-900 font-semibold">Auto-refresh</span>
       </div>
+
       <RefreshCountdownRing
         :duration-ms="intervalMs"
         :remaining-ms="remainingMs"
@@ -13,6 +14,7 @@
         :auto-refresh-enabled="autoRefreshEnabled"
         @toggle-auto-refresh="toggleAutoRefresh"
       />
+
       <div
         role="button"
         tabindex="0"
@@ -24,36 +26,44 @@
         <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
       </div>
     </div>
+
     <div class="by-garage-card dashboard-fade dashboard-fade--0">
       <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
+
       <div
         v-if="selectedGarageId != null"
         class="by-garage-card__viewing by-garage-card__cell"
       >
         <span class="icon-eye text-lg text-gray-600"></span>
+
         <router-link
           :to="{ name: 'garage-detail', params: { id: selectedGarageId } }"
           class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
         >
           {{ selectedGarage?.name ?? "Garage" }}
         </router-link>
-        <span class="text-base text-gray-500"
-          >— click to open garage detail (spots & vehicles)</span
-        >
+
+        <span class="text-base text-gray-500">
+          — click to open garage detail (spots & vehicles)
+        </span>
       </div>
     </div>
+
     <div class="dashboard-fade dashboard-fade--1">
       <StatusCards :garage-id="selectedGarageId ?? undefined" />
     </div>
+
     <div class="dashboard-fade dashboard-fade--2">
       <GarageOverviewTable :garage-id="selectedGarageId ?? undefined" />
     </div>
+
     <div class="dashboard-fade dashboard-fade--3">
-        <TicketActivity
-          :garage-id="selectedGarageId ?? undefined"
-          :key="selectedGarageId ?? 'all'"
-        />
+      <TicketActivity
+        :garage-id="selectedGarageId ?? undefined"
+        :key="selectedGarageId ?? 'all'"
+      />
     </div>
+
     <div class="dashboard-fade dashboard-fade--4">
       <RevenueSummary :garage-id="selectedGarageId ?? undefined" />
     </div>
@@ -72,29 +82,35 @@ import {
   nextTick,
 } from "vue";
 import type { Ref } from "vue";
+
 import StatusCards from "../components/dashboard/StatusCards.vue";
 import GarageOverviewTable from "../components/dashboard/GarageOverviewTable.vue";
 import TicketActivity from "../components/dashboard/TicketActivity.vue";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
+import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
+
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
 import type { ToastApi } from "../composables/useToast";
-import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
+
+const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
+const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 
 const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(
   "autoRefreshEnabled",
   ref(true),
 );
+
 const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
 
-/** AbortController for the current refresh cycle; aborted when a new refresh starts or on unmount. */
 const refreshAbortControllerRef = ref<AbortController | null>(null);
+
 provide(
-  "dashboardRefreshAbortSignal", //  provide a signal for all components to abort their refreshes when a new refresh starts
+  "dashboardRefreshAbortSignal",
   computed(() => refreshAbortControllerRef.value?.signal ?? null),
 );
 
@@ -102,66 +118,74 @@ const selectedGarage = computed(
   () => garages.value.find((g) => g.id === selectedGarageId.value) ?? null,
 );
 
-/** Reset abort controller so children get a fresh signal; used when "dashboard-refresh" is heard (e.g. from child) so all instances refresh. */
-function handleRefreshEvent() {
-  if (refreshAbortControllerRef.value) {
-    refreshAbortControllerRef.value.abort();
-  }
+function prepareRefreshCycle() {
+  refreshAbortControllerRef.value?.abort();
   refreshAbortControllerRef.value = new AbortController();
 }
 
-/** Abort previous cycle, set new controller, then dispatch so every dashboard component instance refreshes itself. */
 function refreshAll() {
-  handleRefreshEvent();
-  window.dispatchEvent(new CustomEvent("dashboard-refresh"));
+  prepareRefreshCycle();
+  window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
+}
+
+function onDashboardRequestRefresh() {
+  refreshAll();
 }
 
 async function loadGarages() {
   try {
     const res = await listGarages({ limit: 200 });
     garages.value = res.data.items;
+
     if (garages.value.length === 1 && selectedGarageId.value == null) {
       selectedGarageId.value = garages.value[0].id;
+    }
+
+    if (
+      selectedGarageId.value != null &&
+      !garages.value.some((g) => g.id === selectedGarageId.value)
+    ) {
+      selectedGarageId.value = null;
     }
   } catch {
     garages.value = [];
   }
 }
 
-/** Refresh all data when the selected garage changes. */
 watch(selectedGarageId, () => {
   nextTick(refreshAll);
 });
 
-/** Use dashboard polling to refresh data periodically. */
 const { remainingMs, intervalMs, isRunning } = useDashboardPolling(refreshAll, {
   enabled: autoRefreshEnabled,
 });
 
-/** Toggle auto-refresh. */
 function toggleAutoRefresh() {
   autoRefreshEnabled.value = !autoRefreshEnabled.value;
 }
 
-/** Load garages and start polling when the component mounts. */
 onMounted(() => {
   toast?.clearToast();
   loadGarages();
-  refreshAll(); // load data immediately so it appears without clicking Refresh
-  window.addEventListener("dashboard-refresh", handleRefreshEvent);
-});
-onUnmounted(() => {
-  window.removeEventListener("dashboard-refresh", handleRefreshEvent);
-  if (refreshAbortControllerRef.value) {
-    refreshAbortControllerRef.value.abort();
-  }
+  refreshAll();
+  window.addEventListener(
+    DASHBOARD_REQUEST_REFRESH_EVENT,
+    onDashboardRequestRefresh,
+  );
 });
 
-defineExpose({ refreshAll }); // expose refreshAll to parent components
+onUnmounted(() => {
+  window.removeEventListener(
+    DASHBOARD_REQUEST_REFRESH_EVENT,
+    onDashboardRequestRefresh,
+  );
+  refreshAbortControllerRef.value?.abort();
+});
+
+defineExpose({ refreshAll });
 </script>
 
 <style scoped>
-/* By garage selector card */
 .by-garage-card {
   display: flex;
   flex-wrap: nowrap;
@@ -209,7 +233,6 @@ defineExpose({ refreshAll }); // expose refreshAll to parent components
   color: rgb(100 116 139);
 }
 
-/* Staggered fade-in (top to bottom) when dashboard is shown */
 .dashboard-fade {
   opacity: 0;
   animation: dashboardFadeIn 0.4s ease-out forwards;
