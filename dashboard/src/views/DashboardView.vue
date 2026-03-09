@@ -4,7 +4,6 @@
       <div
         class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"
       >
-        <span class="text-base text-gray-900 font-semibold">Auto-refresh</span>
       </div>
 
       <RefreshCountdownRing
@@ -29,24 +28,6 @@
 
     <div class="by-garage-card dashboard-fade dashboard-fade--0">
       <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
-
-      <div
-        v-if="selectedGarageId != null"
-        class="by-garage-card__viewing by-garage-card__cell"
-      >
-        <span class="icon-eye text-lg text-gray-600"></span>
-
-        <router-link
-          :to="{ name: 'garage-detail', params: { id: selectedGarageId } }"
-          class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
-        >
-          {{ selectedGarage?.name ?? "Garage" }}
-        </router-link>
-
-        <span class="text-base text-gray-500">
-          — click to open garage detail (spots & vehicles)
-        </span>
-      </div>
     </div>
 
     <div class="dashboard-fade dashboard-fade--1">
@@ -112,10 +93,6 @@ const refreshAbortControllerRef = ref<AbortController | null>(null);
 provide(
   "dashboardRefreshAbortSignal",
   computed(() => refreshAbortControllerRef.value?.signal ?? null),
-);
-
-const selectedGarage = computed(
-  () => garages.value.find((g) => g.id === selectedGarageId.value) ?? null,
 );
 
 function prepareRefreshCycle() {
@@ -207,13 +184,6 @@ defineExpose({ refreshAll });
 }
 .by-garage-card__cell {
   flex-shrink: 0;
-}
-.by-garage-card__viewing {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 16rem;
-  margin-left: auto;
 }
 .garage-select {
   min-width: 12rem;

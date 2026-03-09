@@ -100,6 +100,24 @@
       </Transition>
     </Teleport>
   </div>
+
+  <div
+    v-if="modelValue != null"
+    class="by-garage-card__viewing by-garage-card__cell"
+  >
+    <span class="icon-eye text-lg text-gray-600"></span>
+
+    <router-link
+      :to="{ name: 'garage-detail', params: { id: modelValue } }"
+      class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+    >
+      {{ selectedGarageName }}
+    </router-link>
+
+    <span class="text-base text-gray-500">
+      — click to open garage detail (spots & vehicles)
+    </span>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -143,6 +161,11 @@ const selectedLabel = computed(() => {
     "Select a garage…"
   );
 });
+
+const selectedGarageName = computed(
+  () =>
+    props.garages.find((g) => g.id === props.modelValue)?.name ?? "Garage",
+);
 
 const nubBorderAdjustClass = computed(() => {
   // hide the border edge touching the box, so it looks like a single shape
@@ -336,5 +359,12 @@ watch(
 .by-garage-card__dropdown-wrap {
   width: 24rem;
   min-width: 13rem;
+}
+.by-garage-card__viewing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 16rem;
+  margin-left: auto;
 }
 </style>

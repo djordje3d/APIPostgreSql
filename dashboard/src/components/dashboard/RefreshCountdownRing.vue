@@ -70,7 +70,7 @@
     width: 58px;
     height: 58px;
     border-radius: 50%;
-    background: #121b1c;
+    background: transparent;
     border: 3px solid grey;
     display: flex;
     align-items: center;
@@ -106,7 +106,7 @@
     transition: stroke-dashoffset 0.25s linear;
   }
   .countdown__number {
-    color: white;
+    color: black;
     font-weight: 600;
   }
   </style>
