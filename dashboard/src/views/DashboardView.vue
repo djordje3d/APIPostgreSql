@@ -1,7 +1,9 @@
 <template>
   <div class="dashboard-sections">
     <div class="dashboard-toolbar flex items-center justify-end gap-3">
-      <div class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1">
+      <div
+        class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"
+      >
         <span class="text-base text-gray-900 font-semibold">Auto-refresh</span>
       </div>
       <RefreshCountdownRing
@@ -41,26 +43,19 @@
       </div>
     </div>
     <div class="dashboard-fade dashboard-fade--1">
-      <StatusCards ref="statusRef" :garage-id="selectedGarageId ?? undefined" />
+      <StatusCards :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--2">
-      <GarageOverviewTable
-        ref="garageRef"
-        :garage-id="selectedGarageId ?? undefined"
-      />
+      <GarageOverviewTable :garage-id="selectedGarageId ?? undefined" />
     </div>
     <div class="dashboard-fade dashboard-fade--3">
-      <TicketActivity
-        ref="ticketActivityRef"
-        :garage-id="selectedGarageId ?? undefined"
-        :key="selectedGarageId ?? 'all'"
-      />
+        <TicketActivity
+          :garage-id="selectedGarageId ?? undefined"
+          :key="selectedGarageId ?? 'all'"
+        />
     </div>
     <div class="dashboard-fade dashboard-fade--4">
-      <RevenueSummary
-        ref="revenueRef"
-        :garage-id="selectedGarageId ?? undefined"
-      />
+      <RevenueSummary :garage-id="selectedGarageId ?? undefined" />
     </div>
   </div>
 </template>
@@ -79,7 +74,6 @@ import {
 import type { Ref } from "vue";
 import StatusCards from "../components/dashboard/StatusCards.vue";
 import GarageOverviewTable from "../components/dashboard/GarageOverviewTable.vue";
-import TicketActivityTable from "../components/dashboard/TicketActivityTable.vue";
 import TicketActivity from "../components/dashboard/TicketActivity.vue";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
@@ -96,11 +90,6 @@ const autoRefreshEnabled = inject<Ref<boolean>>(
 );
 const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
-const statusRef = ref<InstanceType<typeof StatusCards> | null>(null);
-const garageRef = ref<InstanceType<typeof GarageOverviewTable> | null>(null);
-const ticketRef = ref<InstanceType<typeof TicketActivityTable> | null>(null);
-const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
-const ticketActivityRef = ref<InstanceType<typeof TicketActivity> | null>(null);
 
 /** AbortController for the current refresh cycle; aborted when a new refresh starts or on unmount. */
 const refreshAbortControllerRef = ref<AbortController | null>(null);
@@ -113,16 +102,18 @@ const selectedGarage = computed(
   () => garages.value.find((g) => g.id === selectedGarageId.value) ?? null,
 );
 
-function refreshAll() {
+/** Reset abort controller so children get a fresh signal; used when "dashboard-refresh" is heard (e.g. from child) so all instances refresh. */
+function handleRefreshEvent() {
   if (refreshAbortControllerRef.value) {
     refreshAbortControllerRef.value.abort();
   }
   refreshAbortControllerRef.value = new AbortController();
-  statusRef.value?.refresh?.();
-  garageRef.value?.refresh?.();
-  ticketRef.value?.refresh?.();
-  revenueRef.value?.refresh?.();
-  ticketActivityRef.value?.refresh?.();
+}
+
+/** Abort previous cycle, set new controller, then dispatch so every dashboard component instance refreshes itself. */
+function refreshAll() {
+  handleRefreshEvent();
+  window.dispatchEvent(new CustomEvent("dashboard-refresh"));
 }
 
 async function loadGarages() {
@@ -143,10 +134,9 @@ watch(selectedGarageId, () => {
 });
 
 /** Use dashboard polling to refresh data periodically. */
-const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
-  refreshAll,
-  { enabled: autoRefreshEnabled },
-);
+const { remainingMs, intervalMs, isRunning } = useDashboardPolling(refreshAll, {
+  enabled: autoRefreshEnabled,
+});
 
 /** Toggle auto-refresh. */
 function toggleAutoRefresh() {
@@ -158,10 +148,10 @@ onMounted(() => {
   toast?.clearToast();
   loadGarages();
   refreshAll(); // load data immediately so it appears without clicking Refresh
-  window.addEventListener("dashboard-refresh", refreshAll);
+  window.addEventListener("dashboard-refresh", handleRefreshEvent);
 });
 onUnmounted(() => {
-  window.removeEventListener("dashboard-refresh", refreshAll);
+  window.removeEventListener("dashboard-refresh", handleRefreshEvent);
   if (refreshAbortControllerRef.value) {
     refreshAbortControllerRef.value.abort();
   }

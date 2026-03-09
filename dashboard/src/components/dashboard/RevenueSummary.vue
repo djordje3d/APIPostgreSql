@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, type Ref } from 'vue'
+import { ref, inject, onMounted, onUnmounted, type Ref } from 'vue'
 import SummaryRow from './SummaryRow.vue'
 import { formatMoney } from '../../composables/useFormatters'
 import { listPayments, getOutstanding } from '../../api/payments'
@@ -158,6 +158,17 @@ function retry() {
   error.value = false
   fetch()
 }
+
+function onDashboardRefresh() {
+  fetch()
+}
+
+onMounted(() => {
+  window.addEventListener('dashboard-refresh', onDashboardRefresh)
+})
+onUnmounted(() => {
+  window.removeEventListener('dashboard-refresh', onDashboardRefresh)
+})
 
 defineExpose({ refresh: () => fetch() })
 </script>

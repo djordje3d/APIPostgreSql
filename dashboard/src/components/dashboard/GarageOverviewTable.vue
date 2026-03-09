@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, type Ref } from "vue";
+import { ref, inject, onMounted, onUnmounted, type Ref } from "vue";
 import { getGarageOverview } from "../../api/garages";
 
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
@@ -189,6 +189,17 @@ function retry() {
   error.value = false;
   fetch();
 }
+
+function onDashboardRefresh() {
+  fetch();
+}
+
+onMounted(() => {
+  window.addEventListener("dashboard-refresh", onDashboardRefresh);
+});
+onUnmounted(() => {
+  window.removeEventListener("dashboard-refresh", onDashboardRefresh);
+});
 
 defineExpose({ refresh: () => fetch() });
 </script>

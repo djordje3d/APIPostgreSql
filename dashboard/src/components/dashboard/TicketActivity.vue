@@ -364,7 +364,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, inject, type Ref } from "vue";
+import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted, type Ref } from "vue";
 import JsBarcode from "jsbarcode";
 import { formatTime, formatMoney } from "../../composables/useFormatters";
 import { listTicketsDashboard, ticketExit } from "../../api/tickets";
@@ -602,6 +602,17 @@ watch(viewingTicket, (t) => {
     return;
   }
   nextTick(() => renderBarcodeImage(t.id));
+});
+
+function onDashboardRefresh() {
+  fetch();
+}
+
+onMounted(() => {
+  window.addEventListener("dashboard-refresh", onDashboardRefresh);
+});
+onUnmounted(() => {
+  window.removeEventListener("dashboard-refresh", onDashboardRefresh);
 });
 
 defineExpose({ refresh: () => fetch() });
