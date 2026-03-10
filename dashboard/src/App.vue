@@ -317,6 +317,7 @@ function clearAllTimers() {
   }
 }
 
+// Don't update on login page
 function updateIdleExpiryCountdown() {
   const ms = getMsUntilTokenExpiry();
   if (ms !== null && ms > 0) {
@@ -340,6 +341,7 @@ function resetIdleTimer() {
   idleTimeoutId = setTimeout(onIdleTimeout, IDLE_MS);
 }
 
+// Don't update on login page
 function onActivity() {
   const now = Date.now();
   if (now - lastActivityAt < IDLE_ACTIVITY_THROTTLE_MS) return;
@@ -348,6 +350,7 @@ function onActivity() {
   resetIdleTimer();
 }
 
+// Don't update on login page
 async function extendSession() {
   showIdleExpiryAlert.value = false;
   if (idleCountdownIntervalId != null) {
@@ -363,6 +366,7 @@ async function extendSession() {
   }
 }
 
+// Don't update on login page
 function scheduleTokenExpiryLogout() {
   clearSessionTimers();
   const ms = getMsUntilTokenExpiry();
@@ -502,7 +506,7 @@ function refreshDashboardEverywhere() {
   window.dispatchEvent(new CustomEvent("dashboard-refresh"));
 }
 
-// Bitno: ne radi polling na login strani
+// Don't update on login page
 const pollingEnabled = computed(
   () => autoRefreshEnabled.value && !isLoginPage.value,
 );
@@ -535,6 +539,8 @@ const connectionBannerIcon = computed(() => {
   return "⚠";
 });
 
+// Don't update on login page
+// This is the polling that refreshes the dashboard every ?? seconds
 useDashboardPolling(refreshDashboardEverywhere, {
   intervalMs: POLL_MS,
   enabled: pollingEnabled,
@@ -593,6 +599,7 @@ useDashboardPolling(refreshDashboardEverywhere, {
   color: rgba(28, 25, 23, 0.9);
 }
 
+
 .banner-slide-enter-active,
 .banner-slide-leave-active {
   transition:
@@ -605,7 +612,7 @@ useDashboardPolling(refreshDashboardEverywhere, {
   opacity: 0;
 }
 
-/* Connection restored toast */
+/* This is the toast that appears when the connection is restored*/
 .connection-restored-toast {
   position: fixed;
   top: 1rem;
@@ -665,6 +672,7 @@ useDashboardPolling(refreshDashboardEverywhere, {
   opacity: 0;
 }
 
+/* This is the overlay that appears when the session is expired */
 .session-expiry-overlay {
   position: fixed;
   inset: 0;

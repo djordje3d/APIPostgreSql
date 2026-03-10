@@ -2,10 +2,7 @@
   <div class="dashboard-sections">
     <div class="dashboard-toolbar flex items-center justify-end gap-3">
       <div
-        class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"
-      >
-      </div>
-
+        class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"></div>
       <RefreshCountdownRing
         :duration-ms="intervalMs"
         :remaining-ms="remainingMs"
@@ -18,11 +15,11 @@
         role="button"
         tabindex="0"
         title="Refresh now"
-        class="flex min-h-[50px] min-w-[50px] cursor-pointer items-center justify-center rounded-lg bg-green-800 text-white transition-opacity hover:opacity-80 focus:outline focus:ring-2 focus:ring-emerald-500/50"
+        class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-800 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-emerald-500/50"
         @click="refreshAll"
         @keydown.enter.space.prevent="refreshAll"
       >
-        <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
+        <span class="icon-spinner11 text-4xl" aria-hidden="true"></span>
       </div>
     </div>
 
@@ -70,6 +67,7 @@ import TicketActivity from "../components/dashboard/TicketActivity.vue";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
+import RefreshRing from "../components/dashboard/RefreshRing.vue";
 
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
