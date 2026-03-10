@@ -44,16 +44,16 @@
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
       <p v-if="success" class="mt-2 text-sm text-green-600">{{ success }}</p>
-      <div class="mt-6 flex gap-2">
+      <div class="mt-6 flex justify-between gap-2">
+        <button type="button" class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50" @click="close">
+          Cancel
+        </button>
         <button
           type="submit"
           class="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
           :disabled="loading"
         >
           {{ loading ? 'Creating…' : 'Create entry' }}
-        </button>
-        <button type="button" class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50" @click="close">
-          Cancel
         </button>
       </div>
     </form>

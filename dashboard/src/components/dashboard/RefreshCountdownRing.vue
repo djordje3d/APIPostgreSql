@@ -61,6 +61,7 @@ watch(() => props.autoRefreshEnabled, updateRing);
 </script>
 
 <style scoped>
+/* Countdown Ring Styles */
 .countdown {
   position: relative;
   width: 48px;
@@ -71,6 +72,7 @@ watch(() => props.autoRefreshEnabled, updateRing);
   cursor: pointer;
 }
 
+/* Countdown Icon Styles */
 .countdown__icon {
   position: absolute;
   inset: 0;
@@ -82,9 +84,11 @@ watch(() => props.autoRefreshEnabled, updateRing);
 .countdown__icon__track,
 .countdown__icon__circle {
   fill: none;
-  stroke-width: 5;
+  stroke-width: 9; /* širina tj. debljina prstena koji se smanjuje od punog do praznog prstena */
+  /* width of the ring that shrinks from full to empty ring */
 }
 
+/* Countdown Track Styles */
 .countdown__icon__track {
   stroke: #d1d5db;
 }
@@ -98,10 +102,11 @@ watch(() => props.autoRefreshEnabled, updateRing);
   transform-origin: center;
 }
 
+/* Countdown Number Styles */
 .countdown__number {
   position: relative;
   z-index: 1;
   color: #111827;
-  font-weight: 700;
+  font-weight: 600;
 }
 </style>

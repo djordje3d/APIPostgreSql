@@ -11,41 +11,46 @@
     </p>
     <form @submit.prevent="submit">
       <div class="space-y-3">
-        <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700"
-            >Amount (RSD) *</label
-          >
-          <input
-            v-model.number="amount"
-            type="number"
-            step="1"
-            min="1"
-            required
-            class="w-full rounded border px-3 py-2"
-            :class="
-              amountExceedsRest ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            "
-          />
-          <p
-            v-if="amountExceedsRest"
-            class="mt-1 text-sm font-medium text-red-600"
-          >
-            Amount exceeds remaining balance. Rest to pay:
-            {{ formatMoney(restToPay!) }}.
-          </p>
+        <div class="flex gap-3">
+          <div class="min-w-0 flex-1">
+            <label class="mb-1 block text-sm font-medium text-gray-700"
+              >Amount (RSD) *</label
+            >
+            <input
+              v-model.number="amount"
+              type="number"
+              step="1"
+              min="1"
+              required
+              class="w-full rounded border px-3 py-2"
+              :class="
+                amountExceedsRest ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              "
+            />
+          </div>
+          <div class="min-w-0 flex-1">
+            <StandardDropdown
+              label="Method *"
+              :options="methodOptions"
+              v-model="method"
+              placeholder="Select method"
+              :nullable="false"
+            />
+          </div>
         </div>
-        <div>
-          <StandardDropdown
-            label="Method *"
-            :options="methodOptions"
-            v-model="method"
-            placeholder="Select method"
-            :nullable="false"
-          />
-        </div>
+        <p
+          v-if="amountExceedsRest"
+          class="text-sm font-medium text-red-600"
+        >
+          Amount exceeds remaining balance. Rest to pay:
+          {{ formatMoney(restToPay!) }}.
+        </p>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
-      <div class="mt-4 flex gap-2">
+      <div class="mt-4 flex justify-between gap-2">
+        <ButtonIn type="button" variant="outline" @click="close">
+          Cancel
+        </ButtonIn>
         <ButtonIn
           type="submit"
           :loading="loading"
@@ -53,9 +58,6 @@
           variant="primary"
         >
           {{ loading ? "Sending…" : "Submit payment" }}
-        </ButtonIn>
-        <ButtonIn type="button" variant="outline" @click="close">
-          Cancel
         </ButtonIn>
       </div>
     </form>

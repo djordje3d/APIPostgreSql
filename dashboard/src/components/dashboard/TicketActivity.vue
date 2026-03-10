@@ -358,7 +358,15 @@
           </div>
         </div>
 
-        <div class="mt-4 flex gap-2">
+        <div class="mt-4 flex justify-between gap-2">
+          <ButtonIn
+            type="button"
+            variant="outline"
+            @click="viewingTicket = null"
+          >
+            Close
+          </ButtonIn>
+
           <ButtonIn
             v-if="
               viewingTicket.ticket_state === 'CLOSED' &&
@@ -372,14 +380,6 @@
             "
           >
             Go to payment
-          </ButtonIn>
-
-          <ButtonIn
-            type="button"
-            variant="outline"
-            @click="viewingTicket = null"
-          >
-            Close
           </ButtonIn>
         </div>
       </template>
