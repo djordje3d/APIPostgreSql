@@ -13,28 +13,27 @@
           aria-modal="true"
           :aria-labelledby="title ? 'modal-title' : undefined"
         >
-        <div v-if="title" class="mb-4 flex items-center justify-between">
-          <h2
-            :id="title ? 'modal-title' : undefined"
-            class="text-lg font-semibold text-gray-900"
-          >
-            {{ title }}
-          </h2>
-          <button
-            type="button"
-            class="text-gray-500 hover:text-gray-700"
-            aria-label="Close"
-            @click="close"
-          >
-            &times;
-          </button>
-        </div>
-        <div class="modal-body">
-          <slot />
-        </div>
-        <div v-if="$slots.footer" class="mt-4 border-t border-gray-200 pt-4">
-          <slot name="footer" />
-        </div>
+          <div v-if="title" class="mb-4 flex items-center justify-between">
+            <h2
+              :id="title ? 'modal-title' : undefined"
+              class="text-lg font-semibold text-gray-900"
+            >
+              {{ title }}
+            </h2>
+            <ButtonIn
+              id="cancelBtn"
+            label="Cancel"
+              variant="outline"
+              @userclick="close"
+              caption="Cancel"
+            />
+          </div>
+          <div class="modal-body">
+            <slot />
+          </div>
+          <div v-if="$slots.footer" class="mt-4 border-t border-gray-200 pt-4">
+            <slot name="footer" />
+          </div>
         </div>
       </div>
     </Transition>
@@ -59,7 +58,7 @@ function close() {
 <style scoped>
 /* Backdrop: fades in first (0.25s ease-out), fades out after dialog (0.2s ease-in, delayed) */
 .modal-fade-enter-active.modal-backdrop {
-  transition: opacity 0.6s ease-out; 
+  transition: opacity 0.6s ease-out;
 }
 .modal-fade-leave-active.modal-backdrop {
   transition: opacity 0.6s ease-in;

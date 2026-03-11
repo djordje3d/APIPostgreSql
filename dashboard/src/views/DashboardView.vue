@@ -2,7 +2,8 @@
   <div class="dashboard-sections">
     <div class="dashboard-toolbar flex items-center justify-end gap-3">
       <div
-        class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"></div>
+        class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"
+      ></div>
       <RefreshCountdownRing
         :duration-ms="intervalMs"
         :remaining-ms="remainingMs"
@@ -67,7 +68,6 @@ import TicketActivity from "../components/dashboard/TicketActivity.vue";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
-import RefreshRing from "../components/dashboard/RefreshRing.vue";
 
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";

@@ -1,6 +1,7 @@
 <template>
   <button
     v-bind="restAttrs"
+    :id="id"
     :type="type"
     :disabled="isDisabled"
     @click="onClick"
@@ -8,7 +9,7 @@
     @mouseleave="onLeave"
     class="btn-in group relative overflow-hidden rounded-lg px-4 py-2 font-medium transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
     :class="[variantClasses, attrsClass]"
-    :title="title"
+    :title="caption"
   >
     <!-- Directional hover glow (no idle wave/shimmer) -->
     <span
@@ -20,20 +21,9 @@
       :style="hoverGlow || {}"
     />
 
-    <!-- Loading spinner -->
-    <span
-      v-if="loading"
-      class="absolute inset-0 flex items-center justify-center"
-    >
-      <span
-        class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
-      />
-    </span>
-
     <!-- Content -->
     <span
       class="relative z-10 flex items-center justify-center gap-2"
-      :class="{ 'opacity-0': loading }"
     >
       <slot v-if="hasSlotContent" />
       <template v-else-if="label">{{ label }}</template>
@@ -49,70 +39,75 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps<{
-  type?: "button" | "submit" | "reset";
-  disabled?: boolean;
-  loading?: boolean;
-  variant?: "primary" | "danger" | "outline" | "logout";
-  icon?: string;
-  label?: string;
-  title?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    id: string;
+    type?: "button" | "submit" | "reset";
+    disabled?: boolean;
+    variant?: "primary" | "danger" | "outline" | "default";
+    icon?: string;
+    label?: string;
+    caption?: string;
+  }>(),
+  {
+    type: "button",
+    disabled: false,
+    variant: "primary",
+  },
+);
 
-const emit = defineEmits<{ click: [e?: MouseEvent] }>();
+// emit userclick event
+// parent component can listen to this event and handle the click event
 
-const attrs = useAttrs();
-const slots = useSlots();
-const hasSlotContent = computed(() => !!slots.default?.());
+const emit = defineEmits<{ userclick: [e?: MouseEvent] }>();
+
+const attrs = useAttrs();  // get the attributes of the button
+const slots = useSlots();  // get the slots of the button
+const hasSlotContent = computed(() => !!slots.default?.());   // check if the button has a slot content
 
 const attrsClass = computed(() => attrs.class);
+
+// split the attributes into class and the rest (avoid duplicating class via v-bind) of the button attributes
 const restAttrs = computed(() => {
   const { class: _c, ...rest } = attrs as Record<string, unknown>;
   return rest;
 });
 
-const type = computed(() => props.type ?? "button");
-const loading = computed(() => props.loading ?? false);
-const disabled = computed(() => props.disabled ?? false);
-const variant = computed(() => props.variant ?? "primary");
-const icon = computed(() => props.icon ?? undefined);
-const label = computed(() => props.label ?? undefined);
-const title = computed(() => props.title ?? undefined);
-
-const isDisabled = computed(() => disabled.value || loading.value);
+const isDisabled = computed(() => props.disabled);
 
 const variantClasses = computed(() => {
-  switch (variant.value) {
+  switch (props.variant) {
     case "danger":
       return "bg-red-600 text-white hover:bg-red-700";
     case "outline":
       return "border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50";
-    case "logout":
-      return "border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-gray-600/80 sm:px-6 sm:text-base";
     default:
       return "bg-emerald-600 text-white hover:bg-emerald-700";
   }
 });
 
-const hoverGlow = ref<Record<string, string> | null>(null);
-
 function onClick(e: MouseEvent) {
   if (isDisabled.value) return;
-  emit("click", e);
+  emit("userclick", e);
 }
 
+// when the mouse is moved over the button, the hover glow style is applied
+const hoverGlow = ref<Record<string, string> | null>(null);
+ 
+// Computed where is mouse over the button and apply the hover glow style from that position
 function onMove(e: MouseEvent) {
   if (isDisabled.value) return;
 
   const el = e.currentTarget as HTMLElement;
-  const rect = el.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const rect = el.getBoundingClientRect(); // get the bounding rectangle of the element
+  const x = e.clientX - rect.left; // get the x coordinate of the mouse relative to the element
+  const y = e.clientY - rect.top; // get the y coordinate of the mouse relative to the element
 
+  // set the hover glow style
   hoverGlow.value = {
     background: `radial-gradient(circle at ${x}px ${y}px,
-      rgba(255,255,255,0.35),
-      transparent 60%)`,
+      rgba(255,255,255,0.35), // set the background color to white with 35% opacity
+      transparent 60%)`, // set the background color to transparent with 60% opacity
   };
 }
 

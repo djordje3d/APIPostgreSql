@@ -2,121 +2,128 @@
   <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
     <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
   </span>
-  <div
-    ref="root"
-    class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
-  >
-    <span class="by-garage-card__desc">See status and activity per garage</span>
-
-    <!-- Trigger -->
-    <button
-      ref="trigger"
-      type="button"
-      class="mt-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-gray-400 transition"
-      :aria-expanded="open"
-      @click="toggle"
-      @keydown.down.prevent="openAndFocusFirst()"
-      @keydown.up.prevent="openAndFocusLast()"
-      @keydown.esc.prevent="close()"
+  <div>
+    <div
+      ref="root"
+      class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
     >
-      <span class="flex items-center justify-between gap-2">
-        <span class="truncate">
-          {{ selectedLabel }}
-        </span>
-        <span class="shrink-0 text-gray-500">
-          <!-- chevron -->
-          <svg
-            class="h-4 w-4 transition-transform"
-            :class="{ 'rotate-180': open }"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </span>
-      </span>
-    </button>
+      <span class="by-garage-card__desc"
+        >See status and activity per garage</span
+      >
 
-    <!-- Dropdown (teleport so it won't be clipped by parent/overflow) -->
-    <Teleport to="body">
-      <Transition name="pop">
-        <div v-if="open" ref="menu" class="fixed zPopup" :style="menuStyle">
-          <!-- popup box -->
-          <div
-            class="rounded-lg border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 overflow-hidden"
-          >
-            <!-- nub/arrow -->
-            <div class="pointer-events-none absolute left-6" :style="nubStyle">
-              <div
-                class="h-3 w-3 rotate-45 bg-white border border-gray-200 shadow-sm"
-                :class="nubBorderAdjustClass"
-              ></div>
-            </div>
-
-            <!-- scroll area -->
-            <ul
-              class="max-h-64 overflow-auto py-1 text-sm"
-              role="listbox"
-              tabindex="-1"
-              @keydown.esc.prevent="close()"
-              @keydown.down.prevent="focusNext()"
-              @keydown.up.prevent="focusPrev()"
-              @keydown.enter.prevent="selectFocused()"
+      <!-- Trigger -->
+      <button
+        ref="trigger"
+        type="button"
+        class="mt-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-gray-400 transition"
+        :aria-expanded="open"
+        @click="toggle"
+        @keydown.down.prevent="openAndFocusFirst()"
+        @keydown.up.prevent="openAndFocusLast()"
+        @keydown.esc.prevent="close()"
+      >
+        <span class="flex items-center justify-between gap-2">
+          <span class="truncate">
+            {{ selectedLabel }}
+          </span>
+          <span class="shrink-0 text-gray-500">
+            <!-- chevron -->
+            <svg
+              class="h-4 w-4 transition-transform"
+              :class="{ 'rotate-180': open }"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
-              <li>
-                <button
-                  ref="items"
-                  type="button"
-                  class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
-                  :class="{
-                    'font-semibold text-emerald-700': modelValue === null,
-                  }"
-                  @click="choose(null)"
-                >
-                  All garages
-                </button>
-              </li>
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </span>
+        </span>
+      </button>
 
-              <li v-for="g in garages" :key="g.id">
-                <button
-                  ref="items"
-                  type="button"
-                  class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
-                  :class="{
-                    'font-semibold text-emerald-700': modelValue === g.id,
-                  }"
-                  @click="choose(g.id)"
-                >
-                  {{ g.name }}
-                </button>
-              </li>
-            </ul>
+      <!-- Dropdown (teleport so it won't be clipped by parent/overflow) -->
+      <Teleport to="body">
+        <Transition name="pop">
+          <div v-if="open" ref="menu" class="fixed zPopup" :style="menuStyle">
+            <!-- popup box -->
+            <div
+              class="rounded-lg border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 overflow-hidden"
+            >
+              <!-- nub/arrow -->
+              <div
+                class="pointer-events-none absolute left-6"
+                :style="nubStyle"
+              >
+                <div
+                  class="h-3 w-3 rotate-45 bg-white border border-gray-200 shadow-sm"
+                  :class="nubBorderAdjustClass"
+                ></div>
+              </div>
+
+              <!-- scroll area -->
+              <ul
+                class="max-h-64 overflow-auto py-1 text-sm"
+                role="listbox"
+                tabindex="-1"
+                @keydown.esc.prevent="close()"
+                @keydown.down.prevent="focusNext()"
+                @keydown.up.prevent="focusPrev()"
+                @keydown.enter.prevent="selectFocused()"
+              >
+                <li>
+                  <button
+                    ref="items"
+                    type="button"
+                    class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
+                    :class="{
+                      'font-semibold text-emerald-700': modelValue === null,
+                    }"
+                    @click="choose(null)"
+                  >
+                    All garages
+                  </button>
+                </li>
+
+                <li v-for="g in garages" :key="g.id">
+                  <button
+                    ref="items"
+                    type="button"
+                    class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
+                    :class="{
+                      'font-semibold text-emerald-700': modelValue === g.id,
+                    }"
+                    @click="choose(g.id)"
+                  >
+                    {{ g.name }}
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
-      </Transition>
-    </Teleport>
-  </div>
+        </Transition>
+      </Teleport>
+    </div>
 
-  <div
-    v-if="modelValue != null"
-    class="by-garage-card__viewing by-garage-card__cell"
-  >
-    <span class="icon-eye text-lg text-gray-600"></span>
-
-    <router-link
-      :to="{ name: 'garage-detail', params: { id: modelValue } }"
-      class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+    <div
+      v-if="modelValue != null"
+      class="by-garage-card__viewing by-garage-card__cell"
     >
-      {{ selectedGarageName }}
-    </router-link>
+      <span class="icon-eye text-lg text-gray-600"></span>
 
-    <span class="text-base text-gray-500">
-      — click to open garage detail (spots & vehicles)
-    </span>
+      <router-link
+        :to="{ name: 'garage-detail', params: { id: modelValue } }"
+        class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+      >
+        {{ selectedGarageName }}
+      </router-link>
+
+      <span class="text-base text-gray-500">
+        — click to open garage detail (spots & vehicles)
+      </span>
+    </div>
   </div>
 </template>
 
@@ -163,8 +170,7 @@ const selectedLabel = computed(() => {
 });
 
 const selectedGarageName = computed(
-  () =>
-    props.garages.find((g) => g.id === props.modelValue)?.name ?? "Garage",
+  () => props.garages.find((g) => g.id === props.modelValue)?.name ?? "Garage",
 );
 
 const nubBorderAdjustClass = computed(() => {

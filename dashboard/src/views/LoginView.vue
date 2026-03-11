@@ -57,14 +57,15 @@
 
           <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
 
-          <Button
+          <ButtonIn
+            id="signInBtn"
+            label="Sign in"
+            variant="primary"
             type="submit"
-            :loading="isSubmitting"
-            :disabled="!canSubmit"
+            :disabled="!canSubmit || isSubmitting"
+            caption="Sign in"
             class="w-full"
-          >
-            Sign in
-          </Button>
+          />
         </form>
       </div>
     </div>
@@ -72,48 +73,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { login } from "../api/auth"
-import Button from "../components/ui/Button.vue"
+import { ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { login } from "../api/auth";
+import ButtonIn from "../components/ui/ButtonIn.vue";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
-const username = ref("")
-const password = ref("")
-const error = ref("")
-const isSubmitting = ref(false)
+const username = ref("");
+const password = ref("");
+const error = ref("");
+const isSubmitting = ref(false);
 
 const sessionExpiredMessage = computed(() =>
   route.query.reason === "expired"
     ? "You were logged out because your session expired. Please sign in again."
-    : ""
-)
+    : "",
+);
 
 const canSubmit = computed(() => {
-  return username.value.trim().length > 0 && password.value.trim().length > 0
-})
+  return username.value.trim().length > 0 && password.value.trim().length > 0;
+});
 
 async function onSubmit() {
-  if (!canSubmit.value || isSubmitting.value) return
+  if (!canSubmit.value || isSubmitting.value) return;
 
-  error.value = ""
-  isSubmitting.value = true
+  error.value = "";
+  isSubmitting.value = true;
 
   try {
-    await login(username.value, password.value)
-    const redirect = (route.query.redirect as string) || "/"
-    await router.push(redirect)
+    await login(username.value, password.value);
+    const redirect = (route.query.redirect as string) || "/";
+    await router.push(redirect);
   } catch (e: unknown) {
     const msg =
       e && typeof e === "object" && "response" in e
-        ? (e as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : null
+        ? (e as { response?: { data?: { detail?: string } } }).response?.data
+            ?.detail
+        : null;
 
-    error.value = msg || "Login failed. Check username and password."
+    error.value = msg || "Login failed. Check username and password.";
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
 }
 </script>

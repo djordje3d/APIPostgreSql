@@ -119,21 +119,23 @@
               <router-link to="/" class="text-base font-semibold sm:text-xl">
                 Dashboard
               </router-link>
-            </nav>
+            </nav>              
             <div
               class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
             >
               <ButtonIn
+                id="logoutBtn"
                 variant="outline"
                 label="Logout"
                 @userclick="logout"
-                title="Logout"
+                caption="Logout"
               />
               <ButtonIn
+                id="newVehicleEntryBtn"
                 variant="primary"
                 label="New Vehicle Entry"
                 @userclick="showNewEntry = true"
-                title="New Vehicle Entry"
+                caption="New Vehicle Entry"
               />
             </div>
           </div>

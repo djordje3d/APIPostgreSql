@@ -24,7 +24,9 @@
               required
               class="w-full rounded border px-3 py-2"
               :class="
-                amountExceedsRest ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                amountExceedsRest
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300'
               "
             />
           </div>
@@ -38,27 +40,29 @@
             />
           </div>
         </div>
-        <p
-          v-if="amountExceedsRest"
-          class="text-sm font-medium text-red-600"
-        >
+        <p v-if="amountExceedsRest" class="text-sm font-medium text-red-600">
           Amount exceeds remaining balance. Rest to pay:
           {{ formatMoney(restToPay!) }}.
         </p>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
       <div class="mt-4 flex justify-between gap-2">
-        <ButtonIn type="button" variant="outline" @click="close">
-          Cancel
-        </ButtonIn>
         <ButtonIn
-          type="submit"
-          :loading="loading"
-          :disabled="amountExceedsRest"
+          id="cancelBtn"
+          label="Cancel"
+          variant="outline"
+          @userclick="close"
+          caption="Cancel"
+        />
+
+        <ButtonIn
+          id="submitPaymentBtn"
+          label="Submit payment"
           variant="primary"
-        >
-          {{ loading ? "Sending…" : "Submit payment" }}
-        </ButtonIn>
+          :disabled="amountExceedsRest || loading"
+          @userclick="submit"
+          caption="Submit payment"
+        />
       </div>
     </form>
   </Modal>
