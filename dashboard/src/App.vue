@@ -124,23 +124,17 @@
               class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
             >
               <ButtonIn
-                type="button"
                 variant="outline"
-                class="border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-gray-600/80 sm:px-6 sm:text-base"
-                @click="logout"
+                label="Logout"
+                @userclick="logout"
                 title="Logout"
-              >
-                Logout
-              </ButtonIn>
+              />
               <ButtonIn
-                type="button"
-                variant="outline"
-                class="border-white/20 !bg-green-800 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-emerald-600/80 sm:px-6 sm:text-base"
-                @click="showNewEntry = true"
+                variant="primary"
+                label="New Vehicle Entry"
+                @userclick="showNewEntry = true"
                 title="New Vehicle Entry"
-              >
-                New Vehicle Entry
-              </ButtonIn>
+              />
             </div>
           </div>
         </header>

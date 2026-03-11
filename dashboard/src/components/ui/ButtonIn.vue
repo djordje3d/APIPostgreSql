@@ -8,6 +8,7 @@
     @mouseleave="onLeave"
     class="btn-in group relative overflow-hidden rounded-lg px-4 py-2 font-medium transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
     :class="[variantClasses, attrsClass]"
+    :title="title"
   >
     <!-- Directional hover glow (no idle wave/shimmer) -->
     <span
@@ -34,14 +35,15 @@
       class="relative z-10 flex items-center justify-center gap-2"
       :class="{ 'opacity-0': loading }"
     >
-      <slot />
+      <slot v-if="hasSlotContent" />
+      <template v-else-if="label">{{ label }}</template>
     </span>
     <span v-if="typeof icon !== 'undefined'" :class="icon"></span>
   </button>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useAttrs } from "vue";
+import { computed, ref, useAttrs, useSlots } from "vue";
 
 defineOptions({
   inheritAttrs: false,
@@ -51,13 +53,17 @@ const props = defineProps<{
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   loading?: boolean;
-  variant?: "primary" | "danger" | "outline";
+  variant?: "primary" | "danger" | "outline" | "logout";
   icon?: string;
+  label?: string;
+  title?: string;
 }>();
 
 const emit = defineEmits<{ click: [e?: MouseEvent] }>();
 
 const attrs = useAttrs();
+const slots = useSlots();
+const hasSlotContent = computed(() => !!slots.default?.());
 
 const attrsClass = computed(() => attrs.class);
 const restAttrs = computed(() => {
@@ -70,6 +76,8 @@ const loading = computed(() => props.loading ?? false);
 const disabled = computed(() => props.disabled ?? false);
 const variant = computed(() => props.variant ?? "primary");
 const icon = computed(() => props.icon ?? undefined);
+const label = computed(() => props.label ?? undefined);
+const title = computed(() => props.title ?? undefined);
 
 const isDisabled = computed(() => disabled.value || loading.value);
 
@@ -79,6 +87,8 @@ const variantClasses = computed(() => {
       return "bg-red-600 text-white hover:bg-red-700";
     case "outline":
       return "border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50";
+    case "logout":
+      return "border-white/20 bg-gray-800/30 px-3 py-2 text-sm font-semibold text-white backdrop-blur-lg transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:border-emerald-400/40 hover:bg-gray-600/80 sm:px-6 sm:text-base";
     default:
       return "bg-emerald-600 text-white hover:bg-emerald-700";
   }
