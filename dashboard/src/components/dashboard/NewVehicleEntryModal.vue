@@ -43,6 +43,29 @@
             null-option-label="Auto-assign first free"
           />
         </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">
+            Ticket image (optional)
+          </label>
+          <input
+            ref="imageInputRef"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="block w-full text-sm text-slate-600 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-slate-700"
+            @change="onImageChange"
+          />
+          <p v-if="form.imageFile" class="mt-1 text-xs text-slate-500">
+            {{ form.imageFile.name }} — will be resized before upload
+          </p>
+          <button
+            v-if="form.imageFile"
+            type="button"
+            class="mt-1 text-sm text-slate-600 underline hover:text-slate-800"
+            @click="clearImage"
+          >
+            Clear image
+          </button>
+        </div>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
       <p v-if="success" class="mt-2 text-sm text-green-600">{{ success }}</p>
@@ -77,6 +100,7 @@ import { listGarages } from "../../api/garages";
 import { listSpots } from "../../api/spots";
 import { getVehicleByPlate, createVehicle } from "../../api/vehicles";
 import { ticketEntry } from "../../api/tickets";
+import { uploadTicketImage } from "../../api/upload";
 import type { VehicleType } from "../../api/vehicleTypes";
 import type { Garage } from "../../api/garages";
 import type { Spot } from "../../api/spots";
@@ -91,7 +115,9 @@ const form = ref({
   vehicle_type_id: "" as number | "",
   garage_id: "" as number | "",
   spot_id: null as number | null,
+  imageFile: null as File | null,
 });
+const imageInputRef = ref<HTMLInputElement | null>(null);
 const vehicleTypes = ref<VehicleType[]>([]);
 const garages = ref<Garage[]>([]);
 const freeSpots = ref<Spot[]>([]);
@@ -113,6 +139,58 @@ function close() {
   emit("update:modelValue", false);
   error.value = "";
   success.value = "";
+}
+
+function onImageChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  form.value.imageFile = input.files?.[0] ?? null;
+}
+
+function clearImage() {
+  form.value.imageFile = null;
+  if (imageInputRef.value) imageInputRef.value.value = "";
+}
+
+const MAX_IMAGE_DIM = 1200;
+const JPEG_QUALITY = 0.85;
+
+/** Resize image client-side to max 1200px and return as JPEG blob. */
+function resizeImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= MAX_IMAGE_DIM && height <= MAX_IMAGE_DIM) {
+        width = img.width;
+        height = img.height;
+      } else {
+        const r = Math.min(MAX_IMAGE_DIM / width, MAX_IMAGE_DIM / height);
+        width = Math.round(width * r);
+        height = Math.round(height * r);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Canvas not supported"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))),
+        "image/jpeg",
+        JPEG_QUALITY,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Image load failed"));
+    };
+    img.src = url;
+  });
 }
 
 async function loadOptions() {
@@ -163,7 +241,9 @@ watch(
         vehicle_type_id: "",
         garage_id: "",
         spot_id: null,
+        imageFile: null,
       };
+      clearImage();
       freeSpots.value = [];
     }
   },
@@ -194,11 +274,18 @@ async function submit() {
         vehicleId = create.data.id;
       } else throw e;
     }
+    let imageUrl: string | undefined;
+    if (form.value.imageFile) {
+      const blob = await resizeImage(form.value.imageFile);
+      const { url } = await uploadTicketImage(blob, "ticket.jpg");
+      imageUrl = url;
+    }
     await ticketEntry({
       vehicle_id: vehicleId,
       garage_id: garageId,
       spot_id: form.value.spot_id ?? undefined,
       rentable_only: false,
+      image_url: imageUrl ?? undefined,
     });
     success.value = "Entry created.";
     setTimeout(() => {

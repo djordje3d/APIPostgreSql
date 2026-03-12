@@ -64,6 +64,7 @@ export function ticketEntry(data: {
   spot_id?: number | null
   rentable_only?: boolean
   entry_time?: string
+  image_url?: string | null
 }) {
   return api.post<TicketResponse>('/tickets/entry', data)
 }

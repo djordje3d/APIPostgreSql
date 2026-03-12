@@ -69,6 +69,7 @@ class TicketResponse(BaseModel):
     vehicle_id: int | None
     garage_id: int
     spot_id: int | None
+    image_url: str | None = None
 
 
 class TicketDashboardRow(BaseModel):
@@ -87,6 +88,7 @@ class TicketDashboardRow(BaseModel):
     licence_plate: str | None = None
     spot_code: str | None = None
     garage_name: str | None = None
+    image_url: str | None = None
 
 
 # --- Pagination ---
@@ -132,6 +134,7 @@ class TicketEntry(BaseModel):
 
     spot_id: int | None = None  # ako želiš ručno dodeljivanje
     rentable_only: bool = False  # ako želiš da bira samo is_rentable mesta
+    image_url: str | None = None
 
 
 class TicketExit(BaseModel):

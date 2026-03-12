@@ -58,6 +58,7 @@ def list_tickets_dashboard(
                 licence_plate=t.vehicle.licence_plate if t.vehicle else None,
                 spot_code=t.spot.code if t.spot else None,
                 garage_name=t.garage.name if t.garage else None,
+                image_url=t.image_url,
             )
         )
     return schemas.PaginatedResponse(
@@ -178,6 +179,7 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
             garage_id=data.garage_id,
             fee=0,
             spot_id=spot_id,
+            image_url=data.image_url,
         )
         db.add(t)
         db.commit()

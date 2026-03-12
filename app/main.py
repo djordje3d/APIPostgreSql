@@ -1,7 +1,10 @@
 # pyright: reportMissingImports=false
 # Import config first so load_dotenv() runs before db engine is created.
+from pathlib import Path
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -12,6 +15,7 @@ from app.config import (
     CORS_MAX_AGE,
     CORS_DISABLED,
     CORS_ORIGINS,
+    UPLOAD_DIR,
 )
 from app.db import get_db
 from app.auth import APIKeyMiddleware
@@ -22,6 +26,7 @@ from app.routers.vehicles import router as vehicles_router
 from app.routers.vehicle_types import router as vehicle_types_router
 from app.routers.spots import router as spots_router
 from app.routers.garages import router as garages_router
+from app.routers.upload import router as upload_router
 
 app = FastAPI(
     title="Parking API",
@@ -45,8 +50,12 @@ app = FastAPI(
             "name": "Parking Spots",
             "description": "Spots per garage; list, create, update.",
         },
+        {"name": "Upload", "description": "Ticket image upload (client resizes before upload)."},
     ],
 )
+
+# Ensure upload directory exists (tickets subdir created by upload handler).
+Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
 # CORS: allow browser apps (different origin) to call this API. Skip if CORS_DISABLED.
 if not CORS_DISABLED:
@@ -124,3 +133,6 @@ app.include_router(vehicles_router)
 app.include_router(tickets_router)
 app.include_router(payments_router)
 app.include_router(spots_router)
+app.include_router(upload_router, prefix="/upload")
+
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")

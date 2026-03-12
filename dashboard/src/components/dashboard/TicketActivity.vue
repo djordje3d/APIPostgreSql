@@ -408,6 +408,7 @@ import JsBarcode from "jsbarcode";
 import { formatTime, formatMoney } from "../../composables/useFormatters";
 import { listTicketsDashboard, ticketExit } from "../../api/tickets";
 import type { TicketDashboardRow } from "../../api/tickets";
+import { baseURL } from "../../api/client";
 import { getPaymentsByTicket } from "../../api/payments";
 import type { Payment } from "../../api/payments";
 import Modal from "../ui/Modal.vue";
@@ -467,8 +468,13 @@ const viewPaymentsSorted = computed(() => {
   return list;
 });
 
-/** Image URL for the ticket modal (from API when available). Omit to hide image block. */
-const ticketImageUrl = computed(() => viewingTicket.value?.image_url ?? undefined);
+/** Image URL for the ticket modal. Prepend API base URL when backend returns a path. */
+const ticketImageUrl = computed(() => {
+  const url = viewingTicket.value?.image_url;
+  if (!url) return undefined;
+  if (url.startsWith("http")) return url;
+  return `${baseURL}${url}`;
+});
 
 function formatRestToPay(t: TicketDashboardRow): string {
   if (t.ticket_state === "OPEN") return "–";

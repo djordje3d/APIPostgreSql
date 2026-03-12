@@ -133,6 +133,15 @@ CORS_ORIGINS: list[str] = _cors_valid if _cors_valid else _DEFAULT_CORS_ORIGINS
 # Preflight cache (seconds). Browsers cache OPTIONS for this long.
 CORS_MAX_AGE: int = _env_int("CORS_MAX_AGE", 600)
 
+# Upload directory for ticket images (relative to project root or absolute path).
+# Served under /uploads; e.g. UPLOAD_DIR/tickets/file.jpg -> /uploads/tickets/file.jpg
+UPLOAD_DIR: Path = _project_root / "static" / "uploads"
+# Max size in bytes for ticket image upload (default 5 MB). Client resizes first.
+UPLOAD_TICKET_IMAGE_MAX_BYTES: int = _env_int(
+    "UPLOAD_TICKET_IMAGE_MAX_BYTES",
+    5 * 1024 * 1024,
+)
+
 # Methods and headers allowed in CORS (explicit is safer than "*").
 CORS_ALLOW_METHODS: list[str] = [
     "GET",

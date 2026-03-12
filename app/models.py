@@ -79,6 +79,7 @@ class Ticket(Base):
     vehicle_id = Column(Integer, ForeignKey("vehicle.id"))
     garage_id = Column(Integer, ForeignKey("parking_config.id"), nullable=False)
     spot_id = Column(Integer, ForeignKey("parking_spot.id"), nullable=True)
+    image_url = Column(String(512), nullable=True)
 
     vehicle = relationship("Vehicle")
     spot = relationship("ParkingSpot")
