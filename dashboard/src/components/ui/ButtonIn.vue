@@ -44,10 +44,10 @@ const props = withDefaults(
     id: string;
     type?: "button" | "submit" | "reset";
     disabled?: boolean;
-    variant?: "primary" | "danger" | "outline" | "default";
-    icon?: string;
-    label?: string;
-    caption?: string;
+    variant?: "primary" | "danger" | "outline" | "default" | "link";
+    icon?: string;  // Default is not needed, browser just not show it. Default "" would be rendered as empty span.
+    label?: string; // Default could be unwant
+    caption?: string;  // tooltip text. Default is not needed, browser just not show it.
   }>(),
   {
     type: "button",
@@ -81,6 +81,8 @@ const variantClasses = computed(() => {
       return "bg-red-600 text-white hover:bg-red-700";
     case "outline":
       return "border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50";
+    case "link":
+      return "bg-transparent px-0 py-0 rounded-none text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1";
     default:
       return "bg-emerald-600 text-white hover:bg-emerald-700";
   }

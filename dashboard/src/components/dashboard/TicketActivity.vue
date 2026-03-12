@@ -219,6 +219,12 @@
       "
     >
       <template v-if="viewingTicket">
+        <div v-if="ticketImageUrl" class="mb-4">
+          <ImageIn
+            :src="ticketImageUrl"
+            :alt="`Ticket #${viewingTicket.id}`"
+          />
+        </div>
         <dl class="space-y-2 text-sm">
           <div>
             <dt class="text-gray-500">Garage</dt>
@@ -407,6 +413,7 @@ import type { Payment } from "../../api/payments";
 import Modal from "../ui/Modal.vue";
 import PaymentModal from "./PaymentModal.vue";
 import ButtonIn from "../ui/ButtonIn.vue";
+import ImageIn from "../ui/ImageIn.vue";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -459,6 +466,9 @@ const viewPaymentsSorted = computed(() => {
   });
   return list;
 });
+
+/** Image URL for the ticket modal (from API when available). Omit to hide image block. */
+const ticketImageUrl = computed(() => viewingTicket.value?.image_url ?? undefined);
 
 function formatRestToPay(t: TicketDashboardRow): string {
   if (t.ticket_state === "OPEN") return "–";

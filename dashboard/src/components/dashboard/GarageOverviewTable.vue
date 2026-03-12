@@ -10,13 +10,13 @@
         class="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center"
         role="alert"
       >
-        <button
-          type="button"
-          class="text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-          @click="retry"
-        >
-          Failed to fetch data, click here to retry
-        </button>
+        <ButtonIn
+          id="retryBtn"
+          label="Failed to fetch data, click here to retry"
+          variant="link"
+          @userclick="retry"
+          caption="Retry"
+        />
       </div>
 
       <div
@@ -128,6 +128,7 @@
 <script setup lang="ts">
 import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import { getGarageOverview } from "../../api/garages";
+import ButtonIn from "../ui/ButtonIn.vue";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 
