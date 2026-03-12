@@ -21,40 +21,22 @@
         </p>
 
         <form @submit.prevent="onSubmit" class="space-y-4">
-          <div>
-            <label
-              for="username"
-              class="mb-1 block text-sm font-medium text-slate-700"
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              v-model="username"
-              type="text"
-              required
-              autocomplete="username"
-              class="w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label
-              for="password"
-              class="mb-1 block text-sm font-medium text-slate-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              v-model="password"
-              type="password"
-              required
-              autocomplete="current-password"
-              class="w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
+          <InputIn
+            id="username"
+            v-model="username"
+            label="Username"
+            type="text"
+            required
+            autocomplete="username"
+          />
+          <InputIn
+            id="password"
+            v-model="password"
+            label="Password"
+            type="password"
+            required
+            autocomplete="current-password"
+          />
           <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
 
           <ButtonIn
@@ -77,6 +59,7 @@ import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { login } from "../api/auth";
 import ButtonIn from "../components/ui/ButtonIn.vue";
+import InputIn from "../components/ui/InputIn.vue";
 
 const router = useRouter();
 const route = useRoute();

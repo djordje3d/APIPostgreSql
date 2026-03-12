@@ -6,18 +6,14 @@
   >
     <form @submit.prevent="submit">
       <div class="space-y-4">
-        <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700"
-            >Licence plate *</label
-          >
-          <input
-            v-model="form.licence_plate"
-            type="text"
-            required
-            class="w-full rounded border border-gray-300 px-3 py-2"
-            placeholder="e.g. AB123CD"
-          />
-        </div>
+        <InputIn
+          id="licence_plate"
+          v-model="form.licence_plate"
+          label="Licence plate *"
+          type="text"
+          required
+          placeholder="e.g. AB123CD"
+        />
         <div>
           <StandardDropdown
             label="Vehicle type *"
@@ -85,6 +81,7 @@ import type { VehicleType } from "../../api/vehicleTypes";
 import type { Garage } from "../../api/garages";
 import type { Spot } from "../../api/spots";
 import ButtonIn from "../ui/ButtonIn.vue";
+import InputIn from "../ui/InputIn.vue";
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits(["update:modelValue", "done"]);

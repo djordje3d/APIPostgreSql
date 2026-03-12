@@ -13,20 +13,19 @@
       <div class="space-y-3">
         <div class="flex gap-3">
           <div class="min-w-0 flex-1">
-            <label class="mb-1 block text-sm font-medium text-gray-700"
-              >Amount (RSD) *</label
-            >
-            <input
-              v-model.number="amount"
+            <InputIn
+              id="amount"
+              v-model="amount"
+              label="Amount (RSD) *"
               type="number"
               step="1"
               min="1"
               required
-              class="w-full rounded border px-3 py-2"
-              :class="
-                amountExceedsRest
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-300'
+              :variant="amountExceedsRest ? 'error' : 'default'"
+              :error="
+                amountExceedsRest && restToPay != null
+                  ? `Amount exceeds remaining balance. Rest to pay: ${formatMoney(restToPay)}.`
+                  : undefined
               "
             />
           </div>
@@ -40,10 +39,6 @@
             />
           </div>
         </div>
-        <p v-if="amountExceedsRest" class="text-sm font-medium text-red-600">
-          Amount exceeds remaining balance. Rest to pay:
-          {{ formatMoney(restToPay!) }}.
-        </p>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
       <div class="mt-4 flex justify-between gap-2">
@@ -73,6 +68,7 @@ import { ref, watch, nextTick, computed, onMounted } from "vue";
 import Modal from "../ui/Modal.vue";
 import StandardDropdown from "../ui/StandardDropdown.vue";
 import ButtonIn from "../ui/ButtonIn.vue";
+import InputIn from "../ui/InputIn.vue";
 import { formatMoney } from "../../composables/useFormatters";
 import { createPayment, getPaymentsByTicket } from "../../api/payments";
 
