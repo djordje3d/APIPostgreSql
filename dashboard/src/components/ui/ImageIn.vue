@@ -38,8 +38,8 @@ const props = withDefaults(
   defineProps<{
     src?: string | null;
     alt?: string;
-    aspectRatio?: string;
-    objectFit?: "contain" | "cover" | "fill" | "none";
+    aspectRatio?: string; // e.g. "16/9", "4/3", "1/1", etc.
+    objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"; // default is "cover"
   }>(),
   {
     alt: "",
@@ -50,6 +50,7 @@ const props = withDefaults(
 const loading = ref(true);
 const error = ref(false);
 
+// computed the style of the image based on the props
 const imageStyle = computed(() => {
   const style: Record<string, string> = {};
   if (props.aspectRatio) {

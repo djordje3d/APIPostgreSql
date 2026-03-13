@@ -1,10 +1,12 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import './styles/index.css'
-import './assets/icom/style.css'
-import './styles/zindex.css'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import { i18n } from "./i18n";
+import "./styles/index.css";
+import "./assets/icom/style.css";
+import "./styles/zindex.css";
 
-const app = createApp(App)
-app.use(router)
-app.mount('#app')
+const app = createApp(App);
+app.use(router);
+app.use(i18n);
+app.mount("#app");

@@ -9,7 +9,7 @@
     >
       <div class="card w-full max-w-sm rounded-lg bg-white px-6 py-8 shadow-md">
         <h1 class="mb-6 text-center text-xl font-semibold text-slate-800">
-          Dashboard Login
+          {{ t("login.title") }}
         </h1>
 
         <p
@@ -24,7 +24,7 @@
           <InputIn
             id="username"
             v-model="username"
-            label="Username"
+            :label="t('login.username')"
             type="text"
             required
             autocomplete="username"
@@ -32,7 +32,7 @@
           <InputIn
             id="password"
             v-model="password"
-            label="Password"
+            :label="t('login.password')"
             type="password"
             required
             autocomplete="current-password"
@@ -40,11 +40,11 @@
           <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
           <ButtonIn
             id="signInBtn"
-            label="Sign in"
+            :label="t('login.signIn')"
             variant="primary"
             type="submit"
             :disabled="!canSubmit || isSubmitting"
-            caption="Sign in"
+            :caption="t('login.signIn')"
             class="w-full"
           />
         </form>
@@ -59,9 +59,11 @@ import { useRouter, useRoute } from "vue-router";
 import { login } from "../api/auth";
 import ButtonIn from "../components/ui/ButtonIn.vue";
 import InputIn from "../components/ui/InputIn.vue";
+import { useI18n } from "vue-i18n";
 
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
 
 const username = ref("");
 const password = ref("");
@@ -70,7 +72,7 @@ const isSubmitting = ref(false);
 
 const sessionExpiredMessage = computed(() =>
   route.query.reason === "expired"
-    ? "You were logged out because your session expired. Please sign in again."
+    ? t("login.sessionExpired")
     : "",
 );
 

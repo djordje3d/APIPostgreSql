@@ -48,6 +48,7 @@ JWT_EXPIRE_MINUTES: int = _env_int("JWT_EXPIRE_MINUTES", 60 * 24)  # 24 hours
 AUTH_USERNAME: str | None = os.getenv("AUTH_USERNAME") or None
 AUTH_PASSWORD: str | None = os.getenv("AUTH_PASSWORD") or None
 AUTH_PASSWORD_HASH: str | None = os.getenv("AUTH_PASSWORD_HASH") or None
+AUTH_PREFERRED_LANGUAGE: str = os.getenv("AUTH_PREFERRED_LANGUAGE", "en")
 
 
 def _env_bool(name: str, default: bool = False) -> bool:

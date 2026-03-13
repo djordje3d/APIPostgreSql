@@ -1,0 +1,58 @@
+{
+  "header": {
+    "dashboard": "Kontrolna tabla",
+    "logout": "Odjava",
+    "newVehicleEntry": "Novi ulaz vozila"
+  },
+  "connection": {
+    "restored": "Veza je uspostavljena",
+    "offline": {
+      "title": "Niste povezani na internet",
+      "detail": "Proverite internet vezu."
+    },
+    "timeout": {
+      "title": "Zahtev je istekao – spora veza?",
+      "detail": "Zahtev je trajao predugo. Proverite vezu ili pokušajte ponovo."
+    },
+    "apiDown": {
+      "title": "Nije moguće povezati se sa API-jem",
+      "detail": "API na adresi {baseURL} nije dostupan. Pokrenite backend: python -m app.run"
+    }
+  },
+  "session": {
+    "idle": {
+      "title": "Sesija će isteći za {countdown}. Bićete automatski odjavljeni.",
+      "detail": "Kliknite na dugme ispod da nastavite sesiju.",
+      "continue": "Nastavi sesiju"
+    },
+    "expired": {
+      "title": "Sesija je istekla.",
+      "detail": "Bićete preusmereni na stranicu za prijavu za {countdown}.",
+      "goToLogin": "Idi na prijavu sada"
+    }
+  },
+  "toast": {
+    "vehicleCreated": "Ulaz vozila je kreiran."
+  },
+  "login": {
+    "title": "Prijava na kontrolnu tablu",
+    "username": "Korisničko ime",
+    "password": "Lozinka",
+    "signIn": "Prijavi se",
+    "sessionExpired": "Odjavljeni ste zato što je sesija istekla. Molimo prijavite se ponovo."
+  },
+  "entry": {
+    "licencePlate": "Registracija *",
+    "vehicleType": "Tip vozila *",
+    "selectType": "Izaberi tip",
+    "garage": "Garaža *",
+    "selectGarage": "Izaberi garažu",
+    "spot": "Mesto (opciono, automatski ako je prazno)",
+    "spotAutoAssign": "Automatski dodeli prvo slobodno",
+    "ticketImage": "Slika karte (opciono)",
+    "clearImage": "Ukloni sliku",
+    "cancel": "Otkaži",
+    "createEntry": "Kreiraj ulaz"
+  }
+}
+

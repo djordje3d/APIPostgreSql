@@ -1,0 +1,58 @@
+{
+  "header": {
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "newVehicleEntry": "New Vehicle Entry"
+  },
+  "connection": {
+    "restored": "Connection restored",
+    "offline": {
+      "title": "You're offline",
+      "detail": "Check your network connection."
+    },
+    "timeout": {
+      "title": "Request timed out – slow connection?",
+      "detail": "The request took too long. Check your connection or try again."
+    },
+    "apiDown": {
+      "title": "Cannot connect to API",
+      "detail": "API at {baseURL} is unreachable. Start the backend: python -m app.run"
+    }
+  },
+  "session": {
+    "idle": {
+      "title": "Your session will expire in {countdown}. You will be logged out automatically.",
+      "detail": "Click the button below to continue your session.",
+      "continue": "Continue session"
+    },
+    "expired": {
+      "title": "Your session has expired.",
+      "detail": "You will be redirected to the login page in {countdown}.",
+      "goToLogin": "Go to login now"
+    }
+  },
+  "toast": {
+    "vehicleCreated": "Vehicle entry created."
+  },
+  "login": {
+    "title": "Dashboard Login",
+    "username": "Username",
+    "password": "Password",
+    "signIn": "Sign in",
+    "sessionExpired": "You were logged out because your session expired. Please sign in again."
+  },
+  "entry": {
+    "licencePlate": "Licence plate *",
+    "vehicleType": "Vehicle type *",
+    "selectType": "Select type",
+    "garage": "Garage *",
+    "selectGarage": "Select garage",
+    "spot": "Spot (optional, auto if empty)",
+    "spotAutoAssign": "Auto-assign first free",
+    "ticketImage": "Ticket image (optional)",
+    "clearImage": "Clear image",
+    "cancel": "Cancel",
+    "createEntry": "Create entry"
+  }
+}
+

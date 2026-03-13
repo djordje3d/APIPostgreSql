@@ -2,50 +2,50 @@
   <Modal
     :model-value="modelValue"
     @update:model-value="close"
-    title="New Vehicle Entry"
+    :title="t('header.newVehicleEntry')"
   >
     <form @submit.prevent="submit">
       <div class="space-y-4">
         <InputIn
           id="licence_plate"
           v-model="form.licence_plate"
-          label="Licence plate *"
+          :label="t('entry.licencePlate')"
           type="text"
           required
           placeholder="e.g. AB123CD"
         />
         <div>
           <StandardDropdown
-            label="Vehicle type *"
+            :label="t('entry.vehicleType')"
             :options="vehicleTypeOptions"
             :model-value="form.vehicle_type_id || null"
-            placeholder="Select type"
+            :placeholder="t('entry.selectType')"
             :nullable="false"
-            @update:model-value="form.vehicle_type_id = $event ?? ''"
+            @update:model-value="form.vehicle_type_id = ($event as number | null) ?? ''"
           />
         </div>
         <div>
           <StandardDropdown
-            label="Garage *"
+            :label="t('entry.garage')"
             :options="garageOptions"
             :model-value="form.garage_id || null"
-            placeholder="Select garage"
+            :placeholder="t('entry.selectGarage')"
             :nullable="false"
-            @update:model-value="onGarageSelect($event)"
+            @update:model-value="onGarageSelect($event as number | null)"
           />
         </div>
         <div>
           <StandardDropdown
-            label="Spot (optional, auto if empty)"
+            :label="t('entry.spot')"
             :options="spotOptions"
             v-model="form.spot_id"
             :nullable="true"
-            null-option-label="Auto-assign first free"
+            :null-option-label="t('entry.spotAutoAssign')"
           />
         </div>
         <div>
           <label class="mb-1 block text-sm font-medium text-slate-700">
-            Ticket image (optional)
+            {{ t("entry.ticketImage") }}
           </label>
           <input
             ref="imageInputRef"
@@ -63,7 +63,7 @@
             class="mt-1 text-sm text-slate-600 underline hover:text-slate-800"
             @click="clearImage"
           >
-            Clear image
+            {{ t("entry.clearImage") }}
           </button>
         </div>
       </div>
@@ -73,18 +73,18 @@
       <div class="mt-6 flex justify-between gap-2">
         <ButtonIn
           id="cancelBtn"
-          label="Cancel"
+          :label="t('entry.cancel')"
           variant="outline"
           @userclick="close"
-          caption="Cancel"
+          :caption="t('entry.cancel')"
         />
         <ButtonIn
           id="createEntryBtn"
-        label="Create entry"
+          :label="t('entry.createEntry')"
           variant="primary"
           :disabled="loading"
           @userclick="submit"
-          caption="Create entry"
+          :caption="t('entry.createEntry')"
         />
       </div>
     </form>
@@ -106,8 +106,10 @@ import type { Garage } from "../../api/garages";
 import type { Spot } from "../../api/spots";
 import ButtonIn from "../ui/ButtonIn.vue";
 import InputIn from "../ui/InputIn.vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{ modelValue: boolean }>();
+const { t } = useI18n();
 const emit = defineEmits(["update:modelValue", "done"]);
 
 const form = ref({

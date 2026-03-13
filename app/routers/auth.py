@@ -11,6 +11,7 @@ from app.config import (
     AUTH_PASSWORD,
     AUTH_PASSWORD_HASH,
     AUTH_USERNAME,
+    AUTH_PREFERRED_LANGUAGE,
     JWT_EXPIRE_MINUTES,
 )
 
@@ -56,6 +57,7 @@ def login(data: LoginRequest):
         "access_token": access_token,
         "token_type": "bearer",
         "expires_in": JWT_EXPIRE_MINUTES * 60,  # seconds; set JWT_EXPIRE_MINUTES in .env for real expiry
+        "preferred_language": AUTH_PREFERRED_LANGUAGE,
     }
 
 
@@ -66,7 +68,7 @@ def me(user: dict = Depends(get_current_user)):
     or 401 if token is missing/invalid/expired. Useful for the dashboard to ping and
     confirm the session is still valid without calling business endpoints.
     """
-    return {"sub": user["sub"]}
+    return {"sub": user["sub"], "preferred_language": AUTH_PREFERRED_LANGUAGE}
 
 
 @router.post("/refresh")

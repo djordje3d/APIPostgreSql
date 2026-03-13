@@ -32,7 +32,7 @@
           <span class="connection-restored-toast__icon" aria-hidden="true"
             >✓</span
           >
-          Connection restored
+          {{ t("connection.restored") }}
         </div>
       </Transition>
     </Teleport>
@@ -60,19 +60,21 @@
       >
         <div class="session-expiry-modal">
           <p id="session-expiry-title" class="font-medium">
-            Your session will expire in {{ sessionExpiryCountdown }}. You will
-            be logged out automatically.
+            {{
+              t("session.idle.title", { countdown: sessionExpiryCountdown })
+            }}
           </p>
           <p class="mt-1 text-sm opacity-90">
-            Click the button below to continue your session.
+            {{ t("session.idle.detail") }}
           </p>
           <ButtonIn
+            id="extendSessionBtn"
             type="button"
             variant="primary"
             class="mt-4 shrink-0 !bg-amber-600 hover:!bg-amber-700 focus:ring-amber-500"
-            @click="extendSession"
+            @userclick="extendSession"
           >
-            Continue session
+            {{ t("session.idle.continue") }}
           </ButtonIn>
         </div>
       </div>
@@ -88,19 +90,23 @@
       >
         <div class="session-expired-modal">
           <p id="session-expired-title" class="font-medium">
-            Your session has expired.
+            {{ t("session.expired.title") }}
           </p>
           <p class="mt-1 text-sm opacity-90">
-            You will be redirected to the login page in
-            {{ sessionExpiredRedirectCountdown }}.
+            {{
+              t("session.expired.detail", {
+                countdown: sessionExpiredRedirectCountdown,
+              })
+            }}
           </p>
           <ButtonIn
+            id="sessionExpiredLoginBtn"
             type="button"
             variant="primary"
             class="mt-4 shrink-0 !bg-slate-700 hover:!bg-slate-800 focus:ring-slate-500"
-            @click="goToLoginAfterExpired"
+            @userclick="goToLoginAfterExpired"
           >
-            Go to login now
+            {{ t("session.expired.goToLogin") }}
           </ButtonIn>
         </div>
       </div>
@@ -117,25 +123,26 @@
           >
             <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
               <router-link to="/" class="text-base font-semibold sm:text-xl">
-                Dashboard
+                {{ t("header.dashboard") }}
               </router-link>
-            </nav>              
+            </nav>
             <div
               class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
             >
+              <LanguageSwitcher />
               <ButtonIn
                 id="logoutBtn"
                 variant="outline"
-                label="Logout"
+                :label="t('header.logout')"
                 @userclick="logout"
-                caption="Logout"
+                :caption="t('header.logout')"
               />
               <ButtonIn
                 id="newVehicleEntryBtn"
                 variant="primary"
-                label="New Vehicle Entry"
+                :label="t('header.newVehicleEntry')"
                 @userclick="showNewEntry = true"
-                caption="New Vehicle Entry"
+                :caption="t('header.newVehicleEntry')"
               />
             </div>
           </div>
@@ -175,6 +182,10 @@ import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { refresh as refreshToken } from "./api/auth";
 import { useDashboardPolling } from "./composables/useDashboardPolling";
 import ButtonIn from "./components/ui/ButtonIn.vue";
+import LanguageSwitcher from "./components/ui/LanguageSwitcher.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */
@@ -510,18 +521,20 @@ const pollingEnabled = computed(
 
 /** Message for the global connection banner (offline, timeout, or API down). */
 const connectionBannerMessage = computed(() => {
-  if (isOffline.value) return "You're offline";
-  if (apiConnectionTimeout.value) return "Request timed out – slow connection?";
-  if (apiConnectionError.value) return "Cannot connect to API";
+  if (isOffline.value) return t("connection.offline.title");
+  if (apiConnectionTimeout.value) return t("connection.timeout.title");
+  if (apiConnectionError.value) return t("connection.apiDown.title");
   return null;
 });
 const connectionBannerDetail = computed(() => {
-  if (isOffline.value) return "Check your network connection.";
+  if (isOffline.value) return t("connection.offline.detail");
   if (apiConnectionTimeout.value) {
-    return "The request took too long. Check your connection or try again.";
+    return t("connection.timeout.detail");
   }
-  if (apiConnectionError.value) {
-    return `API at ${apiConnectionError.value} is unreachable. Start the backend: python -m app.run`;
+  if (apiConnectionError.value && apiConnectionError.value.length) {
+    return t("connection.apiDown.detail", {
+      baseURL: apiConnectionError.value,
+    });
   }
   return null;
 });

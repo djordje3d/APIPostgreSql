@@ -2,7 +2,7 @@
   <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
     <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
   </span>
-  <div>
+  <div class="by-garage-card__right-row">
     <div
       ref="root"
       class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
@@ -361,6 +361,13 @@ watch(
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+.by-garage-card__right-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
 }
 .by-garage-card__dropdown-wrap {
   width: 24rem;
