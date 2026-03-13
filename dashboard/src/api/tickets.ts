@@ -15,6 +15,7 @@ export interface TicketResponse {
   spot_id: number | null
 }
 
+// get the tickets from the tickets dashboard endpoint
 export interface TicketDashboardRow extends TicketResponse {
   licence_plate: string | null
   spot_code: string | null
@@ -23,6 +24,7 @@ export interface TicketDashboardRow extends TicketResponse {
   image_url?: string | null
 }
 
+// get the tickets from the tickets endpoint
 export function listTickets(
   params?: {
     state?: 'OPEN' | 'CLOSED'
@@ -54,7 +56,7 @@ export function getTicket(id: number, config?: ApiRequestConfig) {
   return api.get<TicketResponse>(`/tickets/${id}`, config)
 }
 
-export function ticketExit(id: number, data?: { exit_time?: string }) {
+export function ticketExit(id: number, data?: { exit_time?: string }) { // post the data to the tickets/exit endpoint
   return api.post<TicketResponse>(`/tickets/${id}/exit`, data ?? {})
 }
 
@@ -64,7 +66,7 @@ export function ticketEntry(data: {
   spot_id?: number | null
   rentable_only?: boolean
   entry_time?: string
-  image_url?: string | null
+  image_url?: string | null  // optional image URL when provided by the backend (e.g. garage or ticket image)
 }) {
-  return api.post<TicketResponse>('/tickets/entry', data)
+  return api.post<TicketResponse>('/tickets/entry', data) // post the data to the tickets/entry endpoint
 }

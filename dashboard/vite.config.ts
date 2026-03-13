@@ -6,10 +6,16 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // API: /api/* -> http://localhost:8000/* (backend has no /api prefix)
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      // Ticket images: /uploads/* -> http://localhost:8000/uploads/*
+      '/uploads': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
       },
     },
   },

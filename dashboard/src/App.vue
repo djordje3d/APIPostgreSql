@@ -80,7 +80,7 @@
     <!-- Session expired (401): shown when API returns unauthorized, then redirect to login. -->
     <Teleport to="body">
       <div
-        v-if="showSessionExpiredModal"
+        v-if="!isLoginPage && showSessionExpiredModal"
         class="session-expiry-overlay"
         role="alertdialog"
         aria-modal="true"
@@ -460,6 +460,7 @@ watch(
     if (name === "login") {
       clearAllTimers();
       showIdleExpiryAlert.value = false;
+      showSessionExpiredModal.value = false;
     } else if (getMsUntilTokenExpiry() !== null) {
       startSessionTimers();
     }

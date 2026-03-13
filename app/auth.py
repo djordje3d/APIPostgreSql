@@ -23,6 +23,8 @@ def _is_public_path(path: str, method: str) -> bool:
         return True
     if path == "/auth/login" and method == "POST":
         return True
+    if path.startswith("/uploads/") and method == "GET":
+        return True
     return False
 
 

@@ -221,6 +221,7 @@
       <template v-if="viewingTicket">
         <div v-if="ticketImageUrl" class="mb-4">
           <ImageIn
+            :key="`ticket-img-${viewingTicket.id}-${ticketImageUrl}`"
             :src="ticketImageUrl"
             :alt="`Ticket #${viewingTicket.id}`"
           />
@@ -468,12 +469,19 @@ const viewPaymentsSorted = computed(() => {
   return list;
 });
 
-/** Image URL for the ticket modal. Prepend API base URL when backend returns a path. */
+/** Image URL for the ticket modal. Use API origin for static paths so /uploads works (no /api prefix). */
 const ticketImageUrl = computed(() => {
   const url = viewingTicket.value?.image_url;
-  if (!url) return undefined;
-  if (url.startsWith("http")) return url;
-  return `${baseURL}${url}`;
+  if (!url?.trim()) return undefined;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const path = url.startsWith("/") ? url : `/${url}`;
+  try {
+    const api = new URL(baseURL, typeof window !== "undefined" ? window.location.origin : "http://localhost:8000");
+    return `${api.origin}${path}`;
+  } catch {
+    const base = baseURL.replace(/\/+$/, "");
+    return base ? `${base}${path}` : path;
+  }
 });
 
 function formatRestToPay(t: TicketDashboardRow): string {
