@@ -262,12 +262,13 @@ function goToLoginAfterExpired() {
     sessionExpiredCountdownIntervalId = null;
   }
   showSessionExpiredModal.value = false;
+  clearStoredToken();
   router.push({ path: "/login", query: { reason: "expired" } });
 }
 
+/** Show "session expired" modal and redirect after countdown. Token is cleared only on redirect so the guard does not send user to login before the modal is seen. */
 function onSessionExpired() {
   if (showSessionExpiredModal.value) return;
-  clearStoredToken();
   showSessionExpiredModal.value = true;
   let remainingMs = SESSION_EXPIRED_REDIRECT_MS;
   sessionExpiredRedirectCountdown.value = String(Math.ceil(remainingMs / 1000));
@@ -288,6 +289,7 @@ function onSessionExpired() {
       sessionExpiredCountdownIntervalId = null;
     }
     showSessionExpiredModal.value = false;
+    clearStoredToken();
     router.push({ path: "/login", query: { reason: "expired" } });
   }, SESSION_EXPIRED_REDIRECT_MS);
 }
@@ -362,14 +364,13 @@ async function extendSession() {
   }
 }
 
-// Don't update on login page
+// Don't update on login page — when token expires, show session-expired modal then redirect (same as 401 path).
 function scheduleTokenExpiryLogout() {
   clearSessionTimers();
   const ms = getMsUntilTokenExpiry();
   if (ms === null) return;
   if (ms <= 0) {
-    clearStoredToken();
-    router.push("/login");
+    onSessionExpired();
     return;
   }
   tokenExpiryTimeoutId = setTimeout(() => {
@@ -378,8 +379,7 @@ function scheduleTokenExpiryLogout() {
       clearInterval(idleCountdownIntervalId);
       idleCountdownIntervalId = null;
     }
-    clearStoredToken();
-    router.push("/login");
+    onSessionExpired();
   }, ms);
 }
 
