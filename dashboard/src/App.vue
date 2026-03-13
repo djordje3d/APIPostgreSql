@@ -125,11 +125,12 @@
               <router-link to="/" class="text-base font-semibold sm:text-xl">
                 {{ t("header.dashboard") }}
               </router-link>
+              <LanguageSwitcher />
             </nav>
             <div
               class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
             >
-              <LanguageSwitcher />
+
               <ButtonIn
                 id="logoutBtn"
                 variant="outline"
