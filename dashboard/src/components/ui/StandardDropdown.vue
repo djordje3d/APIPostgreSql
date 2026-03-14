@@ -8,8 +8,13 @@
     <button
       ref="trigger"
       type="button"
-      class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-gray-400 transition"
-      :class="{ 'mt-1': label }"
+      class="w-full rounded border px-3 py-2 text-left text-sm shadow-sm transition"
+      :class="[
+        { 'mt-1': label },
+        dark
+          ? 'border-slate-600 bg-slate-800 text-white hover:bg-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400'
+          : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500',
+      ]"
       :aria-expanded="open"
       @click="toggle"
       @keydown.down.prevent="openAndFocusFirst()"
@@ -20,7 +25,7 @@
         <span class="truncate">
           {{ selectedLabel }}
         </span>
-        <span class="shrink-0 text-gray-500">
+        <span :class="dark ? 'text-slate-300' : 'text-gray-500'">
           <svg
             class="h-4 w-4 transition-transform"
             :class="{ 'rotate-180': open }"
@@ -42,17 +47,19 @@
       <Transition name="pop">
         <div v-if="open" ref="menu" class="fixed zPopup" :style="menuStyle">
           <div
-            class="rounded-lg border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 overflow-hidden"
+            class="rounded-lg border shadow-xl overflow-hidden"
+            :class="dark ? 'border-slate-600 bg-slate-800 ring-1 ring-black/20' : 'border-gray-200 bg-white ring-1 ring-black/5'"
           >
             <div class="pointer-events-none absolute left-6" :style="nubStyle">
               <div
-                class="h-3 w-3 rotate-45 bg-white border border-gray-200 shadow-sm"
-                :class="nubBorderAdjustClass"
+                class="h-3 w-3 rotate-45 shadow-sm"
+                :class="[nubBorderAdjustClass, dark ? 'bg-slate-800 border-slate-600' : 'bg-white border border-gray-200']"
               ></div>
             </div>
 
             <ul
               class="max-h-64 overflow-auto py-1 text-sm"
+              :class="dark ? 'text-white' : ''"
               role="listbox"
               tabindex="-1"
               @keydown.esc.prevent="close()"
@@ -64,10 +71,14 @@
                 <button
                   ref="items"
                   type="button"
-                  class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
-                  :class="{
-                    'font-semibold text-emerald-700': modelValue === null,
-                  }"
+                  class="w-full px-3 py-2 text-left focus:outline-none"
+                  :class="[
+                    dark ? 'hover:bg-slate-700 focus:bg-slate-700' : 'hover:bg-emerald-50 focus:bg-emerald-50',
+                    {
+                      'font-semibold text-emerald-700': !dark && modelValue === null,
+                      'font-semibold text-emerald-300': dark && modelValue === null,
+                    },
+                  ]"
                   @click="choose(null)"
                 >
                   {{ nullOptionLabel }}
@@ -78,10 +89,14 @@
                 <button
                   ref="items"
                   type="button"
-                  class="w-full px-3 py-2 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
-                  :class="{
-                    'font-semibold text-emerald-700': modelValue === opt.id,
-                  }"
+                  class="w-full px-3 py-2 text-left focus:outline-none"
+                  :class="[
+                    dark ? 'hover:bg-slate-700 focus:bg-slate-700' : 'hover:bg-emerald-50 focus:bg-emerald-50',
+                    {
+                      'font-semibold text-emerald-700': !dark && modelValue === opt.id,
+                      'font-semibold text-emerald-300': dark && modelValue === opt.id,
+                    },
+                  ]"
                   @click="choose(opt.id)"
                 >
                   {{ opt.label }}
@@ -115,11 +130,14 @@ const props = withDefaults(
     placeholder?: string;
     nullable?: boolean;
     nullOptionLabel?: string;
+    /** When true, use dark background (e.g. for header) matching slate-800 */
+    dark?: boolean;
   }>(),
   {
     placeholder: "Select…",
     nullable: false,
     nullOptionLabel: "",
+    dark: false,
   }
 );
 

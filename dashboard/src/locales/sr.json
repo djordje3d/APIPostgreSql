@@ -1,4 +1,8 @@
 {
+  "language": {
+    "en": "Engleski",
+    "sr": "Srpski"
+  },
   "header": {
     "dashboard": "Kontrolna tabla",
     "logout": "Odjava",
@@ -51,8 +55,47 @@
     "spotAutoAssign": "Automatski dodeli prvo slobodno",
     "ticketImage": "Slika karte (opciono)",
     "clearImage": "Ukloni sliku",
-    "cancel": "Otkaži",
+    "cancel": "Otkaži", 
     "createEntry": "Kreiraj ulaz"
+  },
+  "payment": {
+    "amount": "Iznos",  
+    "method": "Metoda",
+    "selectMethod": "Izaberi metodu",
+    "totalFee": "Ukupna cena",
+    "restToPay": "Ostatak",
+    "payment": "Plaćanje",
+    "cash": "Gotovina",
+    "card": "Kartica",
+    "amountMustBePositive": "Iznos mora biti pozitivan",
+    "amountExceedsRemainingBalance": "Iznos prelazi ostatak na računu. Ostatak: {amount}",
+    "paymentFailed": "Plaćanje nije uspelo",
+    "when": "Vreme plaćanja",
+    "totalPaid": "Ukupno plaćeno",
+    "paymentMethod": "Metoda plaćanja"
+  },
+  "ticket": {
+    "id": "ID",
+    "entryTime": "Vreme ulaska",
+    "exitTime": "Vreme izlaska",
+    "spot": "Mesto",
+    "plate": "Registracija",
+    "state": "Stanje",
+    "payment": "Plaćanje",
+    "fee": "Cena",
+    "close": "Zatvori",
+    "goToPayment": "Idi na plaćanje",
+    "totalPaid": "Ukupno plaćeno",
+    "noTickets": "Nema kartica",
+    "garage": "Garaža",
+    "ticketId": "ID karte",
+    "actions": "Akcije",
+    "noPaymentsRecorded": "Nema plaćanja",
+    "loading": "Učitavanje...",
+    "allPaymentsForThisTicket": "Sve plaćanja za ovu kartu (iznos i kada je plaćeno)",
+    "evidenceOfPayments": "Dokaz o plaćanjima",
+    "restToPay": "Ostatak za plaćanje",
+    "paymentWhen": "Vreme plaćanja",
+    "paymentMethod": "Metoda plaćanja"
   }
 }
-

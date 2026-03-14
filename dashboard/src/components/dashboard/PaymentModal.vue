@@ -5,9 +5,9 @@
     :title="modalTitle"
   >
     <p class="mt-1 text-sm text-gray-600">Ticket #{{ ticketId }}</p>
-    <p class="mb-1 text-sm text-gray-600">Total fee: {{ formatMoney(fee) }}</p>
+    <p class="mb-1 text-sm text-gray-600"> {{ t('payment.totalFee') }}: {{ formatMoney(fee) }}</p>
     <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">
-      Rest to pay: {{ formatMoney(restToPay) }}
+      {{ t('payment.restToPay') }}: {{ formatMoney(restToPay) }}
     </p>
     <form @submit.prevent="submit">
       <div class="space-y-3">
@@ -16,7 +16,7 @@
             <InputIn
               id="amount"
               v-model="amount"
-              label="Amount (RSD) *"
+              :label="t('payment.amount')"
               type="number"
               step="1"
               min="1"
@@ -24,17 +24,17 @@
               :variant="amountExceedsRest ? 'error' : 'default'"
               :error="
                 amountExceedsRest && restToPay != null
-                  ? `Amount exceeds remaining balance. Rest to pay: ${formatMoney(restToPay)}.`
+                  ? `${t('payment.amountExceedsRemainingBalance')} ${formatMoney(restToPay)}.`
                   : undefined
               "
             />
           </div>
           <div class="min-w-0 flex-1">
             <StandardDropdown
-              label="Method *"
+              :label="t('payment.method')"
               :options="methodOptions"
               v-model="method"
-              placeholder="Select method"
+              :placeholder="t('payment.selectMethod')"
               :nullable="false"
             />
           </div>
@@ -71,6 +71,7 @@ import ButtonIn from "../ui/ButtonIn.vue";
 import InputIn from "../ui/InputIn.vue";
 import { formatMoney } from "../../composables/useFormatters";
 import { createPayment, getPaymentsByTicket } from "../../api/payments";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -83,21 +84,23 @@ const emit = defineEmits<{
   done: [];
   "update:modelValue": [value: boolean];
 }>();
+const { t } = useI18n();
+
 function close() {
   emit("update:modelValue", false);
   emit("close");
 }
 
 const modalTitle = computed(() =>
-  props.garageName ? `Payment – ${props.garageName}` : "Payment",
+  props.garageName ? `${t('payment.payment')} – ${props.garageName}` : t('payment.payment'),
 );
 
 const amount = ref<number>(0);
 const method = ref<string | null>("CASH");
 
 const methodOptions = [
-  { id: "CASH" as const, label: "Cash" },
-  { id: "CARD" as const, label: "Card" },
+  { id: "CASH" as const, label: t('payment.cash') },
+  { id: "CARD" as const, label: t('payment.card') },
 ];
 const loading = ref(false);
 const error = ref("");
@@ -143,11 +146,11 @@ onMounted(loadPayments);
 async function submit() {
   error.value = "";
   if (amount.value <= 0) {
-    error.value = "Amount must be positive";
+    error.value = t('payment.amountMustBePositive');
     return;
   }
   if (amountExceedsRest.value) {
-    error.value = `Amount exceeds remaining balance. Rest to pay: ${formatMoney(restToPay.value!)}.`;
+    error.value = t('payment.amountExceedsRemainingBalance', { amount: formatMoney(restToPay.value!) });
     return;
   }
   loading.value = true;
@@ -166,7 +169,7 @@ async function submit() {
   } catch (e: unknown) {
     const msg = (e as { response?: { data?: { detail?: string } } })?.response
       ?.data?.detail;
-    error.value = typeof msg === "string" ? msg : "Payment failed";
+    error.value = typeof msg === "string" ? msg : t('payment.paymentFailed');
     loading.value = false;
   }
 }

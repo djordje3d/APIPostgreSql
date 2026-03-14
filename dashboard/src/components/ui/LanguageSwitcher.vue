@@ -4,6 +4,7 @@
       :options="localeOptions"
       :model-value="current"
       :nullable="false"
+      dark
       @update:model-value="changeLocale($event as SupportedLocale)"
     />
   </div>
@@ -17,7 +18,10 @@ import StandardDropdown from "./StandardDropdown.vue";
 
 const { locale } = useI18n();
 
-const current = computed(() => String(locale.value) as SupportedLocale);
+const current = computed((): SupportedLocale => {
+  const v = String(locale.value ?? "").toLowerCase();
+  return v.startsWith("sr") ? "sr" : "en";
+});
 
 const localeOptions = [
   { id: "en" as const, label: "EN" },

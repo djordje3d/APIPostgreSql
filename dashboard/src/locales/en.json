@@ -1,4 +1,8 @@
 {
+  "language": {
+    "en": "English",
+    "sr": "Serbian"
+  },
   "header": {
     "dashboard": "Dashboard",
     "logout": "Logout",

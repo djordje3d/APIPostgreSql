@@ -64,47 +64,47 @@
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Garage
+                {{ t('ticket.garage') }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Plate
+                {{ t('ticket.plate') }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Spot
+                {{ t('ticket.spot') }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Entry time
+                {{ t('ticket.entryTime') }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Exit time
+                {{ t('ticket.exitTime') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Fee
+                {{ t('ticket.fee') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Rest to pay
+                {{ t('ticket.restToPay') }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Ticket ID
+                {{ t('ticket.ticketId') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Actions
+                {{ t('ticket.actions') }}
               </th>
             </tr>
           </thead>
@@ -190,7 +190,7 @@
 
             <tr v-if="(tickets || []).length === 0">
               <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                No tickets
+                {{ t('ticket.noTickets') }}
               </td>
             </tr>
           </tbody>
@@ -228,34 +228,34 @@
         </div>
         <dl class="space-y-2 text-sm">
           <div>
-            <dt class="text-gray-500">Garage</dt>
+            <dt class="text-gray-500">{{ t('ticket.garage') }}</dt>
             <dd>{{ viewingTicket.garage_name ?? "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">Plate</dt>
+            <dt class="text-gray-500">{{ t('ticket.plate') }}</dt>
             <dd>{{ viewingTicket.licence_plate ?? "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">Spot</dt>
+            <dt class="text-gray-500">{{ t('ticket.spot') }}</dt>
             <dd>{{ viewingTicket.spot_code ?? "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">Entry time</dt>
+            <dt class="text-gray-500">{{ t('ticket.entryTime') }}</dt>
             <dd>{{ formatTime(viewingTicket.entry_time) }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">Exit time</dt>
+            <dt class="text-gray-500">{{ t('ticket.exitTime') }}</dt>
             <dd>{{ formatTime(viewingTicket.exit_time) || "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">Fee</dt>
+            <dt class="text-gray-500">{{ t('ticket.fee') }}</dt>
             <dd>{{ formatMoney(viewingTicket.fee) }}</dd>
           </div>
         </dl>
 
         <div class="mt-4 border-t border-gray-200 pt-4">
           <dt class="text-xs font-medium uppercase text-gray-500">
-            Ticket ID (barcode)
+            {{ t('ticket.ticketId') }}
           </dt>
           <dd class="mt-2 flex flex-col items-center gap-2">
             <canvas
@@ -271,21 +271,21 @@
 
         <div class="mt-4 border-t border-gray-200 pt-4">
           <h4 class="text-sm font-semibold text-gray-800">
-            Evidence of payments
+            {{ t('ticket.evidenceOfPayments') }}
           </h4>
           <p class="mt-0.5 text-xs text-gray-500">
-            All payments for this ticket (amount and when paid).
+            {{ t('ticket.allPaymentsForThisTicket') }}
           </p>
 
           <div v-if="viewPaymentsLoading" class="mt-3 text-sm text-gray-500">
-            Loading…
+            {{ t('ticket.loading') }}
           </div>
 
           <div
             v-else-if="!viewPayments.length"
             class="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm text-gray-500"
           >
-            No payments recorded.
+            {{ t('ticket.noPaymentsRecorded') }}
           </div>
 
           <div
@@ -305,19 +305,19 @@
                     scope="col"
                     class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500"
                   >
-                    Amount
+                    {{ t('payment.amount') }}
                   </th>
                   <th
                     scope="col"
                     class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500"
                   >
-                    When
+                    {{ t('payment.when') }}
                   </th>
                   <th
                     scope="col"
                     class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500"
                   >
-                    Method
+                    {{ t('payment.method') }}
                   </th>
                 </tr>
               </thead>
@@ -351,7 +351,7 @@
                     colspan="2"
                     class="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-600"
                   >
-                    Total paid
+                    {{ t('payment.totalPaid') }}
                   </td>
                   <td
                     colspan="2"
@@ -370,8 +370,10 @@
             type="button"
             variant="outline"
             @click="viewingTicket = null"
+            :label="t('ticket.close')"
+            :caption="t('ticket.close')"
           >
-            Close
+            {{ t('ticket.close') }}
           </ButtonIn>
 
           <ButtonIn
@@ -386,7 +388,7 @@
               viewingTicket = null;
             "
           >
-            Go to payment
+            {{ t('ticket.goToPayment') }}
           </ButtonIn>
         </div>
       </template>
@@ -416,6 +418,7 @@ import Modal from "../ui/Modal.vue";
 import PaymentModal from "./PaymentModal.vue";
 import ButtonIn from "../ui/ButtonIn.vue";
 import ImageIn from "../ui/ImageIn.vue";
+import { useI18n } from "vue-i18n";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -423,6 +426,8 @@ const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
   garageId: undefined,
 });
+
+const { t } = useI18n();
 
 const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
   "dashboardRefreshAbortSignal",
