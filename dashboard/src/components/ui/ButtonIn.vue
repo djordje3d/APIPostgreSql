@@ -78,13 +78,13 @@ const isDisabled = computed(() => props.disabled);
 const variantClasses = computed(() => {
   switch (props.variant) {
     case "danger":
-      return "bg-red-600 text-white hover:bg-red-700";
+      return "min-w-[7.5rem] bg-red-600 text-white hover:bg-red-700";
     case "outline":
       return "border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50";
     case "link":
       return "bg-transparent px-0 py-0 rounded-none text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1";
     default:
-      return "bg-emerald-600 text-white hover:bg-emerald-700";
+      return "min-w-[7.5rem] bg-emerald-600 text-white hover:bg-emerald-700";
   }
 });
 

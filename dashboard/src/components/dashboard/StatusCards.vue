@@ -51,10 +51,10 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard label="Free spots" :value="freeSpots" variant="green" />
-      <StatCard label="Occupied spots" :value="occupiedSpots" variant="red" />
-      <StatCard label="Inactive spots" :value="inactiveSpots" variant="amber" />
-      <StatCard label="Open tickets" :value="openTickets" variant="slate" />
+      <StatCard :label="t('statusCards.freeSpots')" :value="freeSpots" variant="green" />
+      <StatCard :label="t('statusCards.occupiedSpots')" :value="occupiedSpots" variant="red" />
+      <StatCard :label="t('statusCards.inactiveSpots')" :value="inactiveSpots" variant="amber" />
+      <StatCard :label="t('statusCards.openTickets')" :value="openTickets" variant="slate" />
     </div>
   </div>
 </template>
@@ -64,7 +64,10 @@ import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import StatCard from "./StatCard.vue";
 import { listSpots } from "../../api/spots";
 import { listTickets } from "../../api/tickets";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
+  
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {

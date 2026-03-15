@@ -1,7 +1,7 @@
 <template>
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
-      <h2 class="text-lg font-semibold text-gray-900">Garage overview</h2>
+      <h2 class="text-lg font-semibold text-gray-900">{{ t('garageOverview.title') }}</h2>
     </div>
 
     <div class="overflow-x-auto">
@@ -12,10 +12,10 @@
       >
         <ButtonIn
           id="retryBtn"
-          label="Failed to fetch data, click here to retry"
-          variant="link"
+          :label="t('garageOverview.failedToFetchData')"
+          variant="outline"
           @userclick="retry"
-          caption="Retry"
+          :caption="t('garageOverview.retry')"
         />
       </div>
 
@@ -29,7 +29,7 @@
           class="icon-spinner11 inline-block text-2xl animate-spin"
           aria-hidden="true"
         ></span>
-        <span>loading data...</span>
+        <span>{{ t('garageOverview.loading') }}</span>
       </div>
 
       <div
@@ -58,27 +58,27 @@
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                Garage
+                {{ t('garageOverview.garage') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Total spots
+                {{ t('garageOverview.garageTotalSpots') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Free
+                {{ t('garageOverview.free') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Occupied
+                {{ t('garageOverview.occupied') }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                Rentable
+                {{ t('garageOverview.rentable') }}
               </th>
             </tr>
           </thead>
@@ -115,7 +115,7 @@
 
             <tr v-if="rows.length === 0">
               <td colspan="5" class="px-4 py-6 text-center text-gray-500">
-                No garages
+                {{ t('garageOverview.noGarages') }}
               </td>
             </tr>
           </tbody>
@@ -129,6 +129,9 @@
 import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import { getGarageOverview } from "../../api/garages";
 import ButtonIn from "../ui/ButtonIn.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 

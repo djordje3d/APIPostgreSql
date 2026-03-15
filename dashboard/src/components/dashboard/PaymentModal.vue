@@ -4,7 +4,7 @@
     @update:model-value="close"
     :title="modalTitle"
   >
-    <p class="mt-1 text-sm text-gray-600">Ticket #{{ ticketId }}</p>
+    <p class="mt-1 text-sm text-gray-600"> {{ t('ticket.ticket') }} #{{ ticketId }}</p>
     <p class="mb-1 text-sm text-gray-600"> {{ t('payment.totalFee') }}: {{ formatMoney(fee) }}</p>
     <p v-if="restToPay != null" class="mb-2 text-sm font-medium text-amber-700">
       {{ t('payment.restToPay') }}: {{ formatMoney(restToPay) }}
@@ -37,26 +37,26 @@
               :placeholder="t('payment.selectMethod')"
               :nullable="false"
             />
+            
           </div>
         </div>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
-      <div class="mt-4 flex justify-between gap-2">
+      <div class="mt-6 flex justify-between gap-2">
         <ButtonIn
           id="cancelBtn"
-          label="Cancel"
+          :label="t('payment.cancel')"
           variant="outline"
           @userclick="close"
-          caption="Cancel"
+          :caption="t('payment.cancel')"
         />
-
         <ButtonIn
           id="submitPaymentBtn"
-          label="Submit payment"
+          :label="t('payment.submitPayment')"
           variant="primary"
           :disabled="amountExceedsRest || loading"
           @userclick="submit"
-          caption="Submit payment"
+          :caption="t('payment.submitPayment')"
         />
       </div>
     </form>

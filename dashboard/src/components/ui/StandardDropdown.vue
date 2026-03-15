@@ -1,6 +1,6 @@
 <template>
   <div ref="root" class="standard-dropdown relative inline-block w-full">
-    <label v-if="label" class="mb-1 block text-sm font-medium text-gray-700">
+    <label v-if="label" class="mb-1 block font-medium text-gray-600" :class="labelClass">
       {{ label }}
     </label>
 
@@ -125,6 +125,7 @@ export type DropdownOption = { id: number | string; label: string };
 const props = withDefaults(
   defineProps<{
     label?: string;
+    labelClass?: string;
     options: DropdownOption[];
     modelValue: number | string | null;
     placeholder?: string;
@@ -138,6 +139,7 @@ const props = withDefaults(
     nullable: false,
     nullOptionLabel: "",
     dark: false,
+    labelClass: "text-sm",
   }
 );
 

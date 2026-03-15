@@ -2,7 +2,7 @@
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
       <h2 class="text-lg font-semibold text-gray-900">
-        Ticket activity (last 10)
+        {{ t('ticket.Last 10') }}
       </h2>
     </div>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-    <h2 class="mb-4 text-lg font-semibold text-gray-900">Payments & revenue</h2>
+    <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ t('paymenetsRevenue.title') }}</h2>
 
     <div
       v-if="error"
@@ -50,15 +50,15 @@
       </div>
 
       <div class="space-y-4">
-        <SummaryRow label="Today's revenue" :value="formatMoney(todayRevenue)" />
-        <SummaryRow label="This month" :value="formatMoney(monthRevenue)" />
+        <SummaryRow :label="t('paymenetsRevenue.todayRevenue')" :value="formatMoney(todayRevenue)" />
+        <SummaryRow :label="t('paymenetsRevenue.thisMonthRevenue')" :value="formatMoney(monthRevenue)" />
         <SummaryRow
-          label="Unpaid / partially paid tickets"
+          :label="t('paymenetsRevenue.unpaidPartiallyPaidTickets')"
           :value="unpaidCount"
           value-class="text-amber-700"
         />
         <SummaryRow
-          label="Rest to pay (to full paid)"
+          :label="t('paymenetsRevenue.restToPayDescription')"
           :value="formatMoney(totalOutstanding)"
           value-class="text-amber-700"
         />
@@ -73,12 +73,16 @@ import SummaryRow from "./SummaryRow.vue";
 import { formatMoney } from "../../composables/useFormatters";
 import { listPayments, getOutstanding } from "../../api/payments";
 import { listTickets } from "../../api/tickets";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 
 const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
   garageId: undefined,
 });
+
 
 const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
   "dashboardRefreshAbortSignal",

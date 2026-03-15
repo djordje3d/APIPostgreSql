@@ -2,27 +2,27 @@
   <div class="dashboard-sections">
     <div class="flex items-center gap-4">
       <router-link to="/" class="text-gray-600 hover:text-gray-900"
-        >&larr; Dashboard</router-link
+        >&larr; {{ t('garageDetail.dashboard') }}</router-link
       >
       <h1 v-if="garage" class="text-2xl font-bold text-gray-900">
         {{ garage.name }}
       </h1>
       <h1 v-else class="text-2xl font-bold text-gray-900">
-        Garage #{{ $route.params.id }}
+        {{ t('garageDetail.garage') }} #{{ $route.params.id }}
       </h1>
     </div>
-    <div v-if="loading" class="text-gray-500">Loading…</div>
+    <div v-if="loading" class="text-gray-500">{{ t('garageDetail.loading') }}</div>
     <template v-else-if="garage">
       <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
         <p class="text-sm text-gray-600">
-          Capacity: {{ garage.capacity }} · Default rate:
+          {{ t('garageDetail.capacity') }}: {{ garage.capacity }} · {{ t('garageDetail.defaultRate') }}:
           {{ formatRate(garage.default_rate) }} RSD
         </p>
       </div>
       <RevenueSummary ref="revenueRef" :garage-id="garage.id" />
       <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
         <div class="border-b border-gray-200 px-4 py-3">
-          <h2 class="text-lg font-semibold">Spots</h2>
+          <h2 class="text-lg font-semibold">{{ t('garageDetail.spots') }}</h2>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -31,29 +31,29 @@
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  Code
+                  {{ t('garageDetail.spot') }}
                 </th>
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  Rentable
+                  {{ t('garageDetail.rentableSpots') }}
                 </th>
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  Active
+                  {{ t('garageDetail.activeSpots') }}
                 </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">
               <tr v-for="s in spots" :key="s.id">
                 <td class="px-4 py-3 font-medium">{{ s.code }}</td>
-                <td class="px-4 py-3">{{ s.is_rentable ? "Yes" : "No" }}</td>
-                <td class="px-4 py-3">{{ s.is_active ? "Yes" : "No" }}</td>
+                <td class="px-4 py-3">{{ s.is_rentable ? t('garageDetail.yes') : t('garageDetail.no') }}</td>
+                <td class="px-4 py-3">{{ s.is_active ? t('garageDetail.yes') : t('garageDetail.no') }}</td>
               </tr>
               <tr v-if="spots.length === 0">
                 <td colspan="3" class="px-4 py-6 text-center text-gray-500">
-                  No spots
+                  {{ t('garageDetail.noSpots') }}
                 </td>
               </tr>
             </tbody>
@@ -70,7 +70,7 @@
       <!-- Open tickets -->
       <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
         <div class="border-b border-gray-200 px-4 py-3">
-          <h2 class="text-lg font-semibold">Open tickets</h2>
+          <h2 class="text-lg font-semibold">{{ t('garageDetail.openTickets') }}</h2>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -79,22 +79,22 @@
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  ID
+                {{ t('garageDetail.id') }}
                 </th>
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  Entry
+                  {{ t('garageDetail.entryTime') }}
                 </th>
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  Spot
+                  {{ t('garageDetail.spot') }}
                 </th>
                 <th
                   class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
                 >
-                  Plate
+                  {{ t('garageDetail.plate') }}
                 </th>
               </tr>
             </thead>
@@ -109,7 +109,7 @@
               </tr>
               <tr v-if="openTickets.length === 0">
                 <td colspan="4" class="px-4 py-6 text-center text-gray-500">
-                  No open tickets
+                  {{ t('garageDetail.noOpenTickets') }}
                 </td>
               </tr>
             </tbody>
@@ -117,7 +117,7 @@
         </div>
       </div>
     </template>
-    <div v-else class="text-red-600">Garage not found.</div>
+    <div v-else class="text-red-600">{{ t('garageDetail.garageNotFound') }}</div>
   </div>
 </template>
 
@@ -133,8 +133,11 @@ import PaginationBar from "../components/ui/PaginationBar.vue";
 import { formatTime, formatRate } from "../composables/useFormatters";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import type { Garage } from "../api/garages";
-import type { Spot } from "../api/spots";
+import type { Spot } from "../api/spots"; 
 import type { TicketDashboardRow } from "../api/tickets";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const autoRefreshEnabled = inject<Ref<boolean>>(
   "autoRefreshEnabled",

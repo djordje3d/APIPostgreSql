@@ -9,23 +9,23 @@
     <div class="flex items-center gap-2">
       <ButtonIn
         type="button"
+        id="previousPage"
         variant="outline"
         :disabled="page <= 1"
-        @click="goPrev"
-      >
-        Previous
-      </ButtonIn>
+        @userclick="goPrev"
+        :label="t('garageDetail.previousPage')"
+      />
       <span class="text-sm text-gray-600">
-        Page {{ page }} of {{ totalPages }}
+       {{ t('garageDetail.page')}} {{ page }} {{ t('garageDetail.of') }} {{ totalPages }}
       </span>
       <ButtonIn
         type="button"
+        id="nextPage"
         variant="outline"
         :disabled="page >= totalPages"
-        @click="goNext"
-      >
-        Next
-      </ButtonIn>
+        @userclick="goNext"
+        :label="t('garageDetail.nextPage')"
+      />
     </div>
   </div>
 </template>
@@ -33,6 +33,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import ButtonIn from "./ButtonIn.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   page: number;
