@@ -8,7 +8,7 @@ from app import models, schemas
 from app.config import USE_API_FEE_CALCULATION
 from app.services.spots import allocate_free_spot
 from app.services.pricing import get_ticket_fee
-from app.services.tokens import generate_ticket_token
+from app.services.tokens import generate_unique_ticket_token
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
@@ -168,13 +168,14 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
         else:
             # Auto dodela spota (slobodan spot u toj garaži)
             spot_id = allocate_free_spot(
-                db, data.garage_id, rentable_only=data.rentable_only
+                db, data.garage_id, rentable_only=data.ren  table_only
             )
 
         # Napomena: Token mora da se generiše pre dodavanja u bazu.
 
         t = models.Ticket(
-            ticket_token=generate_ticket_token(data.garage_id),
+            ticket_token=generate_unique_ticket_token(db, data.garage_id),
+            
             vehicle_id=data.vehicle_id,
             entry_time=data.entry_time or datetime.now(timezone.utc),
             ticket_state="OPEN",
