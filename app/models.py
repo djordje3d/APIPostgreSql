@@ -69,6 +69,8 @@ class Ticket(Base):
 
     id = Column(Integer, primary_key=True)
 
+    ticket_token = Column(String(32), unique=True, nullable=False, index=True)
+
     entry_time = Column(DateTime)
     exit_time = Column(DateTime, nullable=True)
     fee = Column(Numeric)
