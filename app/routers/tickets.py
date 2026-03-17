@@ -8,9 +8,10 @@ from app import models, schemas
 from app.config import USE_API_FEE_CALCULATION
 from app.services.spots import allocate_free_spot
 from app.services.pricing import get_ticket_fee
-from app.services.tokens import generate_unique_ticket_token
+from app.services.tokens import generate_ticket_token
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
+MAX_RETRIES = 5
 
 
 @router.get(
@@ -56,6 +57,7 @@ def list_tickets_dashboard(
                 vehicle_id=t.vehicle_id,
                 garage_id=t.garage_id,
                 spot_id=t.spot_id,
+                ticket_token=t.ticket_token,
                 licence_plate=t.vehicle.licence_plate if t.vehicle else None,
                 spot_code=t.spot.code if t.spot else None,
                 garage_name=t.garage.name if t.garage else None,
@@ -168,28 +170,40 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
         else:
             # Auto dodela spota (slobodan spot u toj garaži)
             spot_id = allocate_free_spot(
-                db, data.garage_id, rentable_only=data.ren  table_only
+                db, data.garage_id, rentable_only=data.rentable_only
             )
 
-        # Napomena: Token mora da se generiše pre dodavanja u bazu.
+        for _ in range(MAX_RETRIES):
+            try:
+                t = models.Ticket(
+                    ticket_token=generate_ticket_token(data.garage_id),
+                    vehicle_id=data.vehicle_id,
+                    entry_time=data.entry_time or datetime.now(timezone.utc),
+                    ticket_state="OPEN",
+                    payment_status="NOT_APPLICABLE",
+                    operational_status="OK",
+                    garage_id=data.garage_id,
+                    fee=0,
+                    spot_id=spot_id,
+                    image_url=data.image_url,
+                )
+                db.add(t)
+                db.commit()
+                db.refresh(t)
+                return t
 
-        t = models.Ticket(
-            ticket_token=generate_unique_ticket_token(db, data.garage_id),
-            
-            vehicle_id=data.vehicle_id,
-            entry_time=data.entry_time or datetime.now(timezone.utc),
-            ticket_state="OPEN",
-            payment_status="NOT_APPLICABLE",
-            operational_status="OK",
-            garage_id=data.garage_id,
-            fee=0,
-            spot_id=spot_id,
-            image_url=data.image_url,
+            except IntegrityError as e:
+                print(f"IntegrityError: {e}")
+                db.rollback()
+                # retry with new token
+
+                error_text = str(e.orig).lower()
+                if "ticket_token" not in error_text:
+                    raise HTTPException(500, f"Database integrity error: {str(e.orig)}")
+
+        raise HTTPException(
+            500, "Failed to generate unique ticket token after multiple retries"
         )
-        db.add(t)
-        db.commit()
-        db.refresh(t)
-        return t
 
     except HTTPException:
         db.rollback()

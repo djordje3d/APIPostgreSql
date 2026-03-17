@@ -11,7 +11,7 @@ try:
         old_token = ticket.ticket_token
         new_token = generate_unique_ticket_token(db, ticket.garage_id)  # type: ignore[arg-type]
         setattr(ticket, "ticket_token", new_token)
-        db.flush()  # so next generate_unique_ticket_token sees this token
+        db.flush()  # so next generate_unique_ticket_token sees this token (should be done automatically by the ORM, but just in case)
         print(f"{ticket.id}: {old_token} -> {new_token}")
 
     db.commit()

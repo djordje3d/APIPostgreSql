@@ -13,6 +13,7 @@ export interface TicketResponse {
   vehicle_id: number | null
   garage_id: number
   spot_id: number | null
+  ticket_token: string
 }
 
 // get the tickets from the tickets dashboard endpoint

@@ -70,6 +70,7 @@ class TicketResponse(BaseModel):
     garage_id: int
     spot_id: int | None
     image_url: str | None = None
+    ticket_token: str
 
 
 class TicketDashboardRow(BaseModel):
@@ -85,6 +86,7 @@ class TicketDashboardRow(BaseModel):
     vehicle_id: int | None
     garage_id: int
     spot_id: int | None
+    ticket_token: str
     licence_plate: str | None = None
     spot_code: str | None = None
     garage_name: str | None = None
@@ -102,7 +104,8 @@ class PaginatedResponse(BaseModel, Generic[T]):
     items: list[T]
 
 
-# DB CHECK constraint values — use in query params and any request body that accepts these
+# DB CHECK constraint values — use in query params and any request body
+# that accepts these
 TicketState = Literal["OPEN", "CLOSED"]
 PaymentStatus = Literal["NOT_APPLICABLE", "UNPAID", "PARTIALLY_PAID", "PAID"]
 OperationalStatus = Literal[
@@ -171,7 +174,10 @@ class PaymentResponse(BaseModel):
 
 
 class OutstandingResponse(BaseModel):
-    """Total amount still to be paid for unpaid/partially paid tickets (optionally per garage)."""
+    """Total amount still to be paid.
+
+    For unpaid/partially paid tickets (optionally per garage).
+    """
     total_outstanding: float
 
 

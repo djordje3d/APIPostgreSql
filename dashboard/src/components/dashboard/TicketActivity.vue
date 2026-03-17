@@ -258,14 +258,12 @@
             {{ t('ticket.ticketId') }}
           </dt>
           <dd class="mt-2 flex flex-col items-center gap-2">
-            <canvas
-              ref="barcodeCanvasRef"
+            <img
+              v-if="barcodeImageSrc"
+              :src="barcodeImageSrc"
               class="max-w-full rounded border border-gray-200 bg-white"
-              aria-label="Barcode for ticket"
+              :alt="`Barcode for ticket ${viewingTicket?.ticket_token ?? viewingTicket?.id}`"
             />
-            <span class="font-mono text-sm tracking-[0.35em] text-gray-600">
-              {{ viewingTicket.id }}
-            </span>
           </dd>
         </div>
 
@@ -367,6 +365,7 @@
 
         <div class="mt-4 flex justify-between gap-2">
           <ButtonIn
+            id="ticket-detail-close"
             type="button"
             variant="outline"
             @click="viewingTicket = null"
@@ -377,6 +376,7 @@
           </ButtonIn>
 
           <ButtonIn
+            id="ticket-detail-go-to-payment"
             v-if="
               viewingTicket.ticket_state === 'CLOSED' &&
               viewingTicket.payment_status !== 'PAID'
@@ -407,7 +407,6 @@ import {
   onUnmounted,
   type Ref,
 } from "vue";
-import JsBarcode from "jsbarcode";
 import { formatTime, formatMoney } from "../../composables/useFormatters";
 import { listTicketsDashboard, ticketExit } from "../../api/tickets";
 import type { TicketDashboardRow } from "../../api/tickets";
@@ -441,6 +440,7 @@ const hasLoadedOnce = ref(false);
 
 const tickets = ref<TicketDashboardRow[]>([]);
 const viewingTicket = ref<TicketDashboardRow | null>(null);
+const barcodeImageSrc = ref<string | null>(null);
 
 const viewPayments = ref<Payment[]>([]);
 const viewPaymentsLoading = ref(false);
@@ -450,8 +450,6 @@ const showPaymentModal = ref(false);
 
 const restToPayMap = ref<Record<number, number>>({});
 const paymentsCache = new Map<number, Payment[]>();
-
-const barcodeCanvasRef = ref<HTMLCanvasElement | null>(null);
 
 const PAYMENTS_VIEW_LIMIT = 50;
 
@@ -659,21 +657,76 @@ function retry() {
   fetch();
 }
 
-function renderBarcodeImage(ticketId: number) {
-  const canvas = barcodeCanvasRef.value;
-  if (!canvas) return;
+function encodeTokenToBars(token: string): number[] {
+  const startGuard = [1, 1, 1];
+  const endGuard = [1, 1, 1];
 
-  try {
-    JsBarcode(canvas, String(ticketId), {
-      format: "CODE128",
-      width: 2,
-      height: 48,
-      displayValue: false,
-      margin: 4,
-    });
-  } catch {
-    // leave blank
+  const charPatterns: Record<string, number[]> = {
+    "0": [1, 1, 2, 2, 1],
+    "1": [2, 1, 1, 1, 2],
+    "2": [1, 2, 1, 1, 2],
+    "3": [2, 2, 1, 1, 1],
+    "4": [1, 1, 2, 1, 2],
+    "5": [2, 1, 2, 1, 1],
+    "6": [1, 2, 2, 1, 1],
+    "7": [1, 1, 1, 2, 2],
+    "8": [2, 1, 1, 2, 1],
+    "9": [1, 2, 1, 2, 1],
+    A: [1, 1, 2, 1, 1],
+    B: [1, 2, 1, 2, 2],
+    C: [2, 1, 1, 2, 2],
+    D: [2, 1, 2, 2, 1],
+    E: [1, 2, 2, 2, 1],
+    F: [2, 2, 1, 2, 1],
+    G: [1, 1, 1, 2, 1],
+  };
+
+  const modules: number[] = [...startGuard];
+
+  for (const ch of token.toUpperCase()) {
+    const pattern = charPatterns[ch] ?? [1, 1, 1, 1, 1];
+    modules.push(...pattern);
   }
+
+  modules.push(...endGuard);
+  return modules;
+}
+
+function generateBarcodeImage(token: string, width: number): string {
+  const barHeight = Math.floor(width * 0.4);
+  const textHeight = 28;
+  const totalHeight = barHeight + textHeight;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = totalHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const sequence = encodeTokenToBars(token);
+  const totalModules = sequence.reduce((sum, v) => sum + v, 0);
+  const moduleWidth = canvas.width / totalModules;
+
+  let x = 0;
+  for (let i = 0; i < sequence.length; i += 1) {
+    const w = sequence[i] * moduleWidth;
+    if (i % 2 === 0) {
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(x, 0, w, barHeight);
+    }
+    x += w;
+  }
+
+  ctx.fillStyle = "#000000";
+  ctx.font = "20px monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(token, canvas.width / 2, barHeight + textHeight / 2);
+
+  return canvas.toDataURL("image/png");
 }
 
 function onDashboardRefresh() {
@@ -684,10 +737,14 @@ watch(viewingTicket, (t) => {
   if (!t) {
     viewPayments.value = [];
     viewPaymentsLoading.value = false;
+    barcodeImageSrc.value = null;
     return;
   }
 
-  nextTick(() => renderBarcodeImage(t.id));
+  const token = (t as any).ticket_token ?? String(t.id);
+  nextTick(() => {
+    barcodeImageSrc.value = generateBarcodeImage(token, 360);
+  });
 });
 
 watch(
