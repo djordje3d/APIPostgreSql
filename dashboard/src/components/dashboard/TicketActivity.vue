@@ -264,6 +264,13 @@
               class="max-w-full rounded border border-gray-200 bg-white"
               :alt="`Barcode for ticket ${viewingTicket?.ticket_token ?? viewingTicket?.id}`"
             />
+
+            <span
+              v-else
+              class="text-xs text-gray-400"
+            >
+              Barcode unavailable
+            </span>
           </dd>
         </div>
 
@@ -418,6 +425,7 @@ import PaymentModal from "./PaymentModal.vue";
 import ButtonIn from "../ui/ButtonIn.vue";
 import ImageIn from "../ui/ImageIn.vue";
 import { useI18n } from "vue-i18n";
+import { generateCode39BarcodeImage } from "../../utils/code39";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -440,7 +448,21 @@ const hasLoadedOnce = ref(false);
 
 const tickets = ref<TicketDashboardRow[]>([]);
 const viewingTicket = ref<TicketDashboardRow | null>(null);
-const barcodeImageSrc = ref<string | null>(null);
+const barcodeImageSrc = computed(() => {
+  const t = viewingTicket.value;
+  if (!t) return "";
+
+  const token = t.ticket_token ?? String(t.id);
+  if (!token) return "";
+
+  try {
+    // Code 39 with Canvas2D returns `data:image/png;base64,...`.
+    return generateCode39BarcodeImage(String(token), 360);
+  } catch (err) {
+    console.error("Failed to generate Code 39 barcode:", err);
+    return "";
+  }
+});
 
 const viewPayments = ref<Payment[]>([]);
 const viewPaymentsLoading = ref(false);
@@ -657,95 +679,9 @@ function retry() {
   fetch();
 }
 
-function encodeTokenToBars(token: string): number[] {
-  const startGuard = [1, 1, 1];
-  const endGuard = [1, 1, 1];
-
-  const charPatterns: Record<string, number[]> = {
-    "0": [1, 1, 2, 2, 1],
-    "1": [2, 1, 1, 1, 2],
-    "2": [1, 2, 1, 1, 2],
-    "3": [2, 2, 1, 1, 1],
-    "4": [1, 1, 2, 1, 2],
-    "5": [2, 1, 2, 1, 1],
-    "6": [1, 2, 2, 1, 1],
-    "7": [1, 1, 1, 2, 2],
-    "8": [2, 1, 1, 2, 1],
-    "9": [1, 2, 1, 2, 1],
-    A: [1, 1, 2, 1, 1],
-    B: [1, 2, 1, 2, 2],
-    C: [2, 1, 1, 2, 2],
-    D: [2, 1, 2, 2, 1],
-    E: [1, 2, 2, 2, 1],
-    F: [2, 2, 1, 2, 1],
-    G: [1, 1, 1, 2, 1],
-  };
-
-  const modules: number[] = [...startGuard];
-
-  for (const ch of token.toUpperCase()) {
-    const pattern = charPatterns[ch] ?? [1, 1, 1, 1, 1];
-    modules.push(...pattern);
-  }
-
-  modules.push(...endGuard);
-  return modules;
-}
-
-function generateBarcodeImage(token: string, width: number): string {
-  const barHeight = Math.floor(width * 0.4);
-  const textHeight = 28;
-  const totalHeight = barHeight + textHeight;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = totalHeight;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return "";
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  const sequence = encodeTokenToBars(token);
-  const totalModules = sequence.reduce((sum, v) => sum + v, 0);
-  const moduleWidth = canvas.width / totalModules;
-
-  let x = 0;
-  for (let i = 0; i < sequence.length; i += 1) {
-    const w = sequence[i] * moduleWidth;
-    if (i % 2 === 0) {
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(x, 0, w, barHeight);
-    }
-    x += w;
-  }
-
-  ctx.fillStyle = "#000000";
-  ctx.font = "20px monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(token, canvas.width / 2, barHeight + textHeight / 2);
-
-  return canvas.toDataURL("image/png");
-}
-
 function onDashboardRefresh() {
   fetch();
 }
-
-watch(viewingTicket, (t) => {
-  if (!t) {
-    viewPayments.value = [];
-    viewPaymentsLoading.value = false;
-    barcodeImageSrc.value = null;
-    return;
-  }
-
-  const token = (t as any).ticket_token ?? String(t.id);
-  nextTick(() => {
-    barcodeImageSrc.value = generateBarcodeImage(token, 360);
-  });
-});
 
 watch(
   () => props.garageId,
