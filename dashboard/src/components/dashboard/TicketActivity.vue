@@ -2,7 +2,7 @@
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
       <h2 class="text-lg font-semibold text-gray-900">
-        {{ t('ticket.Last 10') }}
+        {{ t("ticket.Last 10") }}
       </h2>
     </div>
 
@@ -64,47 +64,47 @@
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.garage') }}
+                {{ t("ticket.garage") }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.plate') }}
+                {{ t("ticket.plate") }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.spot') }}
+                {{ t("ticket.spot") }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.entryTime') }}
+                {{ t("ticket.entryTime") }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.exitTime') }}
+                {{ t("ticket.exitTime") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.fee') }}
+                {{ t("ticket.fee") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.restToPay') }}
+                {{ t("ticket.restToPay") }}
               </th>
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.ticketId') }}
+                {{ t("ticket.ticketId") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('ticket.actions') }}
+                {{ t("ticket.actions") }}
               </th>
             </tr>
           </thead>
@@ -190,7 +190,7 @@
 
             <tr v-if="(tickets || []).length === 0">
               <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                {{ t('ticket.noTickets') }}
+                {{ t("ticket.noTickets") }}
               </td>
             </tr>
           </tbody>
@@ -228,35 +228,36 @@
         </div>
         <dl class="space-y-2 text-sm">
           <div>
-            <dt class="text-gray-500">{{ t('ticket.garage') }}</dt>
+            <dt class="text-gray-500">{{ t("ticket.garage") }}</dt>
             <dd>{{ viewingTicket.garage_name ?? "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">{{ t('ticket.plate') }}</dt>
+            <dt class="text-gray-500">{{ t("ticket.plate") }}</dt>
             <dd>{{ viewingTicket.licence_plate ?? "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">{{ t('ticket.spot') }}</dt>
+            <dt class="text-gray-500">{{ t("ticket.spot") }}</dt>
             <dd>{{ viewingTicket.spot_code ?? "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">{{ t('ticket.entryTime') }}</dt>
+            <dt class="text-gray-500">{{ t("ticket.entryTime") }}</dt>
             <dd>{{ formatTime(viewingTicket.entry_time) }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">{{ t('ticket.exitTime') }}</dt>
+            <dt class="text-gray-500">{{ t("ticket.exitTime") }}</dt>
             <dd>{{ formatTime(viewingTicket.exit_time) || "–" }}</dd>
           </div>
           <div>
-            <dt class="text-gray-500">{{ t('ticket.fee') }}</dt>
+            <dt class="text-gray-500">{{ t("ticket.fee") }}</dt>
             <dd>{{ formatMoney(viewingTicket.fee) }}</dd>
           </div>
         </dl>
 
         <div class="mt-4 border-t border-gray-200 pt-4">
-          <dt class="text-xs font-medium uppercase text-gray-500">
-            {{ t('ticket.ticketId') }}
+          <dt class="text-xs font-medium text-gray-500">
+            {{ t("ticket.barcode") }}
           </dt>
+
           <dd class="mt-2 flex flex-col items-center gap-2">
             <img
               v-if="barcodeImageSrc"
@@ -265,10 +266,7 @@
               :alt="`Barcode for ticket ${viewingTicket?.ticket_token ?? viewingTicket?.id}`"
             />
 
-            <span
-              v-else
-              class="text-xs text-gray-400"
-            >
+            <span v-if="!barcodeImageSrc" class="text-xs text-gray-400">
               Barcode unavailable
             </span>
           </dd>
@@ -276,21 +274,21 @@
 
         <div class="mt-4 border-t border-gray-200 pt-4">
           <h4 class="text-sm font-semibold text-gray-800">
-            {{ t('ticket.evidenceOfPayments') }}
+            {{ t("ticket.evidenceOfPayments") }}
           </h4>
           <p class="mt-0.5 text-xs text-gray-500">
-            {{ t('ticket.allPaymentsForThisTicket') }}
+            {{ t("ticket.allPaymentsForThisTicket") }}
           </p>
 
           <div v-if="viewPaymentsLoading" class="mt-3 text-sm text-gray-500">
-            {{ t('ticket.loading') }}
+            {{ t("ticket.loading") }}
           </div>
 
           <div
             v-else-if="!viewPayments.length"
             class="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm text-gray-500"
           >
-            {{ t('ticket.noPaymentsRecorded') }}
+            {{ t("ticket.noPaymentsRecorded") }}
           </div>
 
           <div
@@ -310,19 +308,19 @@
                     scope="col"
                     class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500"
                   >
-                    {{ t('payment.amount') }}
+                    {{ t("payment.amount") }}
                   </th>
                   <th
                     scope="col"
                     class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500"
                   >
-                    {{ t('payment.when') }}
+                    {{ t("payment.when") }}
                   </th>
                   <th
                     scope="col"
                     class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500"
                   >
-                    {{ t('payment.method') }}
+                    {{ t("payment.method") }}
                   </th>
                 </tr>
               </thead>
@@ -356,7 +354,7 @@
                     colspan="2"
                     class="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-600"
                   >
-                    {{ t('payment.totalPaid') }}
+                    {{ t("payment.totalPaid") }}
                   </td>
                   <td
                     colspan="2"
@@ -379,7 +377,7 @@
             :label="t('ticket.close')"
             :caption="t('ticket.close')"
           >
-            {{ t('ticket.close') }}
+            {{ t("ticket.close") }}
           </ButtonIn>
 
           <ButtonIn
@@ -395,7 +393,7 @@
               viewingTicket = null;
             "
           >
-            {{ t('ticket.goToPayment') }}
+            {{ t("ticket.goToPayment") }}
           </ButtonIn>
         </div>
       </template>
@@ -448,16 +446,18 @@ const hasLoadedOnce = ref(false);
 
 const tickets = ref<TicketDashboardRow[]>([]);
 const viewingTicket = ref<TicketDashboardRow | null>(null);
-const barcodeImageSrc = computed(() => {
-  const t = viewingTicket.value;
-  if (!t) return "";
+const BARCODE_WIDTH = 360;
 
-  const token = t.ticket_token ?? String(t.id);
+const barcodeImageSrc = computed(() => {
+  const ticket = viewingTicket.value;
+  if (!ticket) return "";
+
+  const token = ticket.ticket_token ?? String(ticket.id);
   if (!token) return "";
 
   try {
     // Code 39 with Canvas2D returns `data:image/png;base64,...`.
-    return generateCode39BarcodeImage(String(token), 360);
+    return generateCode39BarcodeImage(String(token), BARCODE_WIDTH);
   } catch (err) {
     console.error("Failed to generate Code 39 barcode:", err);
     return "";
@@ -501,7 +501,12 @@ const ticketImageUrl = computed(() => {
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   const path = url.startsWith("/") ? url : `/${url}`;
   try {
-    const api = new URL(baseURL, typeof window !== "undefined" ? window.location.origin : "http://localhost:8000");
+    const api = new URL(
+      baseURL,
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:8000",
+    );
     return `${api.origin}${path}`;
   } catch {
     const base = baseURL.replace(/\/+$/, "");

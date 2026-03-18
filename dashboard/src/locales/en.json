@@ -96,7 +96,7 @@
     "totalPaid": "Total paid",
     "noTickets": "No tickets",
     "garage": "Garage",
-    "ticketId": "Ticket ID",
+    "ticketId": "Ticket #",
     "actions": "Actions",
     "noPaymentsRecorded": "No payments recorded",
     "loading": "Loading...",
@@ -104,7 +104,8 @@
     "evidenceOfPayments": "Evidence of payments",
     "restToPay": "Rest to pay",
     "paymentWhen": "Payment when",
-    "paymentMethod": "Payment method"
+    "paymentMethod": "Payment method",
+    "barcode": "Barcode"
   },
   "garageOverview": {
     "title": "Garage overview",

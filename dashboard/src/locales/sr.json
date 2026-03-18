@@ -96,7 +96,7 @@
     "totalPaid": "Ukupno plaćeno",
     "noTickets": "Nema kartica",
     "garage": "Garaža",
-    "ticketId": "ID karte",
+    "ticketId": "Karta #",
     "actions": "Akcije",
     "noPaymentsRecorded": "Nema plaćanja",
     "loading": "Učitavanje...",
@@ -104,7 +104,8 @@
     "evidenceOfPayments": "Dokaz o plaćanjima",
     "restToPay": "Ostatak za plaćanje",
     "paymentWhen": "Vreme plaćanja",
-    "paymentMethod": "Metoda plaćanja"
+    "paymentMethod": "Metoda plaćanja",
+    "barcode": "Barkod"
   },
   "garageOverview": {
     "title": "Pregled garaža",

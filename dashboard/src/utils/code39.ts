@@ -4,6 +4,22 @@
  * Returns a `data:image/png;base64,...` string that can be used directly in an <img>.
  */
 
+/**
+ * Code 39 is a barcode symbology that encodes 43 different characters, including digits, uppercase letters, and special characters.
+ * It is a self-checking code, meaning that the barcode can be scanned and verified without the need for a checksum.
+ * It is a linear barcode and is often used in industrial applications.
+ * It is a 1D barcode and is often used in industrial applications.
+ * 0-9, A-Z, -, ., $, /, +, %, * are the supported characters.
+ * * is the start/stop character and must not be part of the input.
+ * The barcode is encoded as a sequence of bars and spaces.
+ * The bars are encoded as "w" for wide and "n" for narrow.
+ * The spaces are encoded as "n" for narrow and "w" for wide.
+ * The barcode is encoded as a sequence of bars and spaces.
+ * The bars are encoded as "w" for wide and "n" for narrow.
+ * The spaces are encoded as "n" for narrow and "w" for wide.
+ * The barcode is encoded as a sequence of bars and spaces.
+ */
+
 export const CODE39_PATTERNS: Record<string, string> = {
   "0": "nnnwwnwnn",
   "1": "wnnwnnnnw",
@@ -92,6 +108,7 @@ type BarcodeElement = {
   units: number;
 };
 
+// Code 39 can be use to encode any string, but it is most commonly used to encode numbers and uppercase letters.
 function normalizeCode39Token(token: string): string {
   const normalized = token.trim().toUpperCase();
 
@@ -109,6 +126,12 @@ function normalizeCode39Token(token: string): string {
 
   return normalized;
 }
+
+// Builds the barcode sequence from the normalized token.
+// For text returns sequence of bars and spaces. Every element has width in "narrow units".
+//
+// Code 39: Every character has 9 elements (bar/space/bar/space/bar/space/bar/space/bar).
+// Between characters there is a 1-unit narrow space gap.
 
 function buildCode39Sequence(
   normalizedToken: string,
@@ -134,6 +157,7 @@ function buildCode39Sequence(
     }
 
     // Narrow space gap between characters (not after last char).
+     // međukarakterni gap, osim posle poslednjeg karaktera
     if (charIndex < fullText.length - 1) {
       sequence.push({
         isBar: false,
@@ -182,7 +206,7 @@ export function generateCode39BarcodeImage(
 
   ctx.imageSmoothingEnabled = false;
 
-  // Background
+  // Background color
   ctx.fillStyle = opts.backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
