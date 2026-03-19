@@ -1,17 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timezone
 
 from app.db import get_db
 from app import models, schemas
-from app.config import USE_API_FEE_CALCULATION
-from app.services.spots import allocate_free_spot
 from app.services.pricing import get_ticket_fee
-from app.services.tokens import generate_ticket_token
+from app.services.tickets import (
+    InvalidSpotError,
+    InvalidVehicleError,
+    NoFreeSpotError,
+    SpotGarageMismatchError,
+    SpotInactiveError,
+    SpotOccupiedError,
+    TicketNotFoundError,
+    TicketPersistenceError,
+    TicketStateError,
+    TicketTokenRetryExceededError,
+    close_ticket,
+    create_ticket_entry,
+)
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
-MAX_RETRIES = 5
 
 
 @router.get(
@@ -139,100 +147,28 @@ def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
 
 @router.post("/entry", response_model=schemas.TicketResponse)
 def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
-    vehicle = db.get(models.Vehicle, data.vehicle_id)
-    if not vehicle:
-        raise HTTPException(400, "Invalid vehicle_id")
-
     try:
-        # Ako je ručni spot_id prosleđen -> validiraj da pripada garaži, da je active i da nije zauzet
-        spot_id = data.spot_id
-
-        if spot_id is not None:
-            spot = db.get(models.ParkingSpot, spot_id)
-            if not spot:
-                raise HTTPException(400, "Invalid spot_id")
-            if spot.garage_id != data.garage_id:
-                raise HTTPException(400, "spot_id does not belong to garage")
-            if not spot.is_active:
-                raise HTTPException(400, "Spot is not active")
-
-            occupied = (
-                db.query(models.Ticket)
-                .filter(
-                    models.Ticket.spot_id == spot_id,
-                    models.Ticket.ticket_state == "OPEN",
-                )
-                .first()
-            )
-            if occupied:
-                raise HTTPException(409, "Spot is occupied")
-
-        else:
-            # Auto dodela spota (slobodan spot u toj garaži)
-            spot_id = allocate_free_spot(
-                db, data.garage_id, rentable_only=data.rentable_only
-            )
-
-        for _ in range(MAX_RETRIES):
-            try:
-                t = models.Ticket(
-                    ticket_token=generate_ticket_token(data.garage_id),
-                    vehicle_id=data.vehicle_id,
-                    entry_time=data.entry_time or datetime.now(timezone.utc),
-                    ticket_state="OPEN",
-                    payment_status="NOT_APPLICABLE",
-                    operational_status="OK",
-                    garage_id=data.garage_id,
-                    fee=0,
-                    spot_id=spot_id,
-                    image_url=data.image_url,
-                )
-                db.add(t)
-                db.commit()
-                db.refresh(t)
-                return t
-
-            except IntegrityError as e:
-                print(f"IntegrityError: {e}")
-                db.rollback()
-                # retry with new token
-
-                error_text = str(e.orig).lower()
-                if "ticket_token" not in error_text:
-                    raise HTTPException(500, f"Database integrity error: {str(e.orig)}")
-
-        raise HTTPException(
-            500, "Failed to generate unique ticket token after multiple retries"
-        )
-
-    except HTTPException:
-        db.rollback()
-        raise
-    except ValueError as e:
-        db.rollback()
-        # npr. "No free spots available"
+        return create_ticket_entry(db, data)
+    except (
+        InvalidVehicleError,
+        InvalidSpotError,
+        SpotGarageMismatchError,
+        SpotInactiveError,
+    ) as e:
+        raise HTTPException(400, str(e))
+    except (SpotOccupiedError, NoFreeSpotError) as e:
         raise HTTPException(409, str(e))
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(500, f"Ticket entry failed: {str(e)}")
+    except (TicketPersistenceError, TicketTokenRetryExceededError) as e:
+        raise HTTPException(500, str(e))
 
 
 @router.post("/{ticket_id}/exit", response_model=schemas.TicketResponse)
 def ticket_exit(
     ticket_id: int, data: schemas.TicketExit, db: Session = Depends(get_db)
 ):
-    t = db.get(models.Ticket, ticket_id)
-    if not t:
-        raise HTTPException(404, "Ticket not found")
-
-    if t.ticket_state != "OPEN" or t.exit_time is not None:
-        raise HTTPException(400, "Ticket is not open")
-
-    t.exit_time = data.exit_time or datetime.now(timezone.utc)
-    t.ticket_state = "CLOSED"
-    if USE_API_FEE_CALCULATION:
-        t.fee = get_ticket_fee(t, db)
-
-    db.commit()
-    db.refresh(t)
-    return t
+    try:
+        return close_ticket(db, ticket_id, data)
+    except TicketNotFoundError as e:
+        raise HTTPException(404, str(e))
+    except TicketStateError as e:
+        raise HTTPException(400, str(e))
