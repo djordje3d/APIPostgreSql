@@ -58,143 +58,13 @@
           ></span>
         </div>
 
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th
-                class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.garage") }}
-              </th>
-              <th
-                class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.plate") }}
-              </th>
-              <th
-                class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.spot") }}
-              </th>
-              <th
-                class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.entryTime") }}
-              </th>
-              <th
-                class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.exitTime") }}
-              </th>
-              <th
-                class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.fee") }}
-              </th>
-              <th
-                class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.restToPay") }}
-              </th>
-              <th
-                class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.ticketId") }}
-              </th>
-              <th
-                class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
-              >
-                {{ t("ticket.actions") }}
-              </th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-gray-200 bg-white">
-            <tr v-for="t in tickets || []" :key="t.id" class="hover:bg-gray-50">
-              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {{ t.garage_name ?? "–" }}
-              </td>
-
-              <td
-                class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900"
-              >
-                {{ t.licence_plate ?? "–" }}
-              </td>
-
-              <td class="px-4 py-3 text-sm text-gray-700">
-                {{ t.spot_code ?? "–" }}
-              </td>
-
-              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {{ formatTime(t.entry_time) }}
-              </td>
-
-              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {{ formatTime(t.exit_time) }}
-              </td>
-
-              <td
-                class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700"
-              >
-                {{ formatMoney(t.fee) }}
-              </td>
-
-              <td
-                class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium"
-                :class="restToPayClass(t)"
-              >
-                {{ formatRestToPay(t) }}
-              </td>
-
-              <td class="px-4 py-3">
-                <span
-                  class="font-mono text-sm tracking-[0.25em] text-gray-800"
-                  aria-label="Ticket ID"
-                >
-                  {{ t.id }}
-                </span>
-              </td>
-
-              <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
-                <button
-                  type="button"
-                  class="icon-barcode text-2xl font-bold text-slate-800 hover:text-slate-900"
-                  title="View ticket & payments"
-                  @click="viewTicket(t)"
-                  style="line-height: 1"
-                ></button>
-
-                <template v-if="t.ticket_state === 'OPEN'">
-                  <button
-                    type="button"
-                    class="icon-exit ml-2 text-2xl font-bold text-amber-600 hover:text-amber-800"
-                    title="Close ticket"
-                    @click="closeTicket(t.id)"
-                  ></button>
-                </template>
-
-                <template
-                  v-else-if="
-                    t.ticket_state === 'CLOSED' && t.payment_status !== 'PAID'
-                  "
-                >
-                  <button
-                    type="button"
-                    class="icon-credit-card ml-2 text-2xl font-bold text-emerald-600 hover:text-emerald-800"
-                    title="Go to payment"
-                    @click="openPayment(t)"
-                  ></button>
-                </template>
-              </td>
-            </tr>
-
-            <tr v-if="(tickets || []).length === 0">
-              <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-                {{ t("ticket.noTickets") }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <TicketTable
+          :tickets="tickets"
+          :rest-to-pay-map="restToPayMap"
+          @view-ticket="viewTicket"
+          @close-ticket="closeTicket"
+          @open-payment="openPayment"
+        />
       </div>
     </div>
 
@@ -209,195 +79,22 @@
     />
 
     <!-- View ticket detail modal -->
-    <Modal
+    <TicketDetailModal
       :model-value="!!viewingTicket"
+      :ticket="viewingTicket"
+      :ticket-image-url="ticketImageUrl"
+      :barcode-image-src="barcodeImageSrc"
+      :payments-loading="viewPaymentsLoading"
+      :payments="viewPaymentsSorted"
+      :payments-total="viewPaymentsTotal"
       @update:model-value="viewingTicket = null"
-      :title="
-        viewingTicket
-          ? `${viewingTicket.garage_name ?? '–'} — Ticket #${viewingTicket.id}`
-          : ''
+      @go-to-payment="
+        (t) => {
+          openPayment(t);
+          viewingTicket = null;
+        }
       "
-    >
-      <template v-if="viewingTicket">
-        <div v-if="ticketImageUrl" class="mb-4">
-          <ImageIn
-            :key="`ticket-img-${viewingTicket.id}-${ticketImageUrl}`"
-            :src="ticketImageUrl"
-            :alt="`Ticket #${viewingTicket.id}`"
-          />
-        </div>
-        <dl class="space-y-2 text-sm">
-          <div>
-            <dt class="text-gray-500">{{ t("ticket.garage") }}</dt>
-            <dd>{{ viewingTicket.garage_name ?? "–" }}</dd>
-          </div>
-          <div>
-            <dt class="text-gray-500">{{ t("ticket.plate") }}</dt>
-            <dd>{{ viewingTicket.licence_plate ?? "–" }}</dd>
-          </div>
-          <div>
-            <dt class="text-gray-500">{{ t("ticket.spot") }}</dt>
-            <dd>{{ viewingTicket.spot_code ?? "–" }}</dd>
-          </div>
-          <div>
-            <dt class="text-gray-500">{{ t("ticket.entryTime") }}</dt>
-            <dd>{{ formatTime(viewingTicket.entry_time) }}</dd>
-          </div>
-          <div>
-            <dt class="text-gray-500">{{ t("ticket.exitTime") }}</dt>
-            <dd>{{ formatTime(viewingTicket.exit_time) || "–" }}</dd>
-          </div>
-          <div>
-            <dt class="text-gray-500">{{ t("ticket.fee") }}</dt>
-            <dd>{{ formatMoney(viewingTicket.fee) }}</dd>
-          </div>
-        </dl>
-
-        <div class="mt-4 border-t border-gray-200 pt-4">
-          <dt class="text-xs font-medium text-gray-500">
-            {{ t("ticket.barcode") }}
-          </dt>
-
-          <dd class="mt-2 flex flex-col items-center gap-2">
-            <img
-              v-if="barcodeImageSrc"
-              :src="barcodeImageSrc"
-              class="max-w-full rounded border border-gray-200 bg-white"
-              :alt="`Barcode for ticket ${viewingTicket?.ticket_token ?? viewingTicket?.id}`"
-            />
-
-            <span v-if="!barcodeImageSrc" class="text-xs text-gray-400">
-              Barcode unavailable
-            </span>
-          </dd>
-        </div>
-
-        <div class="mt-4 border-t border-gray-200 pt-4">
-          <h4 class="text-sm font-semibold text-gray-800">
-            {{ t("ticket.evidenceOfPayments") }}
-          </h4>
-          <p class="mt-0.5 text-xs text-gray-500">
-            {{ t("ticket.allPaymentsForThisTicket") }}
-          </p>
-
-          <div v-if="viewPaymentsLoading" class="mt-3 text-sm text-gray-500">
-            {{ t("ticket.loading") }}
-          </div>
-
-          <div
-            v-else-if="!viewPayments.length"
-            class="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm text-gray-500"
-          >
-            {{ t("ticket.noPaymentsRecorded") }}
-          </div>
-
-          <div
-            v-else
-            class="mt-3 overflow-hidden rounded-lg border border-gray-200"
-          >
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                  >
-                    #
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500"
-                  >
-                    {{ t("payment.amount") }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                  >
-                    {{ t("payment.when") }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500"
-                  >
-                    {{ t("payment.method") }}
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr
-                  v-for="(p, idx) in viewPaymentsSorted"
-                  :key="p.id"
-                  class="hover:bg-gray-50"
-                >
-                  <td class="whitespace-nowrap px-3 py-2 text-gray-600">
-                    {{ idx + 1 }}
-                  </td>
-                  <td
-                    class="whitespace-nowrap px-3 py-2 text-right font-medium text-gray-900"
-                  >
-                    {{ formatMoney(p.amount) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-2 text-gray-700">
-                    {{ formatTime(p.paid_at) }}
-                  </td>
-                  <td class="px-3 py-2 text-right text-gray-600">
-                    {{ p.method ?? "–" }}
-                  </td>
-                </tr>
-              </tbody>
-
-              <tfoot class="bg-gray-50">
-                <tr>
-                  <td
-                    colspan="2"
-                    class="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-600"
-                  >
-                    {{ t("payment.totalPaid") }}
-                  </td>
-                  <td
-                    colspan="2"
-                    class="whitespace-nowrap px-3 py-2 text-right font-semibold text-gray-900"
-                  >
-                    {{ formatMoney(String(viewPaymentsTotal)) }}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-
-        <div class="mt-4 flex justify-between gap-2">
-          <ButtonIn
-            id="ticket-detail-close"
-            type="button"
-            variant="outline"
-            @click="viewingTicket = null"
-            :label="t('ticket.close')"
-            :caption="t('ticket.close')"
-          >
-            {{ t("ticket.close") }}
-          </ButtonIn>
-
-          <ButtonIn
-            id="ticket-detail-go-to-payment"
-            v-if="
-              viewingTicket.ticket_state === 'CLOSED' &&
-              viewingTicket.payment_status !== 'PAID'
-            "
-            type="button"
-            variant="primary"
-            @click="
-              openPayment(viewingTicket);
-              viewingTicket = null;
-            "
-          >
-            {{ t("ticket.goToPayment") }}
-          </ButtonIn>
-        </div>
-      </template>
-    </Modal>
+    />
   </div>
 </template>
 
@@ -412,18 +109,16 @@ import {
   onUnmounted,
   type Ref,
 } from "vue";
-import { formatTime, formatMoney } from "../../composables/useFormatters";
 import { listTicketsDashboard, ticketExit } from "../../api/tickets";
 import type { TicketDashboardRow } from "../../api/tickets";
 import { baseURL } from "../../api/client";
 import { getPaymentsByTicket } from "../../api/payments";
 import type { Payment } from "../../api/payments";
-import Modal from "../ui/Modal.vue";
 import PaymentModal from "./PaymentModal.vue";
-import ButtonIn from "../ui/ButtonIn.vue";
-import ImageIn from "../ui/ImageIn.vue";
 import { useI18n } from "vue-i18n";
 import { generateCode39BarcodeImage } from "../../utils/code39";
+import TicketTable from "./TicketTable.vue";
+import TicketDetailModal from "./TicketDetailModal.vue";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -513,24 +208,6 @@ const ticketImageUrl = computed(() => {
     return base ? `${base}${path}` : path;
   }
 });
-
-function formatRestToPay(t: TicketDashboardRow): string {
-  if (t.ticket_state === "OPEN") return "–";
-  if (t.payment_status === "PAID") return "0 RSD";
-
-  const rest = restToPayMap.value[t.id];
-  if (rest !== undefined) return formatMoney(String(rest));
-
-  if (t.ticket_state === "CLOSED" && t.payment_status !== "PAID") return "…";
-  return "–";
-}
-
-function restToPayClass(t: TicketDashboardRow): string {
-  if (t.payment_status === "PAID" || t.ticket_state === "OPEN") {
-    return "text-gray-500";
-  }
-  return "text-amber-700";
-}
 
 async function fetchRestToPayForTickets(
   items: TicketDashboardRow[],
