@@ -295,6 +295,9 @@ async function closeTicket(id: number) {
   }
 }
 
+// Razlika window.dispatchEvent i Pinia je da window.dispatchEvent moze da se koristi u bilo kom delu koda, 
+// dok Pinia moze da se koristi samo u komponentama. Pinia je bolji za state management, a window.dispatchEvent je bolji za event handling.
+
 function closePaymentModal() {
   showPaymentModal.value = false;
   nextTick(() => {
