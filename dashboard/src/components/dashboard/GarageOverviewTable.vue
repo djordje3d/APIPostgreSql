@@ -1,7 +1,9 @@
 <template>
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
-      <h2 class="text-lg font-semibold text-gray-900">{{ t('garageOverview.title') }}</h2>
+      <h2 class="text-lg font-semibold text-gray-900">
+        {{ t("garageOverview.title") }}
+      </h2>
     </div>
 
     <div class="overflow-x-auto">
@@ -29,7 +31,7 @@
           class="icon-spinner11 inline-block text-2xl animate-spin"
           aria-hidden="true"
         ></span>
-        <span>{{ t('garageOverview.loading') }}</span>
+        <span>{{ t("garageOverview.loading") }}</span>
       </div>
 
       <div
@@ -58,27 +60,27 @@
               <th
                 class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('garageOverview.garage') }}
+                {{ t("garageOverview.garage") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('garageOverview.garageTotalSpots') }}
+                {{ t("garageOverview.garageTotalSpots") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('garageOverview.free') }}
+                {{ t("garageOverview.free") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('garageOverview.occupied') }}
+                {{ t("garageOverview.occupied") }}
               </th>
               <th
                 class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
               >
-                {{ t('garageOverview.rentable') }}
+                {{ t("garageOverview.rentable") }}
               </th>
             </tr>
           </thead>
@@ -115,7 +117,7 @@
 
             <tr v-if="rows.length === 0">
               <td colspan="5" class="px-4 py-6 text-center text-gray-500">
-                {{ t('garageOverview.noGarages') }}
+                {{ t("garageOverview.noGarages") }}
               </td>
             </tr>
           </tbody>
@@ -175,6 +177,7 @@ async function fetch() {
   try {
     const res = await getGarageOverview(props.garageId ?? undefined, config);
     rows.value = res.data.map((r) => ({
+      // map je funkcija koja se koristi za transformaciju podataka, a data je lista podataka koji se transformišu
       garage_id: r.garage_id,
       name: r.name,
       total_spots: r.total_spots,

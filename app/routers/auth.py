@@ -20,7 +20,14 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 def _verify_password(plain: str) -> bool:
     if AUTH_PASSWORD_HASH:
-        from passlib.context import CryptContext
+        from passlib.context import (
+            CryptContext,
+        )  # passlib je biblioteka za hashovanje i verifikaciju lozinki
+
+        # CryptContext je klasa koja se koristi za hashovanje i verifikaciju lozinki
+        # schemes je lista hash algoritama koje passlib podržava
+        # deprecated je opcija koja omogućava korišćenje starijih hash algoritama
+        # auto je opcija koja omogućava automatsko odabiranje najboljeg hash algoritma
 
         ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
         return ctx.verify(plain, AUTH_PASSWORD_HASH)
@@ -39,6 +46,7 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(data: LoginRequest):
+    # LoginRequest je Pydantic model koji se koristi za validaciju ulaznih podataka
     """
     Authenticate with username and password. Returns JWT access token.
     Configure AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PASSWORD_HASH) in .env.
@@ -56,7 +64,8 @@ def login(data: LoginRequest):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "expires_in": JWT_EXPIRE_MINUTES * 60,  # seconds; set JWT_EXPIRE_MINUTES in .env for real expiry
+        "expires_in": JWT_EXPIRE_MINUTES
+        * 60,  # seconds; set JWT_EXPIRE_MINUTES in .env for real expiry
         "preferred_language": AUTH_PREFERRED_LANGUAGE,
     }
 

@@ -2,6 +2,7 @@
 JWT create/verify and FastAPI dependencies for token auth.
 Used by auth middleware (Bearer token) and by login endpoint (create_token).
 """
+
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -13,6 +14,9 @@ from app.config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 TOKEN_SUB_KEY = "sub"  # username in payload
 
 
+# Kreira JWT token za datog korisnika
+# jwt je biblioteka za kreiranje i verifikaciju JWT tokena
+# jwt.encode je funkcija koja kreira JWT token
 def create_token(username: str) -> str:
     """Create a signed JWT with expiry. Payload includes sub=username."""
     now = datetime.now(timezone.utc)
@@ -49,9 +53,10 @@ def verify_token(token: str) -> dict[str, Any] | None:
 
 def get_bearer_token(request: Request) -> str | None:
     """Extract Bearer token from Authorization header."""
-    auth = (
-        request.headers.get("Authorization")
-        or request.headers.get("authorization")
+    auth = request.headers.get(
+        "Authorization"
+    ) or request.headers.get(  # Authorization header je header koji se koristi za autentikaciju
+        "authorization"
     )
     if not auth or not auth.startswith("Bearer "):
         return None

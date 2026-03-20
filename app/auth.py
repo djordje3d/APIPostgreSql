@@ -3,6 +3,7 @@ API key and JWT Bearer authentication. When API_KEY is set, requests (except
 public paths) must include either Authorization: Bearer <jwt> or X-API-Key.
 When API_KEY is not set, no authentication is required (e.g. local development).
 """
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -34,6 +35,8 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
     GET /, GET /health, POST /auth/login are always allowed.
     """
 
+    # call_next je funkcija koja se koristi za pozivanje sledeće middleware ili endpoint
+
     async def dispatch(self, request: Request, call_next):
         if _is_public_path(request.url.path, request.method):
             return await call_next(request)
@@ -42,9 +45,8 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Accept Bearer token
-        auth = (
-            request.headers.get("Authorization")
-            or request.headers.get("authorization")
+        auth = request.headers.get("Authorization") or request.headers.get(
+            "authorization"
         )
         if auth and auth.startswith("Bearer "):
             token = auth[7:].strip()

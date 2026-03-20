@@ -50,7 +50,10 @@ app = FastAPI(
             "name": "Parking Spots",
             "description": "Spots per garage; list, create, update.",
         },
-        {"name": "Upload", "description": "Ticket image upload (client resizes before upload)."},
+        {
+            "name": "Upload",
+            "description": "Ticket image upload (client resizes before upload).",
+        },
     ],
 )
 
@@ -73,6 +76,7 @@ app.add_middleware(APIKeyMiddleware)
 def openapi_with_api_key():
     """Document ApiKeyHeader and BearerAuth so Swagger UI supports both. Public paths have security=[]."""
     from fastapi.openapi.utils import get_openapi
+
     schema = get_openapi(
         title=app.title,
         version=app.version,

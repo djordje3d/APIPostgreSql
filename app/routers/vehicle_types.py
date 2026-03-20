@@ -6,16 +6,31 @@ from app.db import get_db
 from app import models, schemas
 
 router = APIRouter(prefix="/vehicle-types", tags=["Vehicle Types"])
+# APIRouter je FastAPI komponenta koja se koristi za definisanje API ruta.
+# prefix je prefiks za sve route-ove u ovom routeru.
+# tags je lista tagova za sve route-ove u ovom routeru.
+# router je APIRouter instance.
+
+
+# db je SQLAlchemy Session instance.
+# Depends je FastAPI komponenta koja se koristi za dependency injection.
+# get_db je funkcija koja se koristi za dobavljanje SQLAlchemy Session instance.
+# schemas je Pydantic model koji se koristi za serializaciju odgovora.
 
 
 @router.get(
     "",
     response_model=schemas.PaginatedResponse[schemas.VehicleTypeResponse],
 )
+
+# router.get je FastAPI komponenta koja se koristi za definisanje GET route-a.
+# response_model je Pydantic model koji se koristi za serializaciju odgovora.
 def list_vehicle_types(
     db: Session = Depends(get_db),
-    limit: int = Query(100, ge=1, le=1000),
-    offset: int = Query(0, ge=0),
+    limit: int = Query(
+        100, ge=1, le=1000
+    ),  # limit je limit za sve route-ove u ovom routeru.
+    offset: int = Query(0, ge=0),  # offset je offset za sve route-ove u ovom routeru.
 ):
     q = db.query(models.VehicleType).order_by(models.VehicleType.id)
     total = q.count()

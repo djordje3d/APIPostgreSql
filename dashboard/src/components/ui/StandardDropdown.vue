@@ -1,6 +1,10 @@
 <template>
   <div ref="root" class="standard-dropdown relative inline-block w-full">
-    <label v-if="label" class="mb-1 block font-medium text-gray-600" :class="labelClass">
+    <label
+      v-if="label"
+      class="mb-1 block font-medium text-gray-600"
+      :class="labelClass"
+    >
       {{ label }}
     </label>
 
@@ -48,12 +52,21 @@
         <div v-if="open" ref="menu" class="fixed zPopup" :style="menuStyle">
           <div
             class="rounded-lg border shadow-xl overflow-hidden"
-            :class="dark ? 'border-slate-600 bg-slate-800 ring-1 ring-black/20' : 'border-gray-200 bg-white ring-1 ring-black/5'"
+            :class="
+              dark
+                ? 'border-slate-600 bg-slate-800 ring-1 ring-black/20'
+                : 'border-gray-200 bg-white ring-1 ring-black/5'
+            "
           >
             <div class="pointer-events-none absolute left-6" :style="nubStyle">
               <div
                 class="h-3 w-3 rotate-45 shadow-sm"
-                :class="[nubBorderAdjustClass, dark ? 'bg-slate-800 border-slate-600' : 'bg-white border border-gray-200']"
+                :class="[
+                  nubBorderAdjustClass,
+                  dark
+                    ? 'bg-slate-800 border-slate-600'
+                    : 'bg-white border border-gray-200',
+                ]"
               ></div>
             </div>
 
@@ -73,10 +86,14 @@
                   type="button"
                   class="w-full px-3 py-2 text-left focus:outline-none"
                   :class="[
-                    dark ? 'hover:bg-slate-700 focus:bg-slate-700' : 'hover:bg-emerald-50 focus:bg-emerald-50',
+                    dark
+                      ? 'hover:bg-slate-700 focus:bg-slate-700'
+                      : 'hover:bg-emerald-50 focus:bg-emerald-50',
                     {
-                      'font-semibold text-emerald-700': !dark && modelValue === null,
-                      'font-semibold text-emerald-300': dark && modelValue === null,
+                      'font-semibold text-emerald-700':
+                        !dark && modelValue === null,
+                      'font-semibold text-emerald-300':
+                        dark && modelValue === null,
                     },
                   ]"
                   @click="choose(null)"
@@ -91,10 +108,14 @@
                   type="button"
                   class="w-full px-3 py-2 text-left focus:outline-none"
                   :class="[
-                    dark ? 'hover:bg-slate-700 focus:bg-slate-700' : 'hover:bg-emerald-50 focus:bg-emerald-50',
+                    dark
+                      ? 'hover:bg-slate-700 focus:bg-slate-700'
+                      : 'hover:bg-emerald-50 focus:bg-emerald-50',
                     {
-                      'font-semibold text-emerald-700': !dark && modelValue === opt.id,
-                      'font-semibold text-emerald-300': dark && modelValue === opt.id,
+                      'font-semibold text-emerald-700':
+                        !dark && modelValue === opt.id,
+                      'font-semibold text-emerald-300':
+                        dark && modelValue === opt.id,
                     },
                   ]"
                   @click="choose(opt.id)"
@@ -140,7 +161,7 @@ const props = withDefaults(
     nullOptionLabel: "",
     dark: false,
     labelClass: "text-sm",
-  }
+  },
 );
 
 const emit = defineEmits<{
@@ -263,7 +284,7 @@ function positionMenu() {
   const width = rect.width;
   const left = Math.min(
     Math.max(rect.left, margin),
-    viewportW - width - margin
+    viewportW - width - margin,
   );
 
   const top = openUp.value
@@ -276,9 +297,7 @@ function positionMenu() {
     width: `${width}px`,
   };
 
-  nubStyle.value = openUp.value
-    ? { bottom: "-6px" }
-    : { top: "-6px" };
+  nubStyle.value = openUp.value ? { bottom: "-6px" } : { top: "-6px" };
 }
 
 function onClickOutside(e: MouseEvent) {
@@ -313,7 +332,7 @@ watch(
   () => props.options,
   () => {
     if (open.value) nextTick(positionMenu);
-  }
+  },
 );
 </script>
 

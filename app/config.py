@@ -25,8 +25,11 @@ load_dotenv(_project_root / ".env")
 
 _log = logging.getLogger(__name__)
 
+
+# _env_int je funkcija koja se koristi za konvertovanje stringa u integer
 def _env_int(name: str, default: int) -> int:
     raw = os.getenv(name, str(default)).strip()
+    # strip je funkcija koja se koristi za uklanjanje belih znakova sa početka i kraja stringa
     try:
         return max(0, int(raw))
     except ValueError:
