@@ -56,6 +56,9 @@
     "ticketImage": "Slika karte (opciono)",
     "chooseFile": "Izaberi fajl",
     "noFileChosen": "Nije izabran nijedan fajl",
+    "imageProcessing": "Smanjivanje slike…",
+    "imageReady": "{name} — spremno za slanje",
+    "imageResizeFailed": "Obrada slike nije uspela. Probajte drugi fajl.",
     "clearImage": "Ukloni sliku",
     "cancel": "Otkaži",
     "createEntry": "Kreiraj ulaz"

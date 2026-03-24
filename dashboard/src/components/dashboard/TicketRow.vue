@@ -71,7 +71,7 @@
         ></button>
       </template>
     </td>
-  </tr>
+  </tr>                                         
 </template>
 
 <script setup lang="ts">

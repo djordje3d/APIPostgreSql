@@ -63,17 +63,18 @@
               :label="t('entry.chooseFile')"
               variant="outline"
               :caption="t('entry.chooseFile')"
+              :disabled="imageProcessing"
               @userclick="imageInputRef?.click()"
             />
             <p class="text-sm text-slate-500">
-              {{
-                form.imageFile
-                  ? `${form.imageFile.name} — will be resized before upload`
-                  : t("entry.noFileChosen")
-              }}
+              <template v-if="imageProcessing">{{ t("entry.imageProcessing") }}</template>
+              <template v-else-if="form.ticketImageDisplayName && form.resizedImageBlob">
+                {{ t("entry.imageReady", { name: form.ticketImageDisplayName }) }}
+              </template>
+              <template v-else>{{ t("entry.noFileChosen") }}</template>
             </p>
             <button
-              v-if="form.imageFile"
+              v-if="imageProcessing || form.resizedImageBlob"
               type="button"
               class="text-sm text-slate-600 underline hover:text-slate-800"
               @click="clearImage"
@@ -98,7 +99,7 @@
           id="createEntryBtn"
           :label="t('entry.createEntry')"
           variant="primary"
-          :disabled="loading"
+          :disabled="loading || imageProcessing"
           @userclick="submit"
           :caption="t('entry.createEntry')"
         />
@@ -133,9 +134,13 @@ const form = ref({
   vehicle_type_id: "" as number | "",
   garage_id: "" as number | "",
   spot_id: null as number | null,
-  imageFile: null as File | null,
+  /** JPEG blob after client resize; uploaded only on submit. */
+  resizedImageBlob: null as Blob | null,
+  ticketImageDisplayName: null as string | null,
 });
 const imageInputRef = ref<HTMLInputElement | null>(null);
+const imagePickGeneration = ref(0);
+const imageProcessing = ref(false);
 const vehicleTypes = ref<VehicleType[]>([]);
 const garages = ref<Garage[]>([]);
 const freeSpots = ref<Spot[]>([]);
@@ -159,13 +164,39 @@ function close() {
   success.value = "";
 }
 
-function onImageChange(e: Event) {
+async function onImageChange(e: Event) {
   const input = e.target as HTMLInputElement;
-  form.value.imageFile = input.files?.[0] ?? null;
+  const file = input.files?.[0] ?? null;
+  if (!file) {
+    form.value.resizedImageBlob = null;
+    form.value.ticketImageDisplayName = null;
+    imageProcessing.value = false;
+    return;
+  }
+  imagePickGeneration.value += 1;
+  const gen = imagePickGeneration.value;
+  imageProcessing.value = true;
+  try {
+    const blob = await resizeImage(file);
+    if (gen !== imagePickGeneration.value) return;
+    form.value.resizedImageBlob = blob;
+    form.value.ticketImageDisplayName = file.name;
+  } catch {
+    if (gen !== imagePickGeneration.value) return;
+    form.value.resizedImageBlob = null;
+    form.value.ticketImageDisplayName = null;
+    input.value = "";
+    error.value = t("entry.imageResizeFailed");
+  } finally {
+    if (gen === imagePickGeneration.value) imageProcessing.value = false;
+  }
 }
 
 function clearImage() {
-  form.value.imageFile = null;
+  imagePickGeneration.value += 1;
+  form.value.resizedImageBlob = null;
+  form.value.ticketImageDisplayName = null;
+  imageProcessing.value = false;
   if (imageInputRef.value) imageInputRef.value.value = "";
 }
 
@@ -254,14 +285,17 @@ watch(
   (open) => {
     if (open) {
       loadOptions();
+      imagePickGeneration.value += 1;
+      imageProcessing.value = false;
       form.value = {
         licence_plate: "",
         vehicle_type_id: "",
         garage_id: "",
         spot_id: null,
-        imageFile: null,
+        resizedImageBlob: null,
+        ticketImageDisplayName: null,
       };
-      clearImage();
+      if (imageInputRef.value) imageInputRef.value.value = "";
       freeSpots.value = [];
     }
   },
@@ -293,9 +327,11 @@ async function submit() {
       } else throw e;
     }
     let imageUrl: string | undefined;
-    if (form.value.imageFile) {
-      const blob = await resizeImage(form.value.imageFile);
-      const { url } = await uploadTicketImage(blob, "ticket.jpg");
+    if (form.value.resizedImageBlob) {
+      const { url } = await uploadTicketImage(
+        form.value.resizedImageBlob,
+        "ticket.jpg",
+      );
       imageUrl = url;
     }
     await ticketEntry({

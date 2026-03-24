@@ -2,7 +2,7 @@
 
 Vue 3 + Tailwind dashboard for the Parking API. Shows live parking status, garage overview, ticket activity, revenue summary, and supports New Vehicle Entry.
 
-**Live sync:** The dashboard polls the API every 12 seconds while the tab is visible and refreshes immediately when you return to the tab. Status cards, garage overview, ticket activity, and revenue stay in sync with the database. Closing a ticket or recording a payment triggers a full refresh across all widgets.
+**Live sync:** The dashboard polls the API every 10 seconds while the tab is visible and refreshes immediately when you return to the tab. Status cards, garage overview, ticket activity, and revenue stay in sync with the database. Closing a ticket or recording a payment triggers a full refresh across all widgets.
 
 ## Setup
 
