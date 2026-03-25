@@ -252,24 +252,31 @@ function clearImage() {
 const MAX_IMAGE_DIM = 1200;
 const JPEG_QUALITY = 0.85;
 
-// blob is a binary large object that can be used to store images
+// blob is a binary large object that can be used to store images ready to be uploaded to the server.
 /** Resize image client-side to max 1200px and return as JPEG blob. */
+// return Promise<Blob> because the function is asynchronous and returns a promise.
+// resolve is a function that is called when the promise is resolved.
+// reject is a function that is called when the promise is rejected.
 function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
+    const url = URL.createObjectURL(file); // create a temporary local URL from the file to load the image into the canvas.
+
+    // internal browser URL that can be used to Image() object to load content from the file.
+// 1. User chooses an image file 2. Browser creates a temporary local URL from the file 3. That URL is used to load the image into the canvas (memory). 
+
+img.onload = () => {
       URL.revokeObjectURL(url);
       let { width, height } = img;
       if (width <= MAX_IMAGE_DIM && height <= MAX_IMAGE_DIM) {
-        width = img.width;
+        width = img.width; 
         height = img.height;
       } else {
         const r = Math.min(MAX_IMAGE_DIM / width, MAX_IMAGE_DIM / height);
         width = Math.round(width * r);
         height = Math.round(height * r);
       }
-      const canvas = document.createElement("canvas");
+      const canvas = document.createElement("canvas"); // canvas is a HTML element that can be used to draw images. it is used to resize the image.
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d");
@@ -277,7 +284,9 @@ function resizeImage(file: File): Promise<Blob> {
         reject(new Error("Canvas not supported"));
         return;
       }
-      ctx.drawImage(img, 0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height); // draw the loaded image onto the canvas to resize it before converting to blob.
+      
+      // toBlob is a method that can be used to convert the canvas to a blob. it is used to convert the canvas to a blob.
       canvas.toBlob(
         (blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))),
         "image/jpeg",

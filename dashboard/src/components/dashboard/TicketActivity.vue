@@ -183,8 +183,11 @@ const tickets = ref<TicketDashboardRow[]>([]);
 const viewingTicket = ref<TicketDashboardRow | null>(null);
 const viewingTicketImage = ref<TicketDashboardRow | null>(null);
 const showTicketImageModal = ref(false);
+// barcode width in pixels.
 const BARCODE_WIDTH = 360;
 
+// Code 39 barcode image for the ticket detail modal (token or id)
+// connection between the ticket and the barcode image.
 const barcodeImageSrc = computed(() => {
   const ticket = viewingTicket.value;
   if (!ticket) return "";
@@ -353,7 +356,7 @@ async function closeTicket(id: number) {
   }
 }
 
-// Razlika window.dispatchEvent i Pinia je da window.dispatchEvent moze da se koristi u bilo kom delu koda, 
+// Razlika window.dispatchEvent i Pinia je da window.dispatchEvent moze da se koristi u bilo kom delu koda,
 // dok Pinia moze da se koristi samo u komponentama. Pinia je bolji za state management, a window.dispatchEvent je bolji za event handling.
 
 function closePaymentModal() {

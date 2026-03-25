@@ -239,7 +239,7 @@ export function generateCode39BarcodeImage(
 
     if (item.isBar) {
       ctx.fillStyle = opts.barColor;
-      ctx.fillRect(drawX, barTop, drawWidth, barBottom - barTop);
+      fillRoundedRect(ctx, drawX, barTop, drawWidth, barBottom - barTop, 2); // draw a rounded rectangle for the bar.
     }
 
     currentX = nextX;
@@ -257,3 +257,16 @@ export function generateCode39BarcodeImage(
   return canvas.toDataURL("image/png");
 }
 
+function fillRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, r);
+  ctx.fill();
+}
