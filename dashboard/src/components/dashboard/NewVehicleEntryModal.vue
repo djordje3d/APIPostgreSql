@@ -21,7 +21,9 @@
             :model-value="form.vehicle_type_id || null"
             :placeholder="t('entry.selectType')"
             :nullable="false"
-            @update:model-value="form.vehicle_type_id = ($event as number | null) ?? ''"
+            @update:model-value="
+              form.vehicle_type_id = ($event as number | null) ?? null
+            "
           />
         </div>
         <div>
@@ -67,11 +69,22 @@
               @userclick="imageInputRef?.click()"
             />
             <p class="text-sm text-slate-500">
-              <template v-if="imageProcessing">{{ t("entry.imageProcessing") }}</template>
-              <template v-else-if="form.ticketImageDisplayName && form.resizedImageBlob">
-                {{ t("entry.imageReady", { name: form.ticketImageDisplayName }) }}
+              <template v-if="form.ticketImageDisplayName && imageProcessing">
+                {{ t("entry.imageProcessing") }}:
+                {{ form.ticketImageDisplayName }}
               </template>
-              <template v-else>{{ t("entry.noFileChosen") }}</template>
+
+              <template
+                v-else-if="form.ticketImageDisplayName && form.resizedImageBlob"
+              >
+                {{
+                  t("entry.imageReady", { name: form.ticketImageDisplayName })
+                }}
+              </template>
+
+              <template v-else>
+                {{ t("entry.noFileChosen") }}
+              </template>
             </p>
             <button
               v-if="imageProcessing || form.resizedImageBlob"
@@ -131,16 +144,21 @@ const emit = defineEmits(["update:modelValue", "done"]);
 
 const form = ref({
   licence_plate: "",
-  vehicle_type_id: "" as number | "",
-  garage_id: "" as number | "",
+  vehicle_type_id: null as number | null,
+  garage_id: null as number | null,
   spot_id: null as number | null,
+
+  /** Displayed immediately after file pick. */
+  ticketImageDisplayName: null as string | null,
+
   /** JPEG blob after client resize; uploaded only on submit. */
   resizedImageBlob: null as Blob | null,
-  ticketImageDisplayName: null as string | null,
 });
+
 const imageInputRef = ref<HTMLInputElement | null>(null);
 const imagePickGeneration = ref(0);
 const imageProcessing = ref(false);
+const imageError = ref("");
 const vehicleTypes = ref<VehicleType[]>([]);
 const garages = ref<Garage[]>([]);
 const freeSpots = ref<Spot[]>([]);
@@ -167,28 +185,42 @@ function close() {
 async function onImageChange(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0] ?? null;
+
+  error.value = "";
+  success.value = "";
+
   if (!file) {
     form.value.resizedImageBlob = null;
     form.value.ticketImageDisplayName = null;
     imageProcessing.value = false;
     return;
   }
-  imagePickGeneration.value += 1; // increment the generation to prevent race condition
+
+  imagePickGeneration.value += 1;
   const gen = imagePickGeneration.value;
+
+  // odmah prikaži naziv odabranog fajla
+  form.value.ticketImageDisplayName = file.name;
+  form.value.resizedImageBlob = null;
   imageProcessing.value = true;
+
   try {
-    const blob = await resizeImage(file); // resize image to max 1200px and return as JPEG blob
+    const blob = await resizeImage(file);
+
     if (gen !== imagePickGeneration.value) return;
+
     form.value.resizedImageBlob = blob;
-    form.value.ticketImageDisplayName = file.name;
   } catch {
     if (gen !== imagePickGeneration.value) return;
+
     form.value.resizedImageBlob = null;
     form.value.ticketImageDisplayName = null;
     input.value = "";
     error.value = t("entry.imageResizeFailed");
   } finally {
-    if (gen === imagePickGeneration.value) imageProcessing.value = false;
+    if (gen === imagePickGeneration.value) {
+      imageProcessing.value = false;
+    }
   }
 }
 
@@ -197,7 +229,12 @@ function clearImage() {
   form.value.resizedImageBlob = null;
   form.value.ticketImageDisplayName = null;
   imageProcessing.value = false;
-  if (imageInputRef.value) imageInputRef.value.value = "";
+  error.value = "";
+  success.value = "";
+
+  if (imageInputRef.value) {
+    imageInputRef.value.value = "";
+  }
 }
 
 const MAX_IMAGE_DIM = 1200;
@@ -276,7 +313,7 @@ async function onGarageChange() {
 }
 
 function onGarageSelect(value: number | null) {
-  form.value.garage_id = value ?? "";
+  form.value.garage_id = value ?? null;
   form.value.spot_id = null;
   onGarageChange();
 }
@@ -288,10 +325,11 @@ watch(
       loadOptions();
       imagePickGeneration.value += 1;
       imageProcessing.value = false;
+      imageError.value = "";
       form.value = {
         licence_plate: "",
-        vehicle_type_id: "",
-        garage_id: "",
+        vehicle_type_id: null,
+        garage_id: null,
         spot_id: null,
         resizedImageBlob: null,
         ticketImageDisplayName: null,
