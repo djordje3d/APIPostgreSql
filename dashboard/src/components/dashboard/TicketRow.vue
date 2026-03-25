@@ -31,13 +31,29 @@
       {{ restToPayValue }}
     </td>
 
-    <td class="px-4 py-3">
-      <span
-        class="font-mono text-sm tracking-[0.25em] text-gray-800"
-        aria-label="Ticket ID"
+    <td class="px-4 py-3 whitespace-nowrap">
+      <button
+        v-if="ticketImageUrl"
+        type="button"
+        class="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white p-0 hover:shadow-sm"
+        title="View image"
+        @click="$emit('view-ticket-image', ticket)"
       >
-        {{ ticket.id }}
-      </span>
+        <img
+          :src="ticketImageUrl"
+          :alt="`Ticket image for #${ticket.id}`"
+          class="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </button>
+
+      <div
+        v-else
+        class="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-xs text-gray-400 select-none"
+        title="No image"
+      >
+        –
+      </div>
     </td>
 
     <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
@@ -71,7 +87,7 @@
         ></button>
       </template>
     </td>
-  </tr>                                         
+  </tr>
 </template>
 
 <script setup lang="ts">
@@ -80,14 +96,15 @@ import type { TicketDashboardRow } from "../../api/tickets";
 
 defineProps<{
   ticket: TicketDashboardRow;
+  ticketImageUrl?: string;
   restToPayValue: string;
   restToPayClass: string;
 }>();
 
 defineEmits<{
   "view-ticket": [ticket: TicketDashboardRow];
+  "view-ticket-image": [ticket: TicketDashboardRow];
   "close-ticket": [ticketId: number];
   "open-payment": [ticket: TicketDashboardRow];
 }>();
 </script>
-

@@ -24,7 +24,7 @@
           {{ t("ticket.restToPay") }}
         </th>
         <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
-          {{ t("ticket.ticketId") }}
+          {{ t("ticket.image") }}
         </th>
         <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
           {{ t("ticket.actions") }}
@@ -37,9 +37,11 @@
         v-for="t in tickets"
         :key="t.id"
         :ticket="t"
+        :ticket-image-url="ticketImageUrl(t)"
         :rest-to-pay-value="formatRestToPay(t)"
         :rest-to-pay-class="restToPayClass(t)"
         @view-ticket="$emit('view-ticket', $event)"
+        @view-ticket-image="$emit('view-ticket-image', $event)"
         @close-ticket="$emit('close-ticket', $event)"
         @open-payment="$emit('open-payment', $event)"
       />
@@ -57,6 +59,7 @@
 import { useI18n } from "vue-i18n";
 import type { TicketDashboardRow } from "../../api/tickets";
 import { formatMoney } from "../../composables/useFormatters";
+import { baseURL } from "../../api/client";
 import TicketRow from "./TicketRow.vue";
 
 const props = defineProps<{
@@ -66,11 +69,34 @@ const props = defineProps<{
 
 defineEmits<{
   "view-ticket": [ticket: TicketDashboardRow];
+  "view-ticket-image": [ticket: TicketDashboardRow];
   "close-ticket": [ticketId: number];
   "open-payment": [ticket: TicketDashboardRow];
 }>();
 
 const { t } = useI18n();
+
+function ticketImageUrl(ticket: TicketDashboardRow): string | undefined {
+  const url = ticket.image_url;
+  if (!url?.trim()) return undefined;
+
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+
+  const path = url.startsWith("/") ? url : `/${url}`;
+
+  try {
+    const api = new URL(
+      baseURL,
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:8000",
+    );
+    return `${api.origin}${path}`;
+  } catch {
+    const base = baseURL.replace(/\/+$/, "");
+    return base ? `${base}${path}` : path;
+  }
+}
 
 function formatRestToPay(ticket: TicketDashboardRow): string {
   if (ticket.ticket_state === "OPEN") return "–";

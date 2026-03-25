@@ -62,6 +62,7 @@
           :tickets="tickets"
           :rest-to-pay-map="restToPayMap"
           @view-ticket="viewTicket"
+          @view-ticket-image="openTicketImage"
           @close-ticket="closeTicket"
           @open-payment="openPayment"
         />
@@ -95,6 +96,44 @@
         }
       "
     />
+
+    <!-- Ticket image preview modal -->
+    <Modal
+      :model-value="showTicketImageModal"
+      :title="
+        viewingTicketImage
+          ? `${viewingTicketImage.garage_name ?? '–'} — Ticket #${viewingTicketImage.id}`
+          : ''
+      "
+      @update:model-value="
+        (value) => {
+          showTicketImageModal = value;
+          if (!value)
+            nextTick(() => {
+              viewingTicketImage = null;
+            });
+        }
+      "
+    >
+      <div class="flex items-center justify-center p-1">
+        <img
+          v-if="ticketImagePreviewUrl"
+          :src="ticketImagePreviewUrl"
+          :alt="
+            viewingTicketImage
+              ? `Ticket image for #${viewingTicketImage.id}`
+              : 'Ticket image'
+          "
+          class="max-h-[70vh] w-full rounded-lg border border-gray-200 bg-white object-contain"
+        />
+        <div
+          v-else
+          class="flex h-[200px] w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-gray-400"
+        >
+          –
+        </div>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -119,6 +158,7 @@ import { useI18n } from "vue-i18n";
 import { generateCode39BarcodeImage } from "../../utils/code39";
 import TicketTable from "./TicketTable.vue";
 import TicketDetailModal from "./TicketDetailModal.vue";
+import Modal from "../ui/Modal.vue";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -141,6 +181,8 @@ const hasLoadedOnce = ref(false);
 
 const tickets = ref<TicketDashboardRow[]>([]);
 const viewingTicket = ref<TicketDashboardRow | null>(null);
+const viewingTicketImage = ref<TicketDashboardRow | null>(null);
+const showTicketImageModal = ref(false);
 const BARCODE_WIDTH = 360;
 
 const barcodeImageSrc = computed(() => {
@@ -189,11 +231,10 @@ const viewPaymentsSorted = computed(() => {
   return list;
 });
 
-/** Image URL for the ticket modal. Use API origin for static paths so /uploads works (no /api prefix). */
-const ticketImageUrl = computed(() => {
-  const url = viewingTicket.value?.image_url;
+function normalizeTicketImageUrl(url?: string | null): string | undefined {
   if (!url?.trim()) return undefined;
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
+
   const path = url.startsWith("/") ? url : `/${url}`;
   try {
     const api = new URL(
@@ -207,7 +248,17 @@ const ticketImageUrl = computed(() => {
     const base = baseURL.replace(/\/+$/, "");
     return base ? `${base}${path}` : path;
   }
-});
+}
+
+/** Image URL for the ticket detail modal. */
+const ticketImageUrl = computed(() =>
+  normalizeTicketImageUrl(viewingTicket.value?.image_url),
+);
+
+/** Image URL for the ticket image preview modal. */
+const ticketImagePreviewUrl = computed(() =>
+  normalizeTicketImageUrl(viewingTicketImage.value?.image_url),
+);
 
 async function fetchRestToPayForTickets(
   items: TicketDashboardRow[],
@@ -279,6 +330,13 @@ function viewTicket(t: TicketDashboardRow) {
   viewingTicket.value = t;
   const signal = dashboardRefreshAbortSignal?.value ?? undefined;
   fetchPaymentsForView(t.id, signal ? { signal } : undefined);
+}
+
+function openTicketImage(t: TicketDashboardRow) {
+  viewingTicketImage.value = t;
+  // Ensure only the image preview modal is visible.
+  viewingTicket.value = null;
+  showTicketImageModal.value = true;
 }
 
 function openPayment(t: TicketDashboardRow) {
