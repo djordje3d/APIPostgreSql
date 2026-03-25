@@ -53,7 +53,7 @@
     "selectGarage": "Izaberi garažu",
     "spot": "Mesto (opciono, automatski ako je prazno)",
     "spotAutoAssign": "Automatski dodeli prvo slobodno",
-    "ticketImage": "Slika karte (opciono)",
+    "ticketImage": "Slika karte",
     "chooseFile": "Izaberi fajl",
     "noFileChosen": "Nije izabran nijedan fajl",
     "imageProcessing": "Smanjivanje slike…",

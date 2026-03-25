@@ -53,6 +53,7 @@
             ref="imageInputRef"
             type="file"
             accept="image/jpeg,image/png,image/webp"
+            required
             class="sr-only"
             aria-hidden="true"
             tabindex="-1"
@@ -112,7 +113,7 @@
           id="createEntryBtn"
           :label="t('entry.createEntry')"
           variant="primary"
-          :disabled="loading || imageProcessing"
+          :disabled="loading || !isCreateEntryReady"
           @userclick="submit"
           :caption="t('entry.createEntry')"
         />
@@ -175,6 +176,17 @@ const spotOptions = computed(() =>
 );
 const error = ref("");
 const success = ref("");
+
+const isImageReady = computed(() => !!form.value.resizedImageBlob);
+const isFormFieldsReady = computed(() => {
+  const plate = form.value.licence_plate.trim();
+  return (
+    !!plate &&
+    form.value.vehicle_type_id !== null &&
+    form.value.garage_id !== null
+  );
+});
+const isCreateEntryReady = computed(() => isFormFieldsReady.value && isImageReady.value);
 
 function close() {
   emit("update:modelValue", false);
@@ -348,6 +360,10 @@ async function submit() {
   const vehicleTypeId = form.value.vehicle_type_id;
   const garageId = form.value.garage_id;
   if (!plate || !vehicleTypeId || !garageId) return;
+  if (!form.value.resizedImageBlob) {
+    error.value = t("entry.noFileChosen");
+    return;
+  }
 
   loading.value = true;
   try {

@@ -53,7 +53,7 @@
     "selectGarage": "Select garage",
     "spot": "Spot (optional, auto if empty)",
     "spotAutoAssign": "Auto-assign first free",
-    "ticketImage": "Ticket image (optional)",
+    "ticketImage": "Ticket image",
     "chooseFile": "Choose file",
     "noFileChosen": "No file chosen",
     "imageProcessing": "Resizing image…",
