@@ -240,6 +240,7 @@ function clearImage() {
 const MAX_IMAGE_DIM = 1200;
 const JPEG_QUALITY = 0.85;
 
+// blob is a binary large object that can be used to store images
 /** Resize image client-side to max 1200px and return as JPEG blob. */
 function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
