@@ -1,3 +1,5 @@
+<!-- dashboard/src/components/dashboard/GarageOverviewTable.vue -->
+ <!-- ova komponenta se koristi za prikaz pregleda garaža na dashboardu -->
 <template>
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">

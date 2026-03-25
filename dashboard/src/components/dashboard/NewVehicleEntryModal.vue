@@ -173,11 +173,11 @@ async function onImageChange(e: Event) {
     imageProcessing.value = false;
     return;
   }
-  imagePickGeneration.value += 1;
+  imagePickGeneration.value += 1; // increment the generation to prevent race condition
   const gen = imagePickGeneration.value;
   imageProcessing.value = true;
   try {
-    const blob = await resizeImage(file);
+    const blob = await resizeImage(file); // resize image to max 1200px and return as JPEG blob
     if (gen !== imagePickGeneration.value) return;
     form.value.resizedImageBlob = blob;
     form.value.ticketImageDisplayName = file.name;
@@ -242,6 +242,7 @@ function resizeImage(file: File): Promise<Blob> {
   });
 }
 
+// options for dropdowns lists, vehicle types and garages ...
 async function loadOptions() {
   try {
     const [vtRes, gRes] = await Promise.all([
