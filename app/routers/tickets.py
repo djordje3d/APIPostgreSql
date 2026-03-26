@@ -1,8 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from app.db import get_db
 from app import models, schemas
+from app.services.dashboard_analytics import (
+    batch_payment_totals_by_ticket,
+    compute_rest_to_pay_for_ticket,
+)
 from app.services.pricing import get_ticket_fee
 from app.services.tickets import (
     InvalidSpotError,
@@ -36,7 +41,9 @@ def list_tickets_dashboard(
     q = (
         db.query(models.Ticket)
         .options(
-            joinedload(models.Ticket.vehicle),
+            joinedload(models.Ticket.vehicle).joinedload(
+                models.Vehicle.vehicle_type
+            ),
             joinedload(models.Ticket.spot),
             joinedload(models.Ticket.garage),
         )
@@ -46,6 +53,7 @@ def list_tickets_dashboard(
         q = q.filter(models.Ticket.garage_id == garage_id)
     total = q.count()
     tickets = q.limit(limit).offset(offset).all()
+    pay_map = batch_payment_totals_by_ticket(db, [t.id for t in tickets])
     items = []
     for t in tickets:
         # Use computed fee when entry_time and exit_time are set, so direct DB
@@ -53,6 +61,8 @@ def list_tickets_dashboard(
         fee = t.fee
         if t.entry_time is not None and t.exit_time is not None:
             fee = get_ticket_fee(t, db)
+        paid = pay_map.get(t.id, 0.0)
+        rest = compute_rest_to_pay_for_ticket(db, t, paid)
         items.append(
             schemas.TicketDashboardRow(
                 id=t.id,
@@ -70,6 +80,7 @@ def list_tickets_dashboard(
                 spot_code=t.spot.code if t.spot else None,
                 garage_name=t.garage.name if t.garage else None,
                 image_url=t.image_url,
+                rest_to_pay=rest,
             )
         )
     return schemas.PaginatedResponse(

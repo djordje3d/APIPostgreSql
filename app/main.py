@@ -27,6 +27,7 @@ from app.routers.vehicle_types import router as vehicle_types_router
 from app.routers.spots import router as spots_router
 from app.routers.garages import router as garages_router
 from app.routers.upload import router as upload_router
+from app.routers.dashboard import router as dashboard_router
 
 app = FastAPI(
     title="Parking API",
@@ -53,6 +54,10 @@ app = FastAPI(
         {
             "name": "Upload",
             "description": "Ticket image upload (client resizes before upload).",
+        },
+        {
+            "name": "Dashboard",
+            "description": "Aggregated dashboard metrics (fewer round-trips).",
         },
     ],
 )
@@ -137,6 +142,7 @@ app.include_router(vehicles_router)
 app.include_router(tickets_router)
 app.include_router(payments_router)
 app.include_router(spots_router)
+app.include_router(dashboard_router)
 app.include_router(upload_router, prefix="/upload")
 
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")

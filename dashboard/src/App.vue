@@ -180,6 +180,7 @@ import NewVehicleEntryModal from "./components/dashboard/NewVehicleEntryModal.vu
 import { useToast } from "./composables/useToast";
 import { baseURL } from "./api/client";
 import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
+import { clearGaragesCache } from "./utils/garageCache";
 import { refresh as refreshToken } from "./api/auth";
 import { useDashboardPolling } from "./composables/useDashboardPolling";
 import ButtonIn from "./components/ui/ButtonIn.vue";
@@ -258,6 +259,7 @@ function logout() {
     clearTimeout(idleTimeoutId);
     idleTimeoutId = null;
   }
+  clearGaragesCache();
   clearStoredToken();
   router.push("/login");
 }
@@ -274,6 +276,7 @@ function goToLoginAfterExpired() {
     sessionExpiredCountdownIntervalId = null;
   }
   showSessionExpiredModal.value = false;
+  clearGaragesCache();
   clearStoredToken();
   router.push({ path: "/login", query: { reason: "expired" } });
 }
@@ -301,6 +304,7 @@ function onSessionExpired() {
       sessionExpiredCountdownIntervalId = null;
     }
     showSessionExpiredModal.value = false;
+    clearGaragesCache();
     clearStoredToken();
     router.push({ path: "/login", query: { reason: "expired" } });
   }, SESSION_EXPIRED_REDIRECT_MS);

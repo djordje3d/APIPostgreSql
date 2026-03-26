@@ -263,43 +263,6 @@ const ticketImagePreviewUrl = computed(() =>
   normalizeTicketImageUrl(viewingTicketImage.value?.image_url),
 );
 
-async function fetchRestToPayForTickets(
-  items: TicketDashboardRow[],
-  config?: { signal?: AbortSignal },
-) {
-  const needRest = items.filter(
-    (t) => t.ticket_state !== "OPEN" && t.payment_status !== "PAID",
-  );
-
-  if (needRest.length === 0) {
-    restToPayMap.value = {};
-    return;
-  }
-
-  const map: Record<number, number> = {};
-
-  await Promise.all(
-    needRest.map(async (t) => {
-      const feeNum =
-        t.fee != null && t.fee !== "" ? parseFloat(String(t.fee)) : 0;
-      const fee = Number.isNaN(feeNum) ? 0 : feeNum;
-
-      try {
-        const res = await getPaymentsByTicket(t.id, { limit: 500 }, config);
-        const totalPaid = res.data.items.reduce(
-          (sum, p) => sum + parseFloat(p.amount),
-          0,
-        );
-        map[t.id] = Math.max(0, fee - totalPaid);
-      } catch {
-        map[t.id] = fee;
-      }
-    }),
-  );
-
-  restToPayMap.value = { ...map };
-}
-
 async function fetchPaymentsForView(
   ticketId: number,
   config?: { signal?: AbortSignal },
@@ -401,7 +364,9 @@ async function fetch() {
     );
 
     tickets.value = res.data.items;
-    await fetchRestToPayForTickets(tickets.value, config);
+    restToPayMap.value = Object.fromEntries(
+      tickets.value.map((t) => [t.id, t.rest_to_pay ?? 0]),
+    );
 
     hasLoadedOnce.value = true;
     error.value = false;

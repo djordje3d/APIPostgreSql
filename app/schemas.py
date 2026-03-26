@@ -91,6 +91,20 @@ class TicketDashboardRow(BaseModel):
     spot_code: str | None = None
     garage_name: str | None = None
     image_url: str | None = None
+    rest_to_pay: float = 0.0
+
+
+class DashboardAnalyticsResponse(BaseModel):
+    """Single response for status cards + revenue summary."""
+
+    free_spots: int
+    occupied_spots: int
+    inactive_spots: int
+    open_tickets: int
+    today_revenue: float
+    month_revenue: float
+    unpaid_partially_paid_count: int
+    total_outstanding: float
 
 
 # --- Pagination ---

@@ -10,7 +10,7 @@
       <button
         type="button"
         class="text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-        @click="retry"
+        @click="$emit('retry')"
       >
         Failed to fetch data, click here to retry
       </button>
@@ -68,149 +68,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import SummaryRow from "./SummaryRow.vue";
 import { formatMoney } from "../../composables/useFormatters";
-import { listPayments, getOutstanding } from "../../api/payments";
-import { listTickets } from "../../api/tickets";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
-
-const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
-  garageId: undefined,
-});
-
-
-const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
-  "dashboardRefreshAbortSignal",
-  ref(null),
-);
-
-const loading = ref(false);
-const refreshing = ref(false);
-const error = ref(false);
-const hasLoadedOnce = ref(false);
-const todayRevenue = ref(0);
-const monthRevenue = ref(0);
-const unpaidCount = ref(0);
-const totalOutstanding = ref(0);
-
-function formatLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getTodayISO() {
-  return formatLocalDate(new Date());
-}
-
-function getMonthStartEnd() {
-  const d = new Date();
-  const start = new Date(d.getFullYear(), d.getMonth(), 1);
-  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-
-  return {
-    from: formatLocalDate(start),
-    to: formatLocalDate(end),
-  };
-}
-
-const paymentParams = (from: string, to: string) => ({
-  from,
-  to,
-  limit: 1000,
-  ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-});
-
-const ticketParams = (paymentStatus: "UNPAID" | "PARTIALLY_PAID") => ({
-  payment_status: paymentStatus,
-  limit: 1,
-  ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-});
-
-async function fetch() {
-  const hasData = hasLoadedOnce.value;
-
-  if (!hasData) {
-    loading.value = true;
-    error.value = false;
-  } else {
-    refreshing.value = true;
-  }
-
-  const signal = dashboardRefreshAbortSignal?.value ?? undefined;
-  const config = signal ? { signal } : undefined;
-
-  try {
-    const today = getTodayISO();
-    const { from: monthFrom, to: monthTo } = getMonthStartEnd();
-
-    const [todayRes, monthRes, unpaidRes, partialRes, outstandingRes] =
-      await Promise.all([
-        listPayments(paymentParams(today, today), config),
-        listPayments(paymentParams(monthFrom, monthTo), config),
-        listTickets(ticketParams("UNPAID"), config),
-        listTickets(ticketParams("PARTIALLY_PAID"), config),
-        getOutstanding(props.garageId, config),
-      ]);
-
-    todayRevenue.value = todayRes.data.items.reduce(
-      (sum, p) => sum + parseFloat(p.amount),
-      0,
-    );
-    monthRevenue.value = monthRes.data.items.reduce(
-      (sum, p) => sum + parseFloat(p.amount),
-      0,
-    );
-    unpaidCount.value = unpaidRes.data.total + partialRes.data.total;
-    totalOutstanding.value = outstandingRes.data.total_outstanding ?? 0;
-
-    hasLoadedOnce.value = true;
-    error.value = false;
-  } catch (err: unknown) {
-    if ((err as { code?: string })?.code === "ERR_CANCELED") return;
-
-    error.value = true;
-
-    if (!hasData) {
-      todayRevenue.value = 0;
-      monthRevenue.value = 0;
-      unpaidCount.value = 0;
-      totalOutstanding.value = 0;
-    }
-  } finally {
-    loading.value = false;
-    refreshing.value = false;
-  }
-}
-
-function retry() {
-  error.value = false;
-  fetch();
-}
-
-function onDashboardRefresh() {
-  fetch();
-}
-
-watch(
-  () => props.garageId,
-  () => {
-    fetch();
+withDefaults(
+  defineProps<{
+    todayRevenue?: number;
+    monthRevenue?: number;
+    unpaidCount?: number;
+    totalOutstanding?: number;
+    loading?: boolean;
+    refreshing?: boolean;
+    error?: boolean;
+    hasLoadedOnce?: boolean;
+  }>(),
+  {
+    todayRevenue: 0,
+    monthRevenue: 0,
+    unpaidCount: 0,
+    totalOutstanding: 0,
+    loading: false,
+    refreshing: false,
+    error: false,
+    hasLoadedOnce: false,
   },
 );
 
-onMounted(() => {
-  window.addEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);
-  fetch();
-});
-
-onUnmounted(() => {
-  window.removeEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);
-});
+defineEmits<{ retry: [] }>();
 </script>

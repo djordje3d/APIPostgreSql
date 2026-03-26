@@ -19,7 +19,16 @@
           {{ formatRate(garage.default_rate) }} RSD
         </p>
       </div>
-      <RevenueSummary ref="revenueRef" :garage-id="garage.id" />
+      <RevenueSummary
+        :today-revenue="revenueDash?.today_revenue ?? 0"
+        :month-revenue="revenueDash?.month_revenue ?? 0"
+        :unpaid-count="revenueDash?.unpaid_partially_paid_count ?? 0"
+        :total-outstanding="revenueDash?.total_outstanding ?? 0"
+        :loading="loading && revenueDash === null"
+        :refreshing="false"
+        :error="false"
+        :has-loaded-once="revenueDash !== null"
+      />
       <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
         <div class="border-b border-gray-200 px-4 py-3">
           <h2 class="text-lg font-semibold">{{ t('garageDetail.spots') }}</h2>
@@ -128,6 +137,9 @@ import { useRoute } from "vue-router";
 import { getGarage } from "../api/garages";
 import { listSpots } from "../api/spots";
 import { listTicketsDashboard } from "../api/tickets";
+import { getDashboardAnalytics } from "../api/dashboard";
+import type { DashboardAnalytics } from "../api/dashboard";
+import { getTodayISO, getMonthStartEnd } from "../utils/dashboardDates";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import PaginationBar from "../components/ui/PaginationBar.vue";
 import { formatTime, formatRate } from "../composables/useFormatters";
@@ -160,7 +172,7 @@ const spotsPage = ref(1);
 const spotsPageSize = ref(10);
 const spotsTotal = ref(0);
 const spotsOffset = computed(() => (spotsPage.value - 1) * spotsPageSize.value);
-const revenueRef = ref<InstanceType<typeof RevenueSummary> | null>(null);
+const revenueDash = ref<DashboardAnalytics | null>(null);
 
 async function fetchSpots() {
   const id = Number(route.params.id);
@@ -196,23 +208,36 @@ async function fetch() {
   const config = { signal };
   spotsPage.value = 1;
   loading.value = true;
+  revenueDash.value = null;
   try {
-    const [gRes, tRes] = await Promise.all([
+    const today = getTodayISO();
+    const { from: monthFrom, to: monthTo } = getMonthStartEnd();
+    const [gRes, tRes, aRes] = await Promise.all([
       getGarage(id, config),
       listTicketsDashboard({ limit: 100 }, config),
+      getDashboardAnalytics(
+        {
+          garage_id: id,
+          today,
+          month_from: monthFrom,
+          month_to: monthTo,
+        },
+        config,
+      ),
     ]);
     garage.value = gRes.data;
     openTickets.value = tRes.data.items.filter(
       (t) => t.garage_id === id && t.ticket_state === "OPEN",
     );
+    revenueDash.value = aRes.data;
     await fetchSpots();
-    revenueRef.value?.refresh?.();
   } catch (err: unknown) {
     if ((err as { code?: string })?.code === "ERR_CANCELED") return;
     garage.value = null;
     spots.value = [];
     spotsTotal.value = 0;
     openTickets.value = [];
+    revenueDash.value = null;
   } finally {
     loading.value = false;
   }

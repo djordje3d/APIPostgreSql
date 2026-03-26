@@ -29,7 +29,17 @@
     </div>
 
     <div class="dashboard-fade dashboard-fade--1">
-      <StatusCards :garage-id="selectedGarageId ?? undefined" />
+      <StatusCards
+        :free-spots="analytics?.free_spots ?? 0"
+        :occupied-spots="analytics?.occupied_spots ?? 0"
+        :inactive-spots="analytics?.inactive_spots ?? 0"
+        :open-tickets="analytics?.open_tickets ?? 0"
+        :loading="analyticsLoading && !analyticsHasLoadedOnce"
+        :refreshing="analyticsRefreshing"
+        :error="analyticsError"
+        :has-loaded-once="analyticsHasLoadedOnce"
+        @retry="fetchAnalyticsOnly"
+      />
     </div>
 
     <div class="dashboard-fade dashboard-fade--2">
@@ -44,7 +54,17 @@
     </div>
 
     <div class="dashboard-fade dashboard-fade--4">
-      <RevenueSummary :garage-id="selectedGarageId ?? undefined" />
+      <RevenueSummary
+        :today-revenue="analytics?.today_revenue ?? 0"
+        :month-revenue="analytics?.month_revenue ?? 0"
+        :unpaid-count="analytics?.unpaid_partially_paid_count ?? 0"
+        :total-outstanding="analytics?.total_outstanding ?? 0"
+        :loading="analyticsLoading && !analyticsHasLoadedOnce"
+        :refreshing="analyticsRefreshing"
+        :error="analyticsError"
+        :has-loaded-once="analyticsHasLoadedOnce"
+        @retry="fetchAnalyticsOnly"
+      />
     </div>
   </div>
 </template>
@@ -73,6 +93,13 @@ import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
 import type { ToastApi } from "../composables/useToast";
+import { getDashboardAnalytics } from "../api/dashboard";
+import type { DashboardAnalytics } from "../api/dashboard";
+import {
+  readGaragesCache,
+  writeGaragesCache,
+} from "../utils/garageCache";
+import { getTodayISO, getMonthStartEnd } from "../utils/dashboardDates";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -85,6 +112,13 @@ const autoRefreshEnabled = inject<Ref<boolean>>(
 
 const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
+const garageWatchReady = ref(false);
+
+const analytics = ref<DashboardAnalytics | null>(null);
+const analyticsLoading = ref(true);
+const analyticsRefreshing = ref(false);
+const analyticsError = ref(false);
+const analyticsHasLoadedOnce = ref(false);
 
 const refreshAbortControllerRef = ref<AbortController | null>(null);
 
@@ -98,8 +132,77 @@ function prepareRefreshCycle() {
   refreshAbortControllerRef.value = new AbortController();
 }
 
+function reconcileGarageSelection() {
+  if (garages.value.length === 1 && selectedGarageId.value == null) {
+    selectedGarageId.value = garages.value[0].id;
+  }
+  if (
+    selectedGarageId.value != null &&
+    !garages.value.some((g) => g.id === selectedGarageId.value)
+  ) {
+    selectedGarageId.value = null;
+  }
+}
+
+async function loadGarages() {
+  const cached = readGaragesCache();
+  if (cached?.fresh) {
+    garages.value = cached.items;
+    reconcileGarageSelection();
+    return;
+  }
+  try {
+    const res = await listGarages({ limit: 200 });
+    garages.value = res.data.items;
+    writeGaragesCache(res.data.items);
+    reconcileGarageSelection();
+  } catch {
+    garages.value = [];
+  }
+}
+
+async function fetchAnalyticsOnly() {
+  const hasData = analyticsHasLoadedOnce.value;
+  if (!hasData) {
+    analyticsLoading.value = true;
+    analyticsError.value = false;
+  } else {
+    analyticsRefreshing.value = true;
+  }
+
+  const signal = refreshAbortControllerRef.value?.signal;
+  const config = signal ? { signal } : undefined;
+  const today = getTodayISO();
+  const { from: monthFrom, to: monthTo } = getMonthStartEnd();
+
+  try {
+    const res = await getDashboardAnalytics(
+      {
+        garage_id: selectedGarageId.value ?? undefined,
+        today,
+        month_from: monthFrom,
+        month_to: monthTo,
+      },
+      config,
+    );
+    analytics.value = res.data;
+    analyticsError.value = false;
+    analyticsHasLoadedOnce.value = true;
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === "ERR_CANCELED") return;
+    analyticsError.value = true;
+    if (!hasData) {
+      analytics.value = null;
+    }
+  } finally {
+    analyticsLoading.value = false;
+    analyticsRefreshing.value = false;
+  }
+}
+
 function refreshAll() {
   prepareRefreshCycle();
+  fetchAnalyticsOnly();
   window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
 }
 
@@ -107,27 +210,8 @@ function onDashboardRequestRefresh() {
   refreshAll();
 }
 
-async function loadGarages() {
-  try {
-    const res = await listGarages({ limit: 200 });
-    garages.value = res.data.items;
-
-    if (garages.value.length === 1 && selectedGarageId.value == null) {
-      selectedGarageId.value = garages.value[0].id;
-    }
-
-    if (
-      selectedGarageId.value != null &&
-      !garages.value.some((g) => g.id === selectedGarageId.value)
-    ) {
-      selectedGarageId.value = null;
-    }
-  } catch {
-    garages.value = [];
-  }
-}
-
 watch(selectedGarageId, () => {
+  if (!garageWatchReady.value) return;
   nextTick(refreshAll);
 });
 
@@ -139,10 +223,12 @@ function toggleAutoRefresh() {
   autoRefreshEnabled.value = !autoRefreshEnabled.value;
 }
 
-onMounted(() => {
+onMounted(async () => {
   toast?.clearToast();
-  loadGarages();
+  await loadGarages();
   refreshAll();
+  await nextTick();
+  garageWatchReady.value = true;
   window.addEventListener(
     DASHBOARD_REQUEST_REFRESH_EVENT,
     onDashboardRequestRefresh,

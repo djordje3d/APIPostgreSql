@@ -23,6 +23,8 @@ export interface TicketDashboardRow extends TicketResponse {
   garage_name: string | null
   /** Optional image URL when provided by the backend (e.g. garage or ticket image). */
   image_url?: string | null
+  /** Remaining amount to pay (server-computed; 0 when not applicable). */
+  rest_to_pay?: number
 }
 
 // get the tickets from the tickets endpoint

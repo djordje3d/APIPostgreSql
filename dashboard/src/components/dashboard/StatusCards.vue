@@ -8,7 +8,7 @@
     <button
       type="button"
       class="text-red-600 underline hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-      @click="retry"
+      @click="$emit('retry')"
     >
       Failed to fetch data, click here to retry
     </button>
@@ -60,117 +60,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import StatCard from "./StatCard.vue";
-import { listSpots } from "../../api/spots";
-import { listTickets } from "../../api/tickets";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
-  
-const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 
-const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
-  garageId: undefined,
-});
-
-const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
-  "dashboardRefreshAbortSignal",
-  ref(null),
-);
-
-const loading = ref(false);
-const refreshing = ref(false);
-const error = ref(false);
-const hasLoadedOnce = ref(false);
-
-const freeSpots = ref(0);
-const occupiedSpots = ref(0);
-const inactiveSpots = ref(0);
-const openTickets = ref(0);
-
-const spotParams = () => ({
-  ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-  limit: 1,
-});
-
-const ticketParams = () => ({
-  ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-  state: "OPEN" as const,
-  limit: 1,
-});
-
-async function fetch() {
-  const hasData = hasLoadedOnce.value;
-
-  if (!hasData) {
-    loading.value = true;
-    error.value = false;
-  } else {
-    refreshing.value = true;
-  }
-
-  const signal = dashboardRefreshAbortSignal?.value ?? undefined;
-  const config = signal ? { signal } : undefined;
-
-  try {
-    const [freeRes, allSpotsRes, activeOnlyRes, openRes] = await Promise.all([
-      listSpots({ ...spotParams(), only_free: true, active_only: true }, config),
-      listSpots({ ...spotParams(), active_only: false }, config),
-      listSpots({ ...spotParams(), active_only: true }, config),
-      listTickets(ticketParams(), config),
-    ]);
-
-    freeSpots.value = freeRes.data.total;
-
-    const totalActive = activeOnlyRes.data.total;
-    const totalAll = allSpotsRes.data.total;
-
-    inactiveSpots.value = Math.max(0, totalAll - totalActive);
-    occupiedSpots.value = Math.max(0, totalActive - freeRes.data.total);
-    openTickets.value = openRes.data.total;
-
-    hasLoadedOnce.value = true;
-    error.value = false;
-  } catch (err: unknown) {
-    if ((err as { code?: string })?.code === "ERR_CANCELED") return;
-
-    error.value = true;
-
-    if (!hasData) {
-      freeSpots.value = 0;
-      occupiedSpots.value = 0;
-      inactiveSpots.value = 0;
-      openTickets.value = 0;
-    }
-  } finally {
-    loading.value = false;
-    refreshing.value = false;
-  }
-}
-
-function retry() {
-  error.value = false;
-  fetch();
-}
-
-function onDashboardRefresh() {
-  fetch();
-}
-
-watch(
-  () => props.garageId,
-  () => {
-    fetch();
+withDefaults(
+  defineProps<{
+    freeSpots?: number;
+    occupiedSpots?: number;
+    inactiveSpots?: number;
+    openTickets?: number;
+    loading?: boolean;
+    refreshing?: boolean;
+    error?: boolean;
+    hasLoadedOnce?: boolean;
+  }>(),
+  {
+    freeSpots: 0,
+    occupiedSpots: 0,
+    inactiveSpots: 0,
+    openTickets: 0,
+    loading: false,
+    refreshing: false,
+    error: false,
+    hasLoadedOnce: false,
   },
 );
 
-onMounted(() => {
-  window.addEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);
-  fetch();
-});
-
-onUnmounted(() => {
-  window.removeEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);
-});
+defineEmits<{ retry: [] }>();
 </script>
