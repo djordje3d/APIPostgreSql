@@ -157,6 +157,7 @@ import PaymentModal from "./PaymentModal.vue";
 import { useI18n } from "vue-i18n";
 import { generateCode39BarcodeImage } from "../../utils/code39";
 import TicketTable from "./TicketTable.vue";
+import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh";
 import TicketDetailModal from "./TicketDetailModal.vue";
 import Modal from "../ui/Modal.vue";
 
@@ -339,7 +340,7 @@ function onPaymentDone() {
   });
 }
 
-async function fetch() {
+async function fetch(refreshEpoch?: number) {
   const hasData = tickets.value.length > 0 || hasLoadedOnce.value;
 
   if (!hasData) {
@@ -382,6 +383,13 @@ async function fetch() {
   } finally {
     loading.value = false;
     refreshing.value = false;
+    if (refreshEpoch != null && refreshEpoch > 0) {
+      window.dispatchEvent(
+        new CustomEvent(DASHBOARD_WIDGET_FETCH_DONE, {
+          detail: { epoch: refreshEpoch },
+        }),
+      );
+    }
   }
 }
 
@@ -390,8 +398,9 @@ function retry() {
   fetch();
 }
 
-function onDashboardRefresh() {
-  fetch();
+function onDashboardRefresh(e: Event) {
+  const epoch = (e as CustomEvent<{ epoch?: number }>).detail?.epoch;
+  fetch(epoch);
 }
 
 watch(

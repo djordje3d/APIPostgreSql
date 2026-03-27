@@ -100,9 +100,12 @@ import {
   writeGaragesCache,
 } from "../utils/garageCache";
 import { getTodayISO, getMonthStartEnd } from "../utils/dashboardDates";
+import { DASHBOARD_WIDGET_FETCH_DONE } from "../constants/dashboardRefresh";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
+
+const WIDGET_FETCH_TIMEOUT_MS = 45_000;
 
 const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(
@@ -121,6 +124,11 @@ const analyticsError = ref(false);
 const analyticsHasLoadedOnce = ref(false);
 
 const refreshAbortControllerRef = ref<AbortController | null>(null);
+/** Monotonic id for each full dashboard refresh (widgets match in fetch finally). */
+const refreshEpoch = ref(0);
+/** Nested refresh runs (manual during poll) — only clear inProgress when depth hits 0. */
+let refreshDepth = 0;
+const refreshInProgress = ref(false);
 
 provide(
   "dashboardRefreshAbortSignal",
@@ -130,6 +138,30 @@ provide(
 function prepareRefreshCycle() {
   refreshAbortControllerRef.value?.abort();
   refreshAbortControllerRef.value = new AbortController();
+}
+
+function waitForTwoWidgetFetches(epoch: number): Promise<void> {
+  return new Promise((resolve) => {
+    let received = 0;
+    const onDone = (e: Event) => {
+      const d = (e as CustomEvent<{ epoch?: number }>).detail;
+      if (d?.epoch !== epoch) return;
+      received++;
+      if (received >= 2) {
+        cleanup();
+        resolve();
+      }
+    };
+    const cleanup = () => {
+      window.removeEventListener(DASHBOARD_WIDGET_FETCH_DONE, onDone);
+      clearTimeout(tid);
+    };
+    const tid = setTimeout(() => {
+      cleanup();
+      resolve();
+    }, WIDGET_FETCH_TIMEOUT_MS);
+    window.addEventListener(DASHBOARD_WIDGET_FETCH_DONE, onDone);
+  });
 }
 
 function reconcileGarageSelection() {
@@ -200,10 +232,34 @@ async function fetchAnalyticsOnly() {
   }
 }
 
+async function runRefreshCycle() {
+  refreshDepth++;
+  refreshInProgress.value = true;
+  try {
+    refreshEpoch.value++;
+    const epoch = refreshEpoch.value;
+    prepareRefreshCycle();
+    const analyticsP = fetchAnalyticsOnly();
+    const widgetsP = waitForTwoWidgetFetches(epoch);
+    window.dispatchEvent(
+      new CustomEvent(DASHBOARD_REFRESH_EVENT, { detail: { epoch } }),
+    );
+    await Promise.all([analyticsP, widgetsP]);
+  } finally {
+    refreshDepth--;
+    if (refreshDepth === 0) refreshInProgress.value = false;
+  }
+}
+
+/** Manual / user-driven: always runs (aborts in-flight via prepareRefreshCycle). */
 function refreshAll() {
-  prepareRefreshCycle();
-  fetchAnalyticsOnly();
-  window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
+  void runRefreshCycle();
+}
+
+/** Polling: skip if a full cycle is still in flight to avoid aborting overview/tickets. */
+function pollRefresh() {
+  if (refreshInProgress.value) return;
+  void runRefreshCycle();
 }
 
 function onDashboardRequestRefresh() {
@@ -215,7 +271,7 @@ watch(selectedGarageId, () => {
   nextTick(refreshAll);
 });
 
-const { remainingMs, intervalMs, isRunning } = useDashboardPolling(refreshAll, {
+const { remainingMs, intervalMs, isRunning } = useDashboardPolling(pollRefresh, {
   enabled: autoRefreshEnabled,
 });
 

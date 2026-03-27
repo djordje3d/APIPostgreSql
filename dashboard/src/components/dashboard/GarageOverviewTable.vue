@@ -132,6 +132,7 @@
 <script setup lang="ts">
 import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
 import { getGarageOverview } from "../../api/garages";
+import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh";
 import ButtonIn from "../ui/ButtonIn.vue";
 import { useI18n } from "vue-i18n";
 
@@ -163,7 +164,7 @@ const error = ref(false);
 const hasLoadedOnce = ref(false);
 const rows = ref<Row[]>([]);
 
-async function fetch() {
+async function fetch(refreshEpoch?: number) {
   const hasData = rows.value.length > 0 || hasLoadedOnce.value;
 
   if (!hasData) {
@@ -196,6 +197,13 @@ async function fetch() {
   } finally {
     loading.value = false;
     refreshing.value = false;
+    if (refreshEpoch != null && refreshEpoch > 0) {
+      window.dispatchEvent(
+        new CustomEvent(DASHBOARD_WIDGET_FETCH_DONE, {
+          detail: { epoch: refreshEpoch },
+        }),
+      );
+    }
   }
 }
 
@@ -204,8 +212,9 @@ function retry() {
   fetch();
 }
 
-function onDashboardRefresh() {
-  fetch();
+function onDashboardRefresh(e: Event) {
+  const epoch = (e as CustomEvent<{ epoch?: number }>).detail?.epoch;
+  fetch(epoch);
 }
 
 watch(
