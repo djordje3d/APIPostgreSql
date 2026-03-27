@@ -1,11 +1,11 @@
 <template>
-  <span class="by-garage-card__icon by-garage-card__cell" aria-hidden="true">
-    <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
-  </span>
   <div class="by-garage-card__right-row">
     <div
       class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
     >
+      <span class="by-garage-card__icon" aria-hidden="true">
+        <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
+      </span>
       <StandardDropdown
         :label="t('garageSelectDropdown.title')"
         label-class="text-base"
@@ -40,9 +40,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import garageIcon from "../../assets/images/urban-parking-garage.svg";
 import StandardDropdown from "../ui/StandardDropdown.vue";
 import { useI18n } from "vue-i18n";
+import garageIcon from "../../assets/images/urban-parking-garage.svg";
 
 const { t } = useI18n();
 
@@ -87,14 +87,19 @@ const selectedGarageName = computed(
 }
 .by-garage-card__right-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   flex: 1;
   min-width: 0;
 }
 .by-garage-card__dropdown-wrap {
-  width: 24rem;
-  min-width: 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 11rem;
+  max-width: 16rem;
 }
 .by-garage-card__viewing {
   display: flex;

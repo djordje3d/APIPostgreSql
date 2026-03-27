@@ -24,12 +24,8 @@
       </div>
     </div>
 
-    <div class="dashboard-layout-lg lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:gap-6">
-      <div class="by-garage-card dashboard-fade dashboard-fade--0 lg:col-start-3 lg:row-start-1">
-        <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
-      </div>
-
-      <div class="dashboard-fade dashboard-fade--1 lg:col-span-2 lg:row-span-2">
+    <div class="dashboard-layout-lg lg:grid lg:grid-cols-12 lg:gap-6">
+      <div class="dashboard-fade dashboard-fade--1 lg:col-span-5">
         <StatusCards
           :free-spots="analytics?.free_spots ?? 0"
           :occupied-spots="analytics?.occupied_spots ?? 0"
@@ -43,7 +39,11 @@
         />
       </div>
 
-      <div class="dashboard-fade dashboard-fade--4 lg:col-start-3 lg:row-start-2">
+      <div class="by-garage-card dashboard-fade dashboard-fade--0 lg:col-span-3">
+        <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
+      </div>
+
+      <div class="dashboard-fade dashboard-fade--4 lg:col-span-4">
         <RevenueSummary
           :today-revenue="analytics?.today_revenue ?? 0"
           :month-revenue="analytics?.month_revenue ?? 0"
