@@ -50,7 +50,7 @@
       ></span>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
       <StatCard :label="t('statusCards.freeSpots')" :value="freeSpots" variant="green" />
       <StatCard :label="t('statusCards.occupiedSpots')" :value="occupiedSpots" variant="red" />
       <StatCard :label="t('statusCards.inactiveSpots')" :value="inactiveSpots" variant="amber" />

@@ -24,22 +24,38 @@
       </div>
     </div>
 
-    <div class="by-garage-card dashboard-fade dashboard-fade--0">
-      <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
-    </div>
+    <div class="dashboard-layout-lg lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:gap-6">
+      <div class="by-garage-card dashboard-fade dashboard-fade--0 lg:col-start-3 lg:row-start-1">
+        <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
+      </div>
 
-    <div class="dashboard-fade dashboard-fade--1">
-      <StatusCards
-        :free-spots="analytics?.free_spots ?? 0"
-        :occupied-spots="analytics?.occupied_spots ?? 0"
-        :inactive-spots="analytics?.inactive_spots ?? 0"
-        :open-tickets="analytics?.open_tickets ?? 0"
-        :loading="analyticsLoading && !analyticsHasLoadedOnce"
-        :refreshing="analyticsRefreshing"
-        :error="analyticsError"
-        :has-loaded-once="analyticsHasLoadedOnce"
-        @retry="fetchAnalyticsOnly"
-      />
+      <div class="dashboard-fade dashboard-fade--1 lg:col-span-2 lg:row-span-2">
+        <StatusCards
+          :free-spots="analytics?.free_spots ?? 0"
+          :occupied-spots="analytics?.occupied_spots ?? 0"
+          :inactive-spots="analytics?.inactive_spots ?? 0"
+          :open-tickets="analytics?.open_tickets ?? 0"
+          :loading="analyticsLoading && !analyticsHasLoadedOnce"
+          :refreshing="analyticsRefreshing"
+          :error="analyticsError"
+          :has-loaded-once="analyticsHasLoadedOnce"
+          @retry="fetchAnalyticsOnly"
+        />
+      </div>
+
+      <div class="dashboard-fade dashboard-fade--4 lg:col-start-3 lg:row-start-2">
+        <RevenueSummary
+          :today-revenue="analytics?.today_revenue ?? 0"
+          :month-revenue="analytics?.month_revenue ?? 0"
+          :unpaid-count="analytics?.unpaid_partially_paid_count ?? 0"
+          :total-outstanding="analytics?.total_outstanding ?? 0"
+          :loading="analyticsLoading && !analyticsHasLoadedOnce"
+          :refreshing="analyticsRefreshing"
+          :error="analyticsError"
+          :has-loaded-once="analyticsHasLoadedOnce"
+          @retry="fetchAnalyticsOnly"
+        />
+      </div>
     </div>
 
     <div class="dashboard-fade dashboard-fade--2">
@@ -53,19 +69,6 @@
       />
     </div>
 
-    <div class="dashboard-fade dashboard-fade--4">
-      <RevenueSummary
-        :today-revenue="analytics?.today_revenue ?? 0"
-        :month-revenue="analytics?.month_revenue ?? 0"
-        :unpaid-count="analytics?.unpaid_partially_paid_count ?? 0"
-        :total-outstanding="analytics?.total_outstanding ?? 0"
-        :loading="analyticsLoading && !analyticsHasLoadedOnce"
-        :refreshing="analyticsRefreshing"
-        :error="analyticsError"
-        :has-loaded-once="analyticsHasLoadedOnce"
-        @retry="fetchAnalyticsOnly"
-      />
-    </div>
   </div>
 </template>
 
