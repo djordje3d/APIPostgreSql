@@ -1,3 +1,5 @@
+from datetime import date, datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
@@ -34,7 +36,9 @@ router = APIRouter(prefix="/tickets", tags=["Tickets"])
 def list_tickets_dashboard(
     db: Session = Depends(get_db),
     garage_id: int | None = Query(default=None),
-    limit: int = Query(10, ge=1, le=100),
+    from_date: date | None = Query(default=None),
+    to_date: date | None = Query(default=None),
+    limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0),
 ):
     """List tickets with licence_plate and spot_code for dashboard."""
@@ -51,13 +55,24 @@ def list_tickets_dashboard(
     )
     if garage_id is not None:
         q = q.filter(models.Ticket.garage_id == garage_id)
+    if from_date is not None:
+        start = datetime.fromisoformat(
+            from_date.isoformat() + "T00:00:00+00:00"
+        )
+        q = q.filter(models.Ticket.entry_time >= start)
+    if to_date is not None:
+        end_exclusive = datetime.fromisoformat(
+            (to_date + timedelta(days=1)).isoformat() + "T00:00:00+00:00"
+        )
+        q = q.filter(models.Ticket.entry_time < end_exclusive)
     total = q.count()
     tickets = q.limit(limit).offset(offset).all()
     pay_map = batch_payment_totals_by_ticket(db, [t.id for t in tickets])
     items = []
     for t in tickets:
         # Use computed fee when entry_time and exit_time are set, so direct DB
-        # changes to entry/exit are reflected after refresh (dashboard display only).
+        # changes to entry/exit are reflected after refresh
+        # (dashboard display only).
         fee = t.fee
         if t.entry_time is not None and t.exit_time is not None:
             fee = get_ticket_fee(t, db)
@@ -79,6 +94,11 @@ def list_tickets_dashboard(
                 licence_plate=t.vehicle.licence_plate if t.vehicle else None,
                 spot_code=t.spot.code if t.spot else None,
                 garage_name=t.garage.name if t.garage else None,
+                vehicle_type=(
+                    t.vehicle.vehicle_type.type
+                    if t.vehicle and t.vehicle.vehicle_type
+                    else None
+                ),
                 image_url=t.image_url,
                 rest_to_pay=rest,
             )

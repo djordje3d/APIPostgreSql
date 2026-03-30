@@ -59,14 +59,82 @@
     </div>
 
     <div class="dashboard-fade dashboard-fade--2">
-      <GarageOverviewTable :garage-id="selectedGarageId ?? undefined" />
+      <div class="rounded-lg bg-white p-3 shadow ring-1 ring-gray-200">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="dashboard-tabs">
+            <button
+              type="button"
+              class="dashboard-tab"
+              :class="{ 'dashboard-tab--active': activeTab === 'overview' }"
+              @click="activeTab = 'overview'"
+            >
+              Overview
+            </button>
+            <button
+              type="button"
+              class="dashboard-tab"
+              :class="{ 'dashboard-tab--active': activeTab === 'tickets' }"
+              @click="activeTab = 'tickets'"
+            >
+              Tickets
+            </button>
+            <button
+              type="button"
+              class="dashboard-tab"
+              :class="{ 'dashboard-tab--active': activeTab === 'timeline' }"
+              @click="activeTab = 'timeline'"
+            >
+              Timeline
+            </button>
+          </div>
+
+          <div class="w-full max-w-[240px]">
+            <StandardDropdown
+              label="Time Frame"
+              :options="timeFrameOptions"
+              :model-value="selectedTimeFrame"
+              :nullable="false"
+              @update:model-value="selectedTimeFrame = ($event as string) ?? 'realtime'"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="dashboard-fade dashboard-fade--3">
-      <TicketActivity
-        :garage-id="selectedGarageId ?? undefined"
-        :key="selectedGarageId ?? 'all'"
-      />
+      <div v-show="activeTab === 'overview'">
+        <GarageOverviewTable
+          :garage-id="selectedGarageId ?? undefined"
+          :refresh-key="selectedTimeFrame"
+        />
+      </div>
+
+      <div v-show="activeTab === 'tickets'">
+        <TicketActivity
+          :garage-id="selectedGarageId ?? undefined"
+          :from-date="range.fromDate"
+          :to-date="range.toDate"
+        />
+      </div>
+
+      <div v-show="activeTab === 'timeline'">
+        <TimelineVehicleTypeChart
+          :from-date="range.fromDate"
+          :to-date="range.toDate"
+          :points="timelinePoints"
+          :series="timelineSeries"
+          :y-axis-mode="timelineYAxisMode"
+          :loading="timelineLoading"
+          :refreshing="timelineRefreshing"
+          :error="timelineError"
+          :has-loaded-once="timelineHasLoadedOnce"
+          :zoom-start="timelineZoomStart"
+          :zoom-end="timelineZoomEnd"
+          @update:y-axis-mode="timelineYAxisMode = $event"
+          @update:zoom-start="timelineZoomStart = $event"
+          @update:zoom-end="timelineZoomEnd = $event"
+        />
+      </div>
     </div>
 
   </div>
@@ -91,6 +159,8 @@ import TicketActivity from "../components/dashboard/TicketActivity.vue";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
+import StandardDropdown from "../components/ui/StandardDropdown.vue";
+import TimelineVehicleTypeChart from "../components/dashboard/TimelineVehicleTypeChart.vue";
 
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
@@ -98,6 +168,8 @@ import type { Garage } from "../api/garages";
 import type { ToastApi } from "../composables/useToast";
 import { getDashboardAnalytics } from "../api/dashboard";
 import type { DashboardAnalytics } from "../api/dashboard";
+import { listTicketsDashboard } from "../api/tickets";
+import type { TicketDashboardRow } from "../api/tickets";
 import {
   readGaragesCache,
   writeGaragesCache,
@@ -119,12 +191,30 @@ const autoRefreshEnabled = inject<Ref<boolean>>(
 const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
 const garageWatchReady = ref(false);
+const activeTab = ref<"overview" | "tickets" | "timeline">("overview");
+
+const selectedTimeFrame = ref("realtime");
+const timeFrameOptions = [
+  { id: "realtime", label: "Real time (last 5 days)" },
+  { id: "last7", label: "Last 7 days" },
+  { id: "last30", label: "Last 30 days" },
+  { id: "last90", label: "Last 90 days" },
+];
 
 const analytics = ref<DashboardAnalytics | null>(null);
 const analyticsLoading = ref(true);
 const analyticsRefreshing = ref(false);
 const analyticsError = ref(false);
 const analyticsHasLoadedOnce = ref(false);
+
+const timelineLoading = ref(true);
+const timelineRefreshing = ref(false);
+const timelineError = ref(false);
+const timelineHasLoadedOnce = ref(false);
+const timelineRows = ref<TicketDashboardRow[]>([]);
+const timelineYAxisMode = ref<"entries" | "exits">("entries");
+const timelineZoomStart = ref(0);
+const timelineZoomEnd = ref(0);
 
 const refreshAbortControllerRef = ref<AbortController | null>(null);
 /** Monotonic id for each full dashboard refresh (widgets match in fetch finally). */
@@ -137,6 +227,70 @@ provide(
   "dashboardRefreshAbortSignal",
   computed(() => refreshAbortControllerRef.value?.signal ?? null),
 );
+
+function formatIsoDate(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildDateRange(timeFrame: string): { fromDate: string; toDate: string } {
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = new Date(end);
+  const days =
+    timeFrame === "last7"
+      ? 7
+      : timeFrame === "last30"
+        ? 30
+        : timeFrame === "last90"
+          ? 90
+          : 5;
+  start.setDate(end.getDate() - (days - 1));
+  return { fromDate: formatIsoDate(start), toDate: formatIsoDate(end) };
+}
+
+const range = computed(() => buildDateRange(selectedTimeFrame.value));
+const timelinePoints = computed(() => {
+  const points: string[] = [];
+  const start = new Date(`${range.value.fromDate}T00:00:00`);
+  const end = new Date(`${range.value.toDate}T00:00:00`);
+  const cur = new Date(start);
+  while (cur <= end) {
+    points.push(formatIsoDate(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return points;
+});
+
+const timelineSeries = computed(() => {
+  const colorPalette = ["#ef4444", "#3b82f6", "#eab308", "#22c55e", "#a855f7", "#f97316"];
+  const perType = new Map<string, Record<string, number>>();
+  for (const row of timelineRows.value) {
+    const daySource = timelineYAxisMode.value === "entries" ? row.entry_time : row.exit_time;
+    const day = daySource ? daySource.slice(0, 10) : "";
+    if (!day) continue;
+    const typeName = row.vehicle_type?.trim() || "Other";
+    if (!perType.has(typeName)) perType.set(typeName, {});
+    const bucket = perType.get(typeName)!;
+    bucket[day] = (bucket[day] ?? 0) + 1;
+  }
+  return Array.from(perType.entries()).map(([name, days], idx) => ({
+    name,
+    color: colorPalette[idx % colorPalette.length],
+    values: timelinePoints.value.map((p) => days[p] ?? 0),
+  }));
+});
+
+watch(timelinePoints, (points) => {
+  const maxIdx = Math.max(points.length - 1, 0);
+  timelineZoomStart.value = Math.min(timelineZoomStart.value, maxIdx);
+  timelineZoomEnd.value = Math.min(Math.max(timelineZoomEnd.value, timelineZoomStart.value), maxIdx);
+  if (timelineHasLoadedOnce.value && timelineZoomEnd.value === 0 && maxIdx > 0) {
+    timelineZoomEnd.value = maxIdx;
+  }
+});
 
 function prepareRefreshCycle() {
   refreshAbortControllerRef.value?.abort();
@@ -235,6 +389,45 @@ async function fetchAnalyticsOnly() {
   }
 }
 
+async function fetchTimelineOnly() {
+  const hasData = timelineRows.value.length > 0 || timelineHasLoadedOnce.value;
+  if (!hasData) {
+    timelineLoading.value = true;
+    timelineError.value = false;
+  } else {
+    timelineRefreshing.value = true;
+  }
+  const signal = refreshAbortControllerRef.value?.signal;
+  const config = signal ? { signal } : undefined;
+  try {
+    const res = await listTicketsDashboard(
+      {
+        ...(selectedGarageId.value != null ? { garage_id: selectedGarageId.value } : {}),
+        from_date: range.value.fromDate,
+        to_date: range.value.toDate,
+        limit: 5000,
+        offset: 0,
+      },
+      config,
+    );
+    timelineRows.value = res.data.items;
+    timelineError.value = false;
+    const maxIdx = Math.max(timelinePoints.value.length - 1, 0);
+    if (!timelineHasLoadedOnce.value || timelineZoomEnd.value === 0) {
+      timelineZoomStart.value = 0;
+      timelineZoomEnd.value = maxIdx;
+    }
+    timelineHasLoadedOnce.value = true;
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === "ERR_CANCELED") return;
+    timelineError.value = true;
+    if (!hasData) timelineRows.value = [];
+  } finally {
+    timelineLoading.value = false;
+    timelineRefreshing.value = false;
+  }
+}
+
 async function runRefreshCycle() {
   refreshDepth++;
   refreshInProgress.value = true;
@@ -244,10 +437,11 @@ async function runRefreshCycle() {
     prepareRefreshCycle();
     const analyticsP = fetchAnalyticsOnly();
     const widgetsP = waitForTwoWidgetFetches(epoch);
+    const timelineP = fetchTimelineOnly();
     window.dispatchEvent(
       new CustomEvent(DASHBOARD_REFRESH_EVENT, { detail: { epoch } }),
     );
-    await Promise.all([analyticsP, widgetsP]);
+    await Promise.all([analyticsP, widgetsP, timelineP]);
   } finally {
     refreshDepth--;
     if (refreshDepth === 0) refreshInProgress.value = false;
@@ -272,6 +466,17 @@ function onDashboardRequestRefresh() {
 watch(selectedGarageId, () => {
   if (!garageWatchReady.value) return;
   nextTick(refreshAll);
+});
+
+watch(selectedTimeFrame, () => {
+  if (!garageWatchReady.value) return;
+  nextTick(refreshAll);
+});
+
+watch(timelineYAxisMode, () => {
+  const maxIdx = Math.max(timelinePoints.value.length - 1, 0);
+  timelineZoomStart.value = Math.min(timelineZoomStart.value, maxIdx);
+  timelineZoomEnd.value = Math.min(Math.max(timelineZoomEnd.value, timelineZoomStart.value), maxIdx);
 });
 
 const { remainingMs, intervalMs, isRunning } = useDashboardPolling(pollRefresh, {
@@ -367,6 +572,24 @@ defineExpose({ refreshAll });
 }
 .dashboard-fade--5 {
   animation-delay: 0.75s;
+}
+.dashboard-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.dashboard-tab {
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  color: rgb(51 65 85);
+  background: white;
+}
+.dashboard-tab--active {
+  border-color: rgb(16 185 129);
+  color: rgb(5 150 105);
+  background: rgb(236 253 245);
 }
 @keyframes dashboardFadeIn {
   to {

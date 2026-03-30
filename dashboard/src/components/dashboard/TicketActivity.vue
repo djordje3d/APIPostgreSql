@@ -1,9 +1,7 @@
 <template>
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
-      <h2 class="text-lg font-semibold text-gray-900">
-        {{ t("ticket.Last 10") }}
-      </h2>
+      <h2 class="text-lg font-semibold text-gray-900">{{ t("ticket.ticketActivity") }}</h2>
     </div>
 
     <div class="overflow-x-auto">
@@ -164,9 +162,18 @@ import Modal from "../ui/Modal.vue";
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 
-const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
-  garageId: undefined,
-});
+const props = withDefaults(
+  defineProps<{
+    garageId?: number | null;
+    fromDate?: string;
+    toDate?: string;
+  }>(),
+  {
+    garageId: undefined,
+    fromDate: undefined,
+    toDate: undefined,
+  },
+);
 
 const { t } = useI18n();
 
@@ -358,7 +365,9 @@ async function fetch(refreshEpoch?: number) {
     const res = await listTicketsDashboard(
       {
         ...(props.garageId != null ? { garage_id: props.garageId } : {}),
-        limit: 10,
+        ...(props.fromDate ? { from_date: props.fromDate } : {}),
+        ...(props.toDate ? { to_date: props.toDate } : {}),
+        limit: 5000,
         offset: 0,
       },
       config,
@@ -404,7 +413,7 @@ function onDashboardRefresh(e: Event) {
 }
 
 watch(
-  () => props.garageId,
+  () => [props.garageId, props.fromDate, props.toDate],
   () => {
     fetch();
   },

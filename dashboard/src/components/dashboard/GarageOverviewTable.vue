@@ -140,9 +140,13 @@ const { t } = useI18n();
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 
-const props = withDefaults(defineProps<{ garageId?: number | null }>(), {
-  garageId: undefined,
-});
+const props = withDefaults(
+  defineProps<{ garageId?: number | null; refreshKey?: string }>(),
+  {
+    garageId: undefined,
+    refreshKey: "",
+  },
+);
 
 const dashboardRefreshAbortSignal = inject<Ref<AbortSignal | null>>(
   "dashboardRefreshAbortSignal",
@@ -218,7 +222,7 @@ function onDashboardRefresh(e: Event) {
 }
 
 watch(
-  () => props.garageId,
+  () => [props.garageId, props.refreshKey],
   () => {
     fetch();
   },

@@ -21,6 +21,7 @@ export interface TicketDashboardRow extends TicketResponse {
   licence_plate: string | null
   spot_code: string | null
   garage_name: string | null
+  vehicle_type?: string | null
   /** Optional image URL when provided by the backend (e.g. garage or ticket image). */
   image_url?: string | null
   /** Remaining amount to pay (server-computed; 0 when not applicable). */
@@ -44,6 +45,8 @@ export function listTickets(
 export function listTicketsDashboard(
   params?: {
     garage_id?: number
+    from_date?: string
+    to_date?: string
     limit?: number
     offset?: number
   },

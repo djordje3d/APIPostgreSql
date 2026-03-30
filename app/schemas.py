@@ -90,6 +90,7 @@ class TicketDashboardRow(BaseModel):
     licence_plate: str | None = None
     spot_code: str | None = None
     garage_name: str | None = None
+    vehicle_type: str | None = None
     image_url: str | None = None
     rest_to_pay: float = 0.0
 
