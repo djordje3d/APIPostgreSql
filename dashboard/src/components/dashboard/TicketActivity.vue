@@ -64,6 +64,12 @@
           @close-ticket="closeTicket"
           @open-payment="openPayment"
         />
+        <PaginationBar
+          :page="ticketsPage"
+          :page-size="ticketsPageSize"
+          :total="ticketsTotal"
+          @update:page="ticketsPage = $event"
+        />
       </div>
     </div>
 
@@ -158,6 +164,7 @@ import TicketTable from "./TicketTable.vue";
 import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh";
 import TicketDetailModal from "./TicketDetailModal.vue";
 import Modal from "../ui/Modal.vue";
+import PaginationBar from "../ui/PaginationBar.vue";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
@@ -188,6 +195,12 @@ const error = ref(false);
 const hasLoadedOnce = ref(false);
 
 const tickets = ref<TicketDashboardRow[]>([]);
+const ticketsPage = ref(1);
+const ticketsPageSize = ref(10);
+const ticketsTotal = ref(0);
+const ticketsOffset = computed(
+  () => (ticketsPage.value - 1) * ticketsPageSize.value,
+);
 const viewingTicket = ref<TicketDashboardRow | null>(null);
 const viewingTicketImage = ref<TicketDashboardRow | null>(null);
 const showTicketImageModal = ref(false);
@@ -367,13 +380,14 @@ async function fetch(refreshEpoch?: number) {
         ...(props.garageId != null ? { garage_id: props.garageId } : {}),
         ...(props.fromDate ? { from_date: props.fromDate } : {}),
         ...(props.toDate ? { to_date: props.toDate } : {}),
-        limit: 5000,
-        offset: 0,
+        limit: ticketsPageSize.value,
+        offset: ticketsOffset.value,
       },
       config,
     );
 
     tickets.value = res.data.items;
+    ticketsTotal.value = res.data.total;
     restToPayMap.value = Object.fromEntries(
       tickets.value.map((t) => [t.id, t.rest_to_pay ?? 0]),
     );
@@ -387,6 +401,7 @@ async function fetch(refreshEpoch?: number) {
 
     if (!hasData) {
       tickets.value = [];
+      ticketsTotal.value = 0;
       restToPayMap.value = {};
     }
   } finally {
@@ -415,9 +430,14 @@ function onDashboardRefresh(e: Event) {
 watch(
   () => [props.garageId, props.fromDate, props.toDate],
   () => {
+    ticketsPage.value = 1;
     fetch();
   },
 );
+
+watch([ticketsPage, ticketsPageSize], () => {
+  if (hasLoadedOnce.value) fetch();
+});
 
 onMounted(() => {
   window.addEventListener(DASHBOARD_REFRESH_EVENT, onDashboardRefresh);

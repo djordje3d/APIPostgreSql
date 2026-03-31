@@ -2,7 +2,7 @@
   <div ref="root" class="standard-dropdown relative inline-block w-full">
     <label
       v-if="label"
-      class="mb-1 block font-medium text-gray-600"
+      class="mb-1 block text-gray-600"
       :class="labelClass"
     >
       {{ label }}

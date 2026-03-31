@@ -142,7 +142,7 @@
     "thisMonthRevenue": "Prihod ovog meseca",
     "unpaidPartiallyPaidTickets": "Neplaćene / delimično plaćene kartice",
     "restToPay": "Ostatak za plaćanje",
-    "restToPayDescription": "Ostatak za plaćanje (do potpuno plaćenih kartica)",
+    "restToPayDescription": "Ostatak za plaćanje",
     "totalPaid": "Ukupno plaćeno"
   },
   "statusCards": {
