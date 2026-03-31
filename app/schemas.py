@@ -1,4 +1,4 @@
-from typing import Literal, Generic, TypeVar
+from typing import Any, Literal, Generic, TypeVar
 
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, time
@@ -15,6 +15,16 @@ class GarageOverviewRow(BaseModel):
     free_spots: int
     occupied_spots: int
     rentable_spots: int
+
+
+class ErrorBody(BaseModel):
+    code: str
+    message: str
+    details: Any | None = None
+
+
+class ErrorResponse(BaseModel):
+    error: ErrorBody
 
 
 class GarageResponse(BaseModel):

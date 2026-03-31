@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import text
 from app.db import get_db
 from app import models, schemas
+from app.errors import api_error
 
 router = APIRouter(prefix="/garages", tags=["Garages"])
 
@@ -79,7 +80,7 @@ def list_garages(
 def get_garage(garage_id: int, db: Session = Depends(get_db)):
     g = db.get(models.ParkingConfig, garage_id)
     if not g:
-        raise HTTPException(404, "Garage not found")
+        raise api_error(404, "GARAGE_NOT_FOUND", "Garage not found.")
     return g
 
 
@@ -111,7 +112,7 @@ def update_garage(
     """Full replace: send all garage fields."""
     g = db.get(models.ParkingConfig, garage_id)
     if not g:
-        raise HTTPException(404, "Garage not found")
+        raise api_error(404, "GARAGE_NOT_FOUND", "Garage not found.")
     g.name = data.name
     g.capacity = data.capacity
     g.default_rate = data.default_rate
@@ -133,7 +134,7 @@ def patch_garage(
     """Partial update: send only the fields you want to change."""
     g = db.get(models.ParkingConfig, garage_id)
     if not g:
-        raise HTTPException(404, "Garage not found")
+        raise api_error(404, "GARAGE_NOT_FOUND", "Garage not found.")
     update = data.model_dump(exclude_unset=True)
     for key, value in update.items():
         setattr(g, key, value)
@@ -146,13 +147,15 @@ def patch_garage(
 def delete_garage(garage_id: int, db: Session = Depends(get_db)):
     g = db.get(models.ParkingConfig, garage_id)
     if not g:
-        raise HTTPException(404, "Garage not found")
+        raise api_error(404, "GARAGE_NOT_FOUND", "Garage not found.")
     db.delete(g)
     try:
         db.commit()
         return {"deleted": True}
     except IntegrityError:
         db.rollback()
-        raise HTTPException(
-            400, "Cannot delete garage: it has parking spots or tickets"
+        raise api_error(
+            409,
+            "GARAGE_DELETE_CONFLICT",
+            "Cannot delete garage because it has parking spots or tickets.",
         )

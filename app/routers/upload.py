@@ -6,9 +6,10 @@ Client resizes before upload; server only validates and stores.
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, UploadFile
 
 from app.config import UPLOAD_DIR, UPLOAD_TICKET_IMAGE_MAX_BYTES
+from app.errors import api_error
 
 router = APIRouter(tags=["Upload"])
 
@@ -48,16 +49,20 @@ async def upload_ticket_image(
     """
     content_type = (file.content_type or "").split(";")[0].strip().lower()
     if content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(
-            400,
-            f"Invalid image type. Allowed: {', '.join(ALLOWED_CONTENT_TYPES)}",
+        raise api_error(
+            422,
+            "INVALID_IMAGE_FORMAT",
+            "Invalid image type.",
+            details={"allowed_types": sorted(ALLOWED_CONTENT_TYPES)},
         )
 
     content = await file.read()
     if len(content) > UPLOAD_TICKET_IMAGE_MAX_BYTES:
-        raise HTTPException(
-            400,
-            f"File too large. Max {UPLOAD_TICKET_IMAGE_MAX_BYTES} bytes.",
+        raise api_error(
+            422,
+            "IMAGE_TOO_LARGE",
+            "Image exceeds maximum allowed size.",
+            details={"max_bytes": UPLOAD_TICKET_IMAGE_MAX_BYTES},
         )
 
     ext = _ext_from_content_type(file.content_type) or _safe_ext(file.filename)

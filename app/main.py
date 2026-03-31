@@ -2,7 +2,7 @@
 # Import config first so load_dotenv() runs before db engine is created.
 from pathlib import Path
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -19,6 +19,8 @@ from app.config import (
 )
 from app.db import get_db
 from app.auth import APIKeyMiddleware
+from app.errors import api_error
+from app.error_handlers import register_exception_handlers
 from app.routers.auth import router as auth_router
 from app.routers.tickets import router as tickets_router
 from app.routers.payments import router as payments_router
@@ -76,6 +78,7 @@ if not CORS_DISABLED:
         max_age=CORS_MAX_AGE,
     )
 app.add_middleware(APIKeyMiddleware)
+register_exception_handlers(app)
 
 
 def openapi_with_api_key():
@@ -129,9 +132,11 @@ def health(db: Session = Depends(get_db)):
         db.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
     except Exception:
-        raise HTTPException(
+        raise api_error(
             status_code=503,
-            detail="Database unavailable",
+            code="DATABASE_UNAVAILABLE",
+            message="Database unavailable.",
+            details=None,
         )
 
 

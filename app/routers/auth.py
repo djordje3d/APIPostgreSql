@@ -4,7 +4,7 @@ GET /auth/me validates Bearer token and returns current user (sub).
 Credentials are checked against env AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PASSWORD_HASH).
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.auth_jwt import create_token, get_current_user
 from app.config import (
@@ -14,6 +14,7 @@ from app.config import (
     AUTH_PREFERRED_LANGUAGE,
     JWT_EXPIRE_MINUTES,
 )
+from app.errors import api_error
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -52,12 +53,19 @@ def login(data: LoginRequest):
     Configure AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PASSWORD_HASH) in .env.
     """
     if not AUTH_USERNAME:
-        raise HTTPException(
+        raise api_error(
             status_code=503,
-            detail="Login not configured. Set AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PASSWORD_HASH) in .env.",
+            code="AUTH_NOT_CONFIGURED",
+            message="Login not configured. Set AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PASSWORD_HASH) in .env.",
+            details=None,
         )
     if data.username != AUTH_USERNAME or not _verify_password(data.password):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise api_error(
+            status_code=401,
+            code="INVALID_CREDENTIALS",
+            message="Invalid username or password.",
+            details=None,
+        )
     access_token = create_token(data.username)
     # Actual JWT expiry is set in create_token (auth_jwt) from JWT_EXPIRE_MINUTES.
     # expires_in is in seconds for the client (e.g. to show "Session expires in X" or to auto-logout).

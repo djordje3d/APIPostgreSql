@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 from app import models, schemas
+from app.errors import api_error
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
@@ -29,7 +30,7 @@ def list_vehicles(
 def get_vehicle_by_plate(plate: str, db: Session = Depends(get_db)):
     v = db.query(models.Vehicle).filter(models.Vehicle.licence_plate == plate).first()
     if not v:
-        raise HTTPException(404, "Vehicle not found")
+        raise api_error(404, "VEHICLE_NOT_FOUND", "Vehicle not found.")
     return v
 
 
@@ -37,7 +38,7 @@ def get_vehicle_by_plate(plate: str, db: Session = Depends(get_db)):
 def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
     v = db.get(models.Vehicle, vehicle_id)
     if not v:
-        raise HTTPException(404, "Vehicle not found")
+        raise api_error(404, "VEHICLE_NOT_FOUND", "Vehicle not found.")
     return v
 
 
@@ -46,7 +47,9 @@ def create_vehicle(data: schemas.VehicleCreate, db: Session = Depends(get_db)):
     # ensure vehicle_type exists
     vt = db.get(models.VehicleType, data.vehicle_type_id)
     if not vt:
-        raise HTTPException(400, "Invalid vehicle_type_id")
+        raise api_error(
+            404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type does not exist."
+        )
 
     # ensure plate unique only when provided (multiple vehicles may have no plate)
     if data.licence_plate is not None:
@@ -56,7 +59,11 @@ def create_vehicle(data: schemas.VehicleCreate, db: Session = Depends(get_db)):
             .first()
         )
         if exists:
-            raise HTTPException(400, "licence_plate already exists")
+            raise api_error(
+                409,
+                "VEHICLE_ALREADY_EXISTS",
+                "Vehicle with this licence plate already exists.",
+            )
 
     v = models.Vehicle(
         licence_plate=data.licence_plate,
@@ -77,7 +84,7 @@ def patch_vehicle(
 ):
     v = db.get(models.Vehicle, vehicle_id)
     if not v:
-        raise HTTPException(404, "Vehicle not found")
+        raise api_error(404, "VEHICLE_NOT_FOUND", "Vehicle not found.")
 
     if data.licence_plate is not None:
         v.licence_plate = data.licence_plate
@@ -86,7 +93,9 @@ def patch_vehicle(
     if data.vehicle_type_id is not None:
         vt = db.get(models.VehicleType, data.vehicle_type_id)
         if not vt:
-            raise HTTPException(400, "Invalid vehicle_type_id")
+            raise api_error(
+                404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type does not exist."
+            )
         v.vehicle_type_id = data.vehicle_type_id
 
     db.commit()
@@ -98,11 +107,15 @@ def patch_vehicle(
 def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
     v = db.get(models.Vehicle, vehicle_id)
     if not v:
-        raise HTTPException(404, "Vehicle not found")
+        raise api_error(404, "VEHICLE_NOT_FOUND", "Vehicle not found.")
     db.delete(v)
     try:
         db.commit()
         return {"deleted": True}
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Cannot delete: vehicle has tickets")
+        raise api_error(
+            409,
+            "VEHICLE_DELETE_CONFLICT",
+            "Cannot delete vehicle because it has tickets.",
+        )

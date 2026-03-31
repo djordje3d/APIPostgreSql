@@ -10,6 +10,7 @@ from fastapi import Request
 from jose import JWTError, jwt
 
 from app.config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
+from app.errors import api_error
 
 TOKEN_SUB_KEY = "sub"  # username in payload
 
@@ -77,15 +78,15 @@ def get_current_user(request: Request) -> dict[str, Any]:
     """
     FastAPI dependency: return JWT payload; raise 401 if no valid Bearer token.
     """
-    from fastapi import HTTPException
-
     user = get_current_user_optional(request)
     if user is None:
-        raise HTTPException(
+        raise api_error(
             status_code=401,
-            detail=(
+            code="UNAUTHORIZED",
+            message=(
                 "Invalid or missing token. Use Authorization: Bearer <token> "
                 "or X-API-Key."
             ),
+            details=None,
         )
     return user

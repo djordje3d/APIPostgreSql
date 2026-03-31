@@ -57,6 +57,7 @@
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { login } from "../api/auth";
+import { parseApiError } from "../api/error";
 import ButtonIn from "../components/ui/ButtonIn.vue";
 import InputIn from "../components/ui/InputIn.vue";
 import { useI18n } from "vue-i18n";
@@ -91,13 +92,10 @@ async function onSubmit() {
     const redirect = (route.query.redirect as string) || "/";
     await router.push(redirect);
   } catch (e: unknown) {
-    const msg =
-      e && typeof e === "object" && "response" in e
-        ? (e as { response?: { data?: { detail?: string } } }).response?.data
-            ?.detail
-        : null;
-
-    error.value = msg || "Login failed. Check username and password.";
+    error.value = parseApiError(
+      e,
+      "Login failed. Check username and password.",
+    ).message;
   } finally {
     isSubmitting.value = false;
   }

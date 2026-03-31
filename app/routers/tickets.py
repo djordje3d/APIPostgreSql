@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
@@ -25,6 +25,7 @@ from app.services.tickets import (
     close_ticket,
     create_ticket_entry,
 )
+from app.errors import api_error
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
@@ -141,7 +142,7 @@ def list_tickets(
 def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     t = db.get(models.Ticket, ticket_id)
     if not t:
-        raise HTTPException(404, "Ticket not found")
+        raise api_error(404, "TICKET_NOT_FOUND", "Ticket not found.")
     return t
 
 
@@ -153,7 +154,7 @@ def update_ticket(
 ):
     t = db.get(models.Ticket, ticket_id)
     if not t:
-        raise HTTPException(404, "Ticket not found")
+        raise api_error(404, "TICKET_NOT_FOUND", "Ticket not found.")
     update = data.model_dump(exclude_unset=True)
     for key, value in update.items():
         setattr(t, key, value)
@@ -166,14 +167,18 @@ def update_ticket(
 def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
     t = db.get(models.Ticket, ticket_id)
     if not t:
-        raise HTTPException(404, "Ticket not found")
+        raise api_error(404, "TICKET_NOT_FOUND", "Ticket not found.")
     db.delete(t)
     try:
         db.commit()
         return {"deleted": True}
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Cannot delete: ticket has payments")
+        raise api_error(
+            409,
+            "TICKET_DELETE_CONFLICT",
+            "Cannot delete ticket because it has payments.",
+        )
 
 
 @router.post("/entry", response_model=schemas.TicketResponse)
@@ -186,11 +191,36 @@ def ticket_entry(data: schemas.TicketEntry, db: Session = Depends(get_db)):
         SpotGarageMismatchError,
         SpotInactiveError,
     ) as e:
-        raise HTTPException(400, str(e))
+        if isinstance(e, InvalidVehicleError):
+            raise api_error(404, "VEHICLE_NOT_FOUND", "Vehicle does not exist.")
+        if isinstance(e, InvalidSpotError):
+            raise api_error(404, "SPOT_NOT_FOUND", "Parking spot does not exist.")
+        if isinstance(e, SpotGarageMismatchError):
+            raise api_error(
+                409,
+                "SPOT_GARAGE_MISMATCH",
+                "Selected parking spot does not belong to selected garage.",
+            )
+        raise api_error(409, "SPOT_INACTIVE", "Selected parking spot is inactive.")
     except (SpotOccupiedError, NoFreeSpotError) as e:
-        raise HTTPException(409, str(e))
+        if isinstance(e, SpotOccupiedError):
+            raise api_error(
+                409,
+                "SPOT_OCCUPIED",
+                "The selected parking spot is already occupied.",
+            )
+        raise api_error(
+            409,
+            "NO_FREE_SPOTS_AVAILABLE",
+            "No free spots available for this garage.",
+        )
     except (TicketPersistenceError, TicketTokenRetryExceededError) as e:
-        raise HTTPException(500, str(e))
+        raise api_error(
+            500,
+            "DATABASE_ERROR",
+            "Ticket could not be saved.",
+            details={"reason": e.__class__.__name__},
+        )
 
 
 @router.post("/{ticket_id}/exit", response_model=schemas.TicketResponse)
@@ -199,7 +229,11 @@ def ticket_exit(
 ):
     try:
         return close_ticket(db, ticket_id, data)
-    except TicketNotFoundError as e:
-        raise HTTPException(404, str(e))
-    except TicketStateError as e:
-        raise HTTPException(400, str(e))
+    except TicketNotFoundError:
+        raise api_error(404, "TICKET_NOT_FOUND", "Ticket not found.")
+    except TicketStateError:
+        raise api_error(
+            409,
+            "TICKET_ALREADY_CLOSED",
+            "Ticket is not open.",
+        )

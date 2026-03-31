@@ -132,6 +132,7 @@ import { listSpots } from "../../api/spots";
 import { getVehicleByPlate, createVehicle } from "../../api/vehicles";
 import { ticketEntry } from "../../api/tickets";
 import { uploadTicketImage } from "../../api/upload";
+import { parseApiError } from "../../api/error";
 import type { VehicleType } from "../../api/vehicleTypes";
 import type { Garage } from "../../api/garages";
 import type { Spot } from "../../api/spots";
@@ -411,10 +412,7 @@ async function submit() {
       emit("done");
     }, 800);
   } catch (e: unknown) {
-    const msg = (
-      e as { response?: { data?: { detail?: string }; status?: number } }
-    )?.response?.data?.detail;
-    error.value = typeof msg === "string" ? msg : "Entry failed.";
+    error.value = parseApiError(e, "Entry failed.").message;
   } finally {
     loading.value = false;
   }

@@ -10,6 +10,7 @@ from starlette.responses import JSONResponse
 
 from app.auth_jwt import verify_token
 from app.config import API_KEY
+from app.errors import build_error_payload
 
 API_KEY_HEADER = "X-API-Key"
 
@@ -60,10 +61,12 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
 
         return JSONResponse(
             status_code=401,
-            content={
-                "detail": (
+            content=build_error_payload(
+                code="UNAUTHORIZED",
+                message=(
                     "Invalid or missing authentication. Use Authorization: "
                     "Bearer <token> or X-API-Key header."
                 ),
-            },
+                details=None,
+            ),
         )

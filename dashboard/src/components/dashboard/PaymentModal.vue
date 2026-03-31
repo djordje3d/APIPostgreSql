@@ -71,6 +71,7 @@ import ButtonIn from "../ui/ButtonIn.vue";
 import InputIn from "../ui/InputIn.vue";
 import { formatMoney } from "../../composables/useFormatters";
 import { createPayment, getPaymentsByTicket } from "../../api/payments";
+import { parseApiError } from "../../api/error";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -167,9 +168,7 @@ async function submit() {
       close();
     });
   } catch (e: unknown) {
-    const msg = (e as { response?: { data?: { detail?: string } } })?.response
-      ?.data?.detail;
-    error.value = typeof msg === "string" ? msg : t('payment.paymentFailed');
+    error.value = parseApiError(e, t('payment.paymentFailed')).message;
     loading.value = false;
   }
 }

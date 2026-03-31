@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import exists
 from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 from app import models, schemas
+from app.errors import api_error
 
 router = APIRouter(prefix="/spots", tags=["Parking Spots"])
 # Tag "Parking Spots" je za dokumentaciju (Swagger UI).
@@ -51,7 +52,7 @@ def list_spots(
 def get_spot(spot_id: int, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
-        raise HTTPException(404, "Spot not found")
+        raise api_error(404, "SPOT_NOT_FOUND", "Parking spot not found.")
     return spot
 
 
@@ -59,7 +60,7 @@ def get_spot(spot_id: int, db: Session = Depends(get_db)):
 def create_spot(data: schemas.SpotCreate, db: Session = Depends(get_db)):
     garage = db.get(models.ParkingConfig, data.garage_id)
     if not garage:
-        raise HTTPException(400, "Invalid garage_id")
+        raise api_error(404, "GARAGE_NOT_FOUND", "Garage not found.")
 
     spot = models.ParkingSpot(
         garage_id=data.garage_id,
@@ -74,14 +75,18 @@ def create_spot(data: schemas.SpotCreate, db: Session = Depends(get_db)):
         return spot
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Spot code already exists for this garage")
+        raise api_error(
+            409,
+            "SPOT_CODE_CONFLICT",
+            "Spot code already exists in this garage.",
+        )
 
 
 @router.patch("/{spot_id}", response_model=schemas.SpotResponse)
 def update_spot(spot_id: int, data: schemas.SpotUpdate, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
-        raise HTTPException(404, "Spot not found")
+        raise api_error(404, "SPOT_NOT_FOUND", "Parking spot not found.")
 
     if data.code is not None:
         spot.code = data.code
@@ -96,14 +101,18 @@ def update_spot(spot_id: int, data: schemas.SpotUpdate, db: Session = Depends(ge
         return spot
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Spot code already exists for this garage")
+        raise api_error(
+            409,
+            "SPOT_CODE_CONFLICT",
+            "Spot code already exists in this garage.",
+        )
 
 
 @router.delete("/{spot_id}")
 def delete_spot(spot_id: int, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
-        raise HTTPException(404, "Spot not found")
+        raise api_error(404, "SPOT_NOT_FOUND", "Parking spot not found.")
 
     # zabrani ako postoji aktivan tiket
     has_open_ticket = db.query(
@@ -113,7 +122,11 @@ def delete_spot(spot_id: int, db: Session = Depends(get_db)):
     ).scalar()
 
     if has_open_ticket:
-        raise HTTPException(400, "Cannot deactivate spot: it has an OPEN ticket")
+        raise api_error(
+            409,
+            "SPOT_HAS_OPEN_TICKET",
+            "Cannot deactivate spot because it has an OPEN ticket.",
+        )
 
     spot.is_active = False
     db.commit()
@@ -124,7 +137,7 @@ def delete_spot(spot_id: int, db: Session = Depends(get_db)):
 def activate_spot(spot_id: int, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
-        raise HTTPException(404, "Spot not found")
+        raise api_error(404, "SPOT_NOT_FOUND", "Parking spot not found.")
     spot.is_active = True
     db.commit()
     db.refresh(spot)

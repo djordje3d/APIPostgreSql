@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 from app import models, schemas
+from app.errors import api_error
 
 router = APIRouter(prefix="/vehicle-types", tags=["Vehicle Types"])
 # APIRouter je FastAPI komponenta koja se koristi za definisanje API ruta.
@@ -44,7 +45,7 @@ def list_vehicle_types(
 def get_vehicle_type(vt_id: int, db: Session = Depends(get_db)):
     vt = db.get(models.VehicleType, vt_id)
     if not vt:
-        raise HTTPException(404, "VehicleType not found")
+        raise api_error(404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type not found.")
     return vt
 
 
@@ -63,7 +64,7 @@ def update_vehicle_type(
 ):
     vt = db.get(models.VehicleType, vt_id)
     if not vt:
-        raise HTTPException(404, "VehicleType not found")
+        raise api_error(404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type not found.")
     vt.type = data.type
     vt.rate = data.rate
     try:
@@ -72,18 +73,26 @@ def update_vehicle_type(
         return vt
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Vehicle type name already exists")
+        raise api_error(
+            409,
+            "VEHICLE_TYPE_ALREADY_EXISTS",
+            "Vehicle type name already exists.",
+        )
 
 
 @router.delete("/{vt_id}")
 def delete_vehicle_type(vt_id: int, db: Session = Depends(get_db)):
     vt = db.get(models.VehicleType, vt_id)
     if not vt:
-        raise HTTPException(404, "VehicleType not found")
+        raise api_error(404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type not found.")
     db.delete(vt)
     try:
         db.commit()
         return {"deleted": True}
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Cannot delete: vehicles use this type")
+        raise api_error(
+            409,
+            "VEHICLE_TYPE_DELETE_CONFLICT",
+            "Cannot delete vehicle type because vehicles use it.",
+        )

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -9,6 +9,7 @@ from app import models, schemas
 from app.config import USE_API_PAYMENT_STATUS
 from app.services.payments import recalc_ticket_payment_status
 from app.services.pricing import get_ticket_fee
+from app.errors import api_error
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -48,10 +49,14 @@ def list_payments(
 def create_payment(data: schemas.PaymentCreate, db: Session = Depends(get_db)):
     ticket = db.get(models.Ticket, data.ticket_id)
     if not ticket:
-        raise HTTPException(400, "Invalid ticket_id")
+        raise api_error(404, "TICKET_NOT_FOUND", "Ticket not found.")
 
     if ticket.ticket_state != "CLOSED":
-        raise HTTPException(400, "Payment only allowed for closed tickets")
+        raise api_error(
+            409,
+            "PAYMENT_NOT_ALLOWED_FOR_OPEN_TICKET",
+            "Payment is allowed only for closed tickets.",
+        )
 
     if ticket.fee is not None and ticket.fee > 0:
         total_paid = (
@@ -60,9 +65,15 @@ def create_payment(data: schemas.PaymentCreate, db: Session = Depends(get_db)):
             .scalar()
         )
         if total_paid + data.amount > ticket.fee:
-            raise HTTPException(
-                400,
-                "Payment would exceed ticket fee",
+            raise api_error(
+                409,
+                "OVERPAYMENT_NOT_ALLOWED",
+                "Payment amount exceeds the remaining balance.",
+                details={
+                    "ticket_id": data.ticket_id,
+                    "remaining_balance": float(ticket.fee - total_paid),
+                    "attempted_amount": float(data.amount),
+                },
             )
 
     try:
@@ -81,7 +92,12 @@ def create_payment(data: schemas.PaymentCreate, db: Session = Depends(get_db)):
         return p
     except Exception as e:
         db.rollback()
-        raise HTTPException(500, f"Payment failed: {str(e)}")
+        raise api_error(
+            500,
+            "DATABASE_ERROR",
+            "Payment could not be saved.",
+            details={"reason": e.__class__.__name__},
+        )
 
 
 @router.get(
@@ -149,7 +165,7 @@ def payments_by_ticket(
 def get_payment(payment_id: int, db: Session = Depends(get_db)):
     p = db.get(models.Payment, payment_id)
     if not p:
-        raise HTTPException(404, "Payment not found")
+        raise api_error(404, "PAYMENT_NOT_FOUND", "Payment not found.")
     return p
 
 
@@ -160,7 +176,7 @@ def update_payment(
     """Full replace of a payment by ID. Use PUT for updates (not POST)."""
     p = db.get(models.Payment, payment_id)
     if not p:
-        raise HTTPException(404, "Payment not found")
+        raise api_error(404, "PAYMENT_NOT_FOUND", "Payment not found.")
     p.amount = data.amount
     p.method = data.method
     p.currency = data.currency
@@ -176,7 +192,7 @@ def update_payment(
 def delete_payment(payment_id: int, db: Session = Depends(get_db)):
     p = db.get(models.Payment, payment_id)
     if not p:
-        raise HTTPException(404, "Payment not found")
+        raise api_error(404, "PAYMENT_NOT_FOUND", "Payment not found.")
     ticket_id = p.ticket_id
     db.delete(p)
     if USE_API_PAYMENT_STATUS:
@@ -186,4 +202,4 @@ def delete_payment(payment_id: int, db: Session = Depends(get_db)):
         return {"deleted": True}
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Cannot delete payment")
+        raise api_error(409, "PAYMENT_DELETE_CONFLICT", "Cannot delete payment.")
