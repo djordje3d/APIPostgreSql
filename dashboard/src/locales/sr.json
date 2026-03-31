@@ -196,6 +196,11 @@
     "noOpenTickets": "Nema otvorenih kartica",
     "noClosedTickets": "Nema zatvorenih kartica",
     "noRentableSpots": "Nema rentabilnih mesta",
-    "noActiveSpots": "Nema aktivnih mesta"
+    "noActiveSpots": "Nema aktivnih mesta",
+    "garage": "Garaža",
+    "garageNotFound": "Garaža nije pronađena.",
+    "invalidGarageId": "Nevažeći ID garaže.",
+    "refreshNow": "Osveži sada",
+    "loadFailed": "Učitavanje garaže nije uspelo."
   }
 }

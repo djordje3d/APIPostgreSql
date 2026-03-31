@@ -1,258 +1,312 @@
 <template>
   <div class="dashboard-sections">
-    <div class="flex items-center gap-4">
-      <router-link to="/" class="text-gray-600 hover:text-gray-900"
-        >&larr; {{ t('garageDetail.dashboard') }}</router-link
-      >
-      <h1 v-if="garage" class="text-2xl font-bold text-gray-900">
-        {{ garage.name }}
-      </h1>
-      <h1 v-else class="text-2xl font-bold text-gray-900">
-        {{ t('garageDetail.garage') }} #{{ $route.params.id }}
-      </h1>
+    <div v-if="!garageId" class="text-gray-500">
+      {{ t("garageDetail.invalidGarageId") }}
     </div>
-    <div v-if="loading" class="text-gray-500">{{ t('garageDetail.loading') }}</div>
-    <template v-else-if="garage">
-      <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-        <p class="text-sm text-gray-600">
-          {{ t('garageDetail.capacity') }}: {{ garage.capacity }} · {{ t('garageDetail.defaultRate') }}:
-          {{ formatRate(garage.default_rate) }} RSD
-        </p>
-      </div>
-      <RevenueSummary
-        :today-revenue="revenueDash?.today_revenue ?? 0"
-        :month-revenue="revenueDash?.month_revenue ?? 0"
-        :unpaid-count="revenueDash?.unpaid_partially_paid_count ?? 0"
-        :total-outstanding="revenueDash?.total_outstanding ?? 0"
-        :loading="loading && revenueDash === null"
-        :refreshing="false"
-        :error="false"
-        :has-loaded-once="revenueDash !== null"
-      />
-      <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
-        <div class="border-b border-gray-200 px-4 py-3">
-          <h2 class="text-lg font-semibold">{{ t('garageDetail.spots') }}</h2>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                  {{ t('garageDetail.spot') }}
-                </th>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                  {{ t('garageDetail.rentableSpots') }}
-                </th>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                  {{ t('garageDetail.activeSpots') }}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
-              <tr v-for="s in spots" :key="s.id">
-                <td class="px-4 py-3 font-medium">{{ s.code }}</td>
-                <td class="px-4 py-3">{{ s.is_rentable ? t('garageDetail.yes') : t('garageDetail.no') }}</td>
-                <td class="px-4 py-3">{{ s.is_active ? t('garageDetail.yes') : t('garageDetail.no') }}</td>
-              </tr>
-              <tr v-if="spots.length === 0">
-                <td colspan="3" class="px-4 py-6 text-center text-gray-500">
-                  {{ t('garageDetail.noSpots') }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <PaginationBar
-          :page="spotsPage"
-          :page-size="spotsPageSize"
-          :total="spotsTotal"
-          @update:page="spotsPage = $event"
+
+    <template v-else>
+      <div class="dashboard-toolbar mb-4 flex items-center justify-end gap-3">
+        <RefreshCountdownRing
+          :duration-ms="intervalMs"
+          :remaining-ms="remainingMs"
+          :enabled="isRunning"
+          :auto-refresh-enabled="autoRefreshEnabled"
+          @toggle-auto-refresh="toggleAutoRefresh"
         />
+        <div
+          role="button"
+          tabindex="0"
+          :title="t('garageDetail.refreshNow')"
+          class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-800 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-emerald-500/50"
+          @click="refreshNow"
+          @keydown.enter.space.prevent="refreshNow"
+        >
+          <span class="icon-spinner11 text-4xl" aria-hidden="true"></span>
+        </div>
       </div>
 
-      <!-- Open tickets -->
-      <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
-        <div class="border-b border-gray-200 px-4 py-3">
-          <h2 class="text-lg font-semibold">{{ t('garageDetail.openTickets') }}</h2>
+      <template v-if="garageSec.loading && !garageSec.hasLoadedOnce">
+        <GarageHeaderCard
+          :garage="garageSec.garage"
+          :fallback-id="fallbackId"
+          :refreshing="garageSec.refreshing"
+        />
+        <div class="mt-4 text-gray-500">
+          {{ t("garageDetail.loading") }}
         </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                {{ t('garageDetail.id') }}
-                </th>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                  {{ t('garageDetail.entryTime') }}
-                </th>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                  {{ t('garageDetail.spot') }}
-                </th>
-                <th
-                  class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
-                >
-                  {{ t('garageDetail.plate') }}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
-              <tr v-for="t in openTickets" :key="t.id">
-                <td class="px-4 py-3">{{ t.id }}</td>
-                <td class="px-4 py-3 text-sm">
-                  {{ formatTime(t.entry_time) }}
-                </td>
-                <td class="px-4 py-3">{{ t.spot_code ?? "–" }}</td>
-                <td class="px-4 py-3">{{ t.licence_plate ?? "–" }}</td>
-              </tr>
-              <tr v-if="openTickets.length === 0">
-                <td colspan="4" class="px-4 py-6 text-center text-gray-500">
-                  {{ t('garageDetail.noOpenTickets') }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      </template>
+
+      <template v-else-if="garageSec.error && !garageSec.garage">
+        <GarageHeaderCard
+          :garage="garageSec.garage"
+          :fallback-id="fallbackId"
+          :refreshing="garageSec.refreshing"
+        />
+        <div
+          class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
+          role="alert"
+        >
+          <p class="mb-2">{{ t("garageDetail.loadFailed") }}</p>
+          <button
+            type="button"
+            class="underline hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+            @click="refreshNow"
+          >
+            {{ t("garageDetail.retryBtn") }}
+          </button>
         </div>
-      </div>
+      </template>
+
+      <template v-else-if="!garageSec.garage">
+        <GarageHeaderCard
+          :garage="garageSec.garage"
+          :fallback-id="fallbackId"
+          :refreshing="garageSec.refreshing"
+        />
+        <div class="mt-4 text-red-600">
+          {{ t("garageDetail.garageNotFound") }}
+        </div>
+      </template>
+
+      <template v-else>
+        <div
+          class="dashboard-layout-lg lg:grid lg:grid-cols-12 lg:items-start lg:gap-6"
+        >
+          <div class="dashboard-fade dashboard-fade--1 lg:col-span-7">
+            <GarageHeaderCard
+              :garage="garageSec.garage"
+              :fallback-id="fallbackId"
+              :refreshing="garageSec.refreshing"
+            />
+          </div>
+          <div class="dashboard-fade dashboard-fade--4 lg:col-span-5">
+            <RevenueSummary
+              class="max-lg:mt-4 lg:mt-0"
+              :today-revenue="revenueSec.revenueDash?.today_revenue ?? 0"
+              :month-revenue="revenueSec.revenueDash?.month_revenue ?? 0"
+              :unpaid-count="
+                revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0
+              "
+              :total-outstanding="
+                revenueSec.revenueDash?.total_outstanding ?? 0
+              "
+              :loading="revenueSec.loading && !revenueSec.hasLoadedOnce"
+              :refreshing="revenueSec.refreshing"
+              :error="revenueSec.error"
+              :has-loaded-once="revenueSec.hasLoadedOnce"
+              @retry="retryRevenue"
+            />
+          </div>
+        </div>
+
+        <GarageSpotsTable
+          class="dashboard-fade dashboard-fade--2 mt-4"
+          :spots="spotsSec.spots"
+          :page="spotsSec.page"
+          :page-size="spotsSec.pageSize"
+          :total="spotsSec.total"
+          :loading="spotsSec.loading"
+          :refreshing="spotsSec.refreshing"
+          :error="spotsSec.error"
+          :has-loaded-once="spotsSec.hasLoadedOnce"
+          @retry="retrySpots"
+          @update:page="onSpotsPageUpdate"
+        />
+
+        <GarageOpenTicketsTable
+          class="dashboard-fade dashboard-fade--3 mt-4"
+          :open-tickets="ticketsSec.openTickets"
+          :page="ticketsSec.page"
+          :page-size="ticketsSec.pageSize"
+          :total="ticketsSec.total"
+          :loading="ticketsSec.loading"
+          :refreshing="ticketsSec.refreshing"
+          :error="ticketsSec.error"
+          :has-loaded-once="ticketsSec.hasLoadedOnce"
+          @retry="retryOpenTickets"
+          @update:page="onTicketsPageUpdate"
+        />
+      </template>
     </template>
-    <div v-else class="text-red-600">{{ t('garageDetail.garageNotFound') }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, inject, onMounted, onUnmounted, computed, provide } from "vue";
+import { ref, watch, inject, computed } from "vue";
 import type { Ref } from "vue";
 import { useRoute } from "vue-router";
-import { getGarage } from "../api/garages";
-import { listSpots } from "../api/spots";
-import { listTicketsDashboard } from "../api/tickets";
-import { getDashboardAnalytics } from "../api/dashboard";
-import type { DashboardAnalytics } from "../api/dashboard";
-import { getTodayISO, getMonthStartEnd } from "../utils/dashboardDates";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
-import PaginationBar from "../components/ui/PaginationBar.vue";
-import { formatTime, formatRate } from "../composables/useFormatters";
+import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
+import GarageHeaderCard from "../components/dashboard/GarageHeaderCard.vue";
+import GarageSpotsTable from "../components/dashboard/GarageSpotsTable.vue";
+import GarageOpenTicketsTable from "../components/dashboard/GarageOpenTicketsTable.vue";
 import { useDashboardPolling } from "../composables/useDashboardPolling";
-import type { Garage } from "../api/garages";
-import type { Spot } from "../api/spots"; 
-import type { TicketDashboardRow } from "../api/tickets";
+import { useGarageDetailContext } from "../composables/useGarageDetailContext";
+import { useGarageDetailGarage } from "../composables/useGarageDetailGarage";
+import { useGarageRevenue } from "../composables/useGarageRevenue";
+import { useGarageSpots } from "../composables/useGarageSpots";
+import { useGarageOpenTickets } from "../composables/useGarageOpenTickets";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+const route = useRoute();
 
 const autoRefreshEnabled = inject<Ref<boolean>>(
   "autoRefreshEnabled",
   ref(true),
 );
-const route = useRoute();
-const garage = ref<Garage | null>(null);
-const spots = ref<Spot[]>([]);
-const openTickets = ref<TicketDashboardRow[]>([]);
-const loading = ref(true);
 
-/** AbortController for this view's refresh; aborted when fetch runs again or on unmount. */
-const refreshAbortControllerRef = ref<AbortController | null>(null);
-provide(
-  "dashboardRefreshAbortSignal",
-  computed(() => refreshAbortControllerRef.value?.signal ?? null),
+const { garageId, prepareRefreshCycle } = useGarageDetailContext();
+const fallbackId = computed(() => String(route.params.id ?? ""));
+
+const garageSec = useGarageDetailGarage(garageId);
+const revenueSec = useGarageRevenue(garageId);
+const spotsSec = useGarageSpots(garageId);
+const ticketsSec = useGarageOpenTickets(garageId);
+
+let refreshDepth = 0;
+const refreshInProgress = ref(false);
+
+let spotsPagAbort: AbortController | null = null;
+let ticketsPagAbort: AbortController | null = null;
+
+async function runRefreshCycle(): Promise<void> {
+  const id = garageId.value;
+  if (!id) return;
+  refreshDepth++;
+  refreshInProgress.value = true;
+  spotsSec.page = 1;
+  ticketsSec.page = 1;
+  const signal = prepareRefreshCycle();
+  try {
+    await Promise.all([
+      garageSec.fetchGarage(signal),
+      revenueSec.fetchRevenue(signal),
+      spotsSec.fetchSpots(signal),
+      ticketsSec.fetchOpenTickets(signal),
+    ]);
+  } finally {
+    refreshDepth--;
+    if (refreshDepth === 0) refreshInProgress.value = false;
+  }
+}
+
+function pollRefresh(): void {
+  if (refreshInProgress.value) return;
+  void runRefreshCycle();
+}
+
+const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
+  pollRefresh,
+  { intervalMs: 10_000, enabled: autoRefreshEnabled },
 );
 
-const spotsPage = ref(1);
-const spotsPageSize = ref(10);
-const spotsTotal = ref(0);
-const spotsOffset = computed(() => (spotsPage.value - 1) * spotsPageSize.value);
-const revenueDash = ref<DashboardAnalytics | null>(null);
-
-async function fetchSpots() {
-  const id = Number(route.params.id);
-  if (!id) return;
-  const signal = refreshAbortControllerRef.value?.signal;
-  const config = signal ? { signal } : undefined;
-  try {
-    const sRes = await listSpots(
-      {
-        garage_id: id,
-        active_only: false,
-        limit: spotsPageSize.value,
-        offset: spotsOffset.value,
-      },
-      config
-    );
-    spots.value = sRes.data.items;
-    spotsTotal.value = sRes.data.total;
-  } catch {
-    spots.value = [];
-    spotsTotal.value = 0;
-  }
+function refreshNow(): void {
+  void runRefreshCycle();
 }
 
-async function fetch() {
-  const id = Number(route.params.id);
-  if (!id) return;
-  if (refreshAbortControllerRef.value) {
-    refreshAbortControllerRef.value.abort();
-  }
-  refreshAbortControllerRef.value = new AbortController();
-  const signal = refreshAbortControllerRef.value.signal;
-  const config = { signal };
-  spotsPage.value = 1;
-  loading.value = true;
-  revenueDash.value = null;
-  try {
-    const today = getTodayISO();
-    const { from: monthFrom, to: monthTo } = getMonthStartEnd();
-    const [gRes, tRes, aRes] = await Promise.all([
-      getGarage(id, config),
-      listTicketsDashboard({ limit: 100 }, config),
-      getDashboardAnalytics(
-        {
-          garage_id: id,
-          today,
-          month_from: monthFrom,
-          month_to: monthTo,
-        },
-        config,
-      ),
-    ]);
-    garage.value = gRes.data;
-    openTickets.value = tRes.data.items.filter(
-      (t) => t.garage_id === id && t.ticket_state === "OPEN",
-    );
-    revenueDash.value = aRes.data;
-    await fetchSpots();
-  } catch (err: unknown) {
-    if ((err as { code?: string })?.code === "ERR_CANCELED") return;
-    garage.value = null;
-    spots.value = [];
-    spotsTotal.value = 0;
-    openTickets.value = [];
-    revenueDash.value = null;
-  } finally {
-    loading.value = false;
-  }
+function toggleAutoRefresh(): void {
+  autoRefreshEnabled.value = !autoRefreshEnabled.value;
 }
 
-watch([spotsPage, spotsPageSize], () => {
-  if (garage.value) fetchSpots();
-});
+async function retryRevenue(): Promise<void> {
+  if (!garageId.value || refreshInProgress.value) return;
+  const c = new AbortController();
+  await revenueSec.fetchRevenue(c.signal);
+}
 
-useDashboardPolling(fetch, { intervalMs: 10_000, enabled: autoRefreshEnabled });
-watch(() => route.params.id, fetch, { immediate: true });
-onMounted(fetch);
-onUnmounted(() => {
-  if (refreshAbortControllerRef.value) {
-    refreshAbortControllerRef.value.abort();
-  }
-});
+function onSpotsPageUpdate(page: number): void {
+  spotsSec.page = page;
+}
+
+function onTicketsPageUpdate(page: number): void {
+  ticketsSec.page = page;
+}
+
+function retrySpots(): void {
+  if (!garageId.value || refreshInProgress.value) return;
+  spotsPagAbort?.abort();
+  spotsPagAbort = new AbortController();
+  void spotsSec.fetchSpots(spotsPagAbort.signal);
+}
+
+function retryOpenTickets(): void {
+  if (!garageId.value || refreshInProgress.value) return;
+  ticketsPagAbort?.abort();
+  ticketsPagAbort = new AbortController();
+  void ticketsSec.fetchOpenTickets(ticketsPagAbort.signal);
+}
+
+watch(
+  () => [spotsSec.page, spotsSec.pageSize] as const,
+  () => {
+    if (
+      !garageId.value ||
+      !garageSec.hasLoadedOnce ||
+      refreshInProgress.value
+    ) {
+      return;
+    }
+    spotsPagAbort?.abort();
+    spotsPagAbort = new AbortController();
+    void spotsSec.fetchSpots(spotsPagAbort.signal);
+  },
+);
+
+watch(
+  () => [ticketsSec.page, ticketsSec.pageSize] as const,
+  () => {
+    if (
+      !garageId.value ||
+      !garageSec.hasLoadedOnce ||
+      refreshInProgress.value
+    ) {
+      return;
+    }
+    ticketsPagAbort?.abort();
+    ticketsPagAbort = new AbortController();
+    void ticketsSec.fetchOpenTickets(ticketsPagAbort.signal);
+  },
+);
+
+watch(
+  garageId,
+  (id) => {
+    if (!id) {
+      garageSec.garage = null;
+      revenueSec.revenueDash = null;
+      spotsSec.spots = [];
+      spotsSec.total = 0;
+      ticketsSec.openTickets = [];
+      ticketsSec.total = 0;
+      return;
+    }
+    void runRefreshCycle();
+  },
+  { immediate: true },
+);
 </script>
+
+<style scoped>
+.dashboard-fade {
+  opacity: 0;
+  animation: garageDetailFadeIn 0.4s ease-out forwards;
+}
+.dashboard-fade--1 {
+  animation-delay: 0.15s;
+}
+.dashboard-fade--2 {
+  animation-delay: 0.3s;
+}
+.dashboard-fade--3 {
+  animation-delay: 0.45s;
+}
+.dashboard-fade--4 {
+  animation-delay: 0.6s;
+}
+@keyframes garageDetailFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+</style>

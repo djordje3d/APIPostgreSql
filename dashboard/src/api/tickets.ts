@@ -45,6 +45,7 @@ export function listTickets(
 export function listTicketsDashboard(
   params?: {
     garage_id?: number
+    ticket_state?: 'OPEN' | 'CLOSED'
     from_date?: string
     to_date?: string
     limit?: number

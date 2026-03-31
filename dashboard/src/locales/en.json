@@ -193,7 +193,12 @@
       "noOpenTickets": "No open tickets",
       "noClosedTickets": "No closed tickets",
       "noRentableSpots": "No rentable spots",
-      "noActiveSpots": "No active spots"
+      "noActiveSpots": "No active spots",
+      "garage": "Garage",
+      "garageNotFound": "Garage not found.",
+      "invalidGarageId": "Invalid garage id.",
+      "refreshNow": "Refresh now",
+      "loadFailed": "Could not load garage."
     }
 }
 

@@ -37,6 +37,7 @@ router = APIRouter(prefix="/tickets", tags=["Tickets"])
 def list_tickets_dashboard(
     db: Session = Depends(get_db),
     garage_id: int | None = Query(default=None),
+    ticket_state: schemas.TicketState | None = Query(default=None),
     from_date: date | None = Query(default=None),
     to_date: date | None = Query(default=None),
     limit: int = Query(1000, ge=1, le=5000),
@@ -56,6 +57,8 @@ def list_tickets_dashboard(
     )
     if garage_id is not None:
         q = q.filter(models.Ticket.garage_id == garage_id)
+    if ticket_state is not None:
+        q = q.filter(models.Ticket.ticket_state == ticket_state)
     if from_date is not None:
         start = datetime.fromisoformat(
             from_date.isoformat() + "T00:00:00+00:00"
