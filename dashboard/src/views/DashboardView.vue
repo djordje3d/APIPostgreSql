@@ -118,7 +118,7 @@
       </div>
 
       <div v-show="activeTab === 'timeline'">
-        <TimelineVehicleTypeChart
+        <TimelineVehicleTypeChartBrush
           :from-date="range.fromDate"
           :to-date="range.toDate"
           :points="timelinePoints"
@@ -160,7 +160,7 @@ import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
 import StandardDropdown from "../components/ui/StandardDropdown.vue";
-import TimelineVehicleTypeChart from "../components/dashboard/TimelineVehicleTypeChart.vue";
+import TimelineVehicleTypeChartBrush from "../components/dashboard/TimelineVehicleTypeChartBrush.vue";
 
 import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
