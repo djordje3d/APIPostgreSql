@@ -68,7 +68,10 @@
           :page="ticketsPage"
           :page-size="ticketsPageSize"
           :total="ticketsTotal"
+          :show-page-size="true"
+          :page-size-options="[5, 10, 20]"
           @update:page="ticketsPage = $event"
+          @update:page-size="setTicketsPageSize"
         />
       </div>
     </div>
@@ -425,6 +428,11 @@ function retry() {
 function onDashboardRefresh(e: Event) {
   const epoch = (e as CustomEvent<{ epoch?: number }>).detail?.epoch;
   fetch(epoch);
+}
+
+function setTicketsPageSize(value: number) {
+  ticketsPageSize.value = value;
+  ticketsPage.value = 1;
 }
 
 watch(
