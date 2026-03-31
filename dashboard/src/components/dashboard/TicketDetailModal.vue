@@ -6,7 +6,7 @@
   >
     <template v-if="ticket">
       <div v-if="ticketImageUrl" class="mb-4">
-        <4
+        <ImageIn
           :key="`ticket-img-${ticket.id}-${ticketImageUrl}`"
           :src="ticketImageUrl"
           :alt="`Ticket #${ticket.id}`"

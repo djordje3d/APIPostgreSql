@@ -88,7 +88,10 @@
             </button>
           </div>
 
-          <div class="w-full max-w-[240px]">
+          <div
+            v-if="activeTab !== 'overview'"
+            class="w-full max-w-[240px]"
+          >
             <StandardDropdown
               label="Time Frame"
               :options="timeFrameOptions"

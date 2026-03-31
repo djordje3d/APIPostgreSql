@@ -20,21 +20,6 @@
       />
     </div>
 
-    <div
-      v-if="modelValue != null"
-      class="by-garage-card__viewing by-garage-card__cell"
-    >
-      <span class="icon-eye text-lg text-gray-600"></span>
-      <router-link
-        :to="{ name: 'garage-detail', params: { id: modelValue } }"
-        class="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
-      >
-        {{ selectedGarageName }}
-      </router-link>
-      <span class="text-base text-gray-600">
-        {{ t("garageSelectDropdown.clickToOpenGarageDetail") }}
-      </span>
-    </div>
   </div>
 </template>
 
