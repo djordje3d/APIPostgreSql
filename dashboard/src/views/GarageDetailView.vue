@@ -1,133 +1,286 @@
 <template>
-  <div class="dashboard-sections">
-    <div v-if="!garageId" class="text-gray-500">
-      {{ t("garageDetail.invalidGarageId") }}
-    </div>
-
-    <template v-else>
-      <div class="dashboard-toolbar mb-4 flex items-center justify-end gap-3">
-        <RefreshCountdownRing
-          :duration-ms="intervalMs"
-          :remaining-ms="remainingMs"
-          :enabled="isRunning"
-          :auto-refresh-enabled="autoRefreshEnabled"
-          @toggle-auto-refresh="toggleAutoRefresh"
-        />
-        <div
-          role="button"
-          tabindex="0"
-          :title="t('garageDetail.refreshNow')"
-          class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-800 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-emerald-500/50"
-          @click="refreshNow"
-          @keydown.enter.space.prevent="refreshNow"
-        >
-          <span class="icon-spinner11 text-4xl" aria-hidden="true"></span>
-        </div>
+  <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+    <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <div v-if="!garageId" class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 shadow-sm">
+        {{ t("garageDetail.invalidGarageId") }}
       </div>
 
-      <template v-if="garageSec.loading && !garageSec.hasLoadedOnce">
-        <GarageHeaderCard
-          :garage="garageSec.garage"
-          :fallback-id="fallbackId"
-          :refreshing="garageSec.refreshing"
-        />
-        <div class="mt-4 text-gray-500">
-          {{ t("garageDetail.loading") }}
-        </div>
-      </template>
-
-      <template v-else-if="garageSec.error && !garageSec.garage">
-        <GarageHeaderCard
-          :garage="garageSec.garage"
-          :fallback-id="fallbackId"
-          :refreshing="garageSec.refreshing"
-        />
-        <div
-          class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
-          role="alert"
-        >
-          <p class="mb-2">{{ t("garageDetail.loadFailed") }}</p>
-          <button
-            type="button"
-            class="underline hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-            @click="refreshNow"
-          >
-            {{ t("garageDetail.retryBtn") }}
-          </button>
-        </div>
-      </template>
-
-      <template v-else-if="!garageSec.garage">
-        <GarageHeaderCard
-          :garage="garageSec.garage"
-          :fallback-id="fallbackId"
-          :refreshing="garageSec.refreshing"
-        />
-        <div class="mt-4 text-red-600">
-          {{ t("garageDetail.garageNotFound") }}
-        </div>
-      </template>
-
       <template v-else>
-        <div
-          class="dashboard-layout-lg lg:grid lg:grid-cols-12 lg:items-start lg:gap-6"
-        >
-          <div class="dashboard-fade dashboard-fade--1 lg:col-span-7">
+        <template v-if="garageSec.loading && !garageSec.hasLoadedOnce">
+          <section
+            class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
+          >
+            <div
+              class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div class="min-w-0 space-y-3">
+                <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+                    {{ t("garageDetail.dashboard") }}
+                  </span>
+                  <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
+                    {{ t("garageDetail.loading") }}
+                  </span>
+                </div>
+
+                <div>
+                  <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                    {{ t("garageDetail.garage") }} #{{ fallbackId }}
+                  </h1>
+                  <p class="mt-1 text-sm text-slate-500">
+                    {{ t("garageDetail.loading") }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-3">
+                <RefreshCountdownRing
+                  :duration-ms="intervalMs"
+                  :remaining-ms="remainingMs"
+                  :enabled="isRunning"
+                  :auto-refresh-enabled="autoRefreshEnabled"
+                  @toggle-auto-refresh="toggleAutoRefresh"
+                />
+                <button
+                  type="button"
+                  :title="t('garageDetail.refreshNow')"
+                  class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  @click="refreshNow"
+                >
+                  <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div class="lg:col-span-7">
+              <GarageHeaderCard
+                :garage="garageSec.garage"
+                :fallback-id="fallbackId"
+                :refreshing="garageSec.refreshing"
+              />
+            </div>
+            <div class="lg:col-span-5">
+              <RevenueSummary
+                :today-revenue="revenueSec.revenueDash?.today_revenue ?? 0"
+                :month-revenue="revenueSec.revenueDash?.month_revenue ?? 0"
+                :unpaid-count="revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0"
+                :total-outstanding="revenueSec.revenueDash?.total_outstanding ?? 0"
+                :loading="revenueSec.loading && !revenueSec.hasLoadedOnce"
+                :refreshing="revenueSec.refreshing"
+                :error="revenueSec.error"
+                :has-loaded-once="revenueSec.hasLoadedOnce"
+                @retry="retryRevenue"
+              />
+            </div>
+          </div>
+
+          <div class="mt-6 text-slate-500">
+            {{ t("garageDetail.loading") }}
+          </div>
+        </template>
+
+        <template v-else-if="garageSec.error && !garageSec.garage">
+          <section
+            class="overflow-hidden rounded-3xl border border-red-200 bg-white shadow-sm"
+          >
+            <div
+              class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div class="min-w-0 space-y-3">
+                <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+                    {{ t("garageDetail.dashboard") }}
+                  </span>
+                  <span class="inline-flex items-center rounded-full bg-red-50 px-3 py-1 font-medium text-red-700">
+                    {{ t("garageDetail.loadFailed") }}
+                  </span>
+                </div>
+
+                <div>
+                  <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                    {{ t("garageDetail.garage") }} #{{ fallbackId }}
+                  </h1>
+                  <p class="mt-1 text-sm text-slate-500">
+                    {{ t("garageDetail.loadFailed") }}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                @click="refreshNow"
+              >
+                {{ t("garageDetail.retryBtn") }}
+              </button>
+            </div>
+          </section>
+
+          <GarageHeaderCard
+            class="mt-6"
+            :garage="garageSec.garage"
+            :fallback-id="fallbackId"
+            :refreshing="garageSec.refreshing"
+          />
+
+          <div
+            class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-red-700 shadow-sm"
+            role="alert"
+          >
+            <p class="mb-2 font-medium">{{ t("garageDetail.loadFailed") }}</p>
+            <button
+              type="button"
+              class="underline decoration-red-400 underline-offset-4 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+              @click="refreshNow"
+            >
+              {{ t("garageDetail.retryBtn") }}
+            </button>
+          </div>
+        </template>
+
+        <template v-else-if="!garageSec.garage">
+          <section class="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-red-700 shadow-sm">
             <GarageHeaderCard
               :garage="garageSec.garage"
               :fallback-id="fallbackId"
               :refreshing="garageSec.refreshing"
             />
-          </div>
-          <div class="dashboard-fade dashboard-fade--4 lg:col-span-5">
-            <RevenueSummary
-              class="max-lg:mt-4 lg:mt-0"
-              :today-revenue="revenueSec.revenueDash?.today_revenue ?? 0"
-              :month-revenue="revenueSec.revenueDash?.month_revenue ?? 0"
-              :unpaid-count="
-                revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0
-              "
-              :total-outstanding="
-                revenueSec.revenueDash?.total_outstanding ?? 0
-              "
-              :loading="revenueSec.loading && !revenueSec.hasLoadedOnce"
-              :refreshing="revenueSec.refreshing"
-              :error="revenueSec.error"
-              :has-loaded-once="revenueSec.hasLoadedOnce"
-              @retry="retryRevenue"
-            />
-          </div>
-        </div>
+            <div class="mt-4">
+              {{ t("garageDetail.garageNotFound") }}
+            </div>
+          </section>
+        </template>
 
-        <GarageSpotsTable
-          class="dashboard-fade dashboard-fade--2 mt-4"
-          :spots="spotsSec.spots"
-          :page="spotsSec.page"
-          :page-size="spotsSec.pageSize"
-          :total="spotsSec.total"
-          :loading="spotsSec.loading"
-          :refreshing="spotsSec.refreshing"
-          :error="spotsSec.error"
-          :has-loaded-once="spotsSec.hasLoadedOnce"
-          @retry="retrySpots"
-          @update:page="onSpotsPageUpdate"
-        />
+        <template v-else>
+          <!-- HERO / TOP PANEL -->
+          <section
+            class="dashboard-fade dashboard-fade--1 overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
+          >
+            <div
+              class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div class="min-w-0 space-y-3">
+                <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                  <router-link
+                    to="/"
+                    class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-900"
+                  >
+                    &larr; {{ t("garageDetail.dashboard") }}
+                  </router-link>
 
-        <GarageOpenTicketsTable
-          class="dashboard-fade dashboard-fade--3 mt-4"
-          :open-tickets="ticketsSec.openTickets"
-          :page="ticketsSec.page"
-          :page-size="ticketsSec.pageSize"
-          :total="ticketsSec.total"
-          :loading="ticketsSec.loading"
-          :refreshing="ticketsSec.refreshing"
-          :error="ticketsSec.error"
-          :has-loaded-once="ticketsSec.hasLoadedOnce"
-          @retry="retryOpenTickets"
-          @update:page="onTicketsPageUpdate"
-        />
+                  <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 font-medium text-sky-700">
+                    ID: {{ garageSec.garage.id }}
+                  </span>
+
+                  <span
+                    v-if="garageSec.refreshing || revenueSec.refreshing || spotsSec.refreshing || ticketsSec.refreshing"
+                    class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
+                  >
+                    Refreshing...
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700"
+                  >
+                    Live overview
+                  </span>
+                </div>
+
+                <div>
+                  <h1 class="truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                    {{ garageSec.garage.name }}
+                  </h1>
+                  <p class="mt-1 text-sm text-slate-500">
+                    {{ t("garageDetail.capacity") }}: {{ garageSec.garage.capacity }}
+                    ·
+                    {{ t("garageDetail.defaultRate") }}:
+                    {{ garageSec.garage.default_rate }} RSD
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-3">
+                <RefreshCountdownRing
+                  :duration-ms="intervalMs"
+                  :remaining-ms="remainingMs"
+                  :enabled="isRunning"
+                  :auto-refresh-enabled="autoRefreshEnabled"
+                  @toggle-auto-refresh="toggleAutoRefresh"
+                />
+                <button
+                  type="button"
+                  :title="t('garageDetail.refreshNow')"
+                  class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  @click="refreshNow"
+                >
+                  <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- TOP GRID -->
+          <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+            <div class="dashboard-fade dashboard-fade--2 lg:col-span-7">
+              <GarageHeaderCard
+                :garage="garageSec.garage"
+                :fallback-id="fallbackId"
+                :refreshing="garageSec.refreshing"
+              />
+            </div>
+
+            <div class="dashboard-fade dashboard-fade--3 lg:col-span-5">
+              <RevenueSummary
+                :today-revenue="revenueSec.revenueDash?.today_revenue ?? 0"
+                :month-revenue="revenueSec.revenueDash?.month_revenue ?? 0"
+                :unpaid-count="revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0"
+                :total-outstanding="revenueSec.revenueDash?.total_outstanding ?? 0"
+                :loading="revenueSec.loading && !revenueSec.hasLoadedOnce"
+                :refreshing="revenueSec.refreshing"
+                :error="revenueSec.error"
+                :has-loaded-once="revenueSec.hasLoadedOnce"
+                @retry="retryRevenue"
+              />
+            </div>
+          </div>
+
+          <!-- CONTENT PANELS -->
+          <div class="mt-6 grid grid-cols-1 gap-6">
+            <section class="dashboard-fade dashboard-fade--4">
+              <GarageSpotsTable
+                :spots="spotsSec.spots"
+                :page="spotsSec.page"
+                :page-size="spotsSec.pageSize"
+                :total="spotsSec.total"
+                :loading="spotsSec.loading"
+                :refreshing="spotsSec.refreshing"
+                :error="spotsSec.error"
+                :has-loaded-once="spotsSec.hasLoadedOnce"
+                @retry="retrySpots"
+                @update:page="onSpotsPageUpdate"
+              />
+            </section>
+
+            <section class="dashboard-fade dashboard-fade--5">
+              <GarageOpenTicketsTable
+                :open-tickets="ticketsSec.openTickets"
+                :page="ticketsSec.page"
+                :page-size="ticketsSec.pageSize"
+                :total="ticketsSec.total"
+                :loading="ticketsSec.loading"
+                :refreshing="ticketsSec.refreshing"
+                :error="ticketsSec.error"
+                :has-loaded-once="ticketsSec.hasLoadedOnce"
+                @retry="retryOpenTickets"
+                @update:page="onTicketsPageUpdate"
+              />
+            </section>
+          </div>
+        </template>
       </template>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -173,11 +326,15 @@ let ticketsPagAbort: AbortController | null = null;
 async function runRefreshCycle(): Promise<void> {
   const id = garageId.value;
   if (!id) return;
+
   refreshDepth++;
   refreshInProgress.value = true;
+
   spotsSec.page = 1;
   ticketsSec.page = 1;
+
   const signal = prepareRefreshCycle();
+
   try {
     await Promise.all([
       garageSec.fetchGarage(signal),
@@ -240,11 +397,7 @@ function retryOpenTickets(): void {
 watch(
   () => [spotsSec.page, spotsSec.pageSize] as const,
   () => {
-    if (
-      !garageId.value ||
-      !garageSec.hasLoadedOnce ||
-      refreshInProgress.value
-    ) {
+    if (!garageId.value || !garageSec.hasLoadedOnce || refreshInProgress.value) {
       return;
     }
     spotsPagAbort?.abort();
@@ -256,11 +409,7 @@ watch(
 watch(
   () => [ticketsSec.page, ticketsSec.pageSize] as const,
   () => {
-    if (
-      !garageId.value ||
-      !garageSec.hasLoadedOnce ||
-      refreshInProgress.value
-    ) {
+    if (!garageId.value || !garageSec.hasLoadedOnce || refreshInProgress.value) {
       return;
     }
     ticketsPagAbort?.abort();
@@ -290,23 +439,30 @@ watch(
 <style scoped>
 .dashboard-fade {
   opacity: 0;
-  animation: garageDetailFadeIn 0.4s ease-out forwards;
+  transform: translateY(10px);
+  animation: garageDetailFadeIn 0.45s ease-out forwards;
 }
+
 .dashboard-fade--1 {
-  animation-delay: 0.15s;
+  animation-delay: 0.05s;
 }
 .dashboard-fade--2 {
-  animation-delay: 0.3s;
+  animation-delay: 0.12s;
 }
 .dashboard-fade--3 {
-  animation-delay: 0.45s;
+  animation-delay: 0.2s;
 }
 .dashboard-fade--4 {
-  animation-delay: 0.6s;
+  animation-delay: 0.28s;
 }
+.dashboard-fade--5 {
+  animation-delay: 0.36s;
+}
+
 @keyframes garageDetailFadeIn {
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
