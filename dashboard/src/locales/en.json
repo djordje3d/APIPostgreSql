@@ -198,7 +198,9 @@
       "garageNotFound": "Garage not found.",
       "invalidGarageId": "Invalid garage id.",
       "refreshNow": "Refresh now",
-      "loadFailed": "Could not load garage."
+      "loadFailed": "Could not load garage.",
+      "viewTicketImage": "View image",
+      "noTicketImage": "No image"
     }
 }
 

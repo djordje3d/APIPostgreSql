@@ -37,7 +37,7 @@
         v-for="t in tickets"
         :key="t.id"
         :ticket="t"
-        :ticket-image-url="ticketImageUrl(t)"
+        :ticket-image-url="normalizeTicketImageUrl(t.image_url)"
         :rest-to-pay-value="formatRestToPay(t)"
         :rest-to-pay-class="restToPayClass(t)"
         @view-ticket="$emit('view-ticket', $event)"
@@ -59,7 +59,7 @@
 import { useI18n } from "vue-i18n";
 import type { TicketDashboardRow } from "../../api/tickets";
 import { formatMoney } from "../../composables/useFormatters";
-import { baseURL } from "../../api/client";
+import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl";
 import TicketRow from "./TicketRow.vue";
 
 const props = defineProps<{
@@ -75,28 +75,6 @@ defineEmits<{
 }>();
 
 const { t } = useI18n();
-
-function ticketImageUrl(ticket: TicketDashboardRow): string | undefined {
-  const url = ticket.image_url;
-  if (!url?.trim()) return undefined;
-
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-
-  const path = url.startsWith("/") ? url : `/${url}`;
-
-  try {
-    const api = new URL(
-      baseURL,
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost:8000",
-    );
-    return `${api.origin}${path}`;
-  } catch {
-    const base = baseURL.replace(/\/+$/, "");
-    return base ? `${base}${path}` : path;
-  }
-}
 
 function formatRestToPay(ticket: TicketDashboardRow): string {
   if (ticket.ticket_state === "OPEN") return "–";

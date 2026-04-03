@@ -201,6 +201,8 @@
     "garageNotFound": "Garaža nije pronađena.",
     "invalidGarageId": "Nevažeći ID garaže.",
     "refreshNow": "Osveži sada",
-    "loadFailed": "Učitavanje garaže nije uspelo."
+    "loadFailed": "Učitavanje garaže nije uspelo.",
+    "viewTicketImage": "Pogledaj sliku",
+    "noTicketImage": "Nema slike"
   }
 }

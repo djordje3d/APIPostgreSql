@@ -157,7 +157,7 @@ import {
 } from "vue";
 import { listTicketsDashboard, ticketExit } from "../../api/tickets";
 import type { TicketDashboardRow } from "../../api/tickets";
-import { baseURL } from "../../api/client";
+import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl";
 import { getPaymentsByTicket } from "../../api/payments";
 import type { Payment } from "../../api/payments";
 import PaymentModal from "./PaymentModal.vue";
@@ -257,25 +257,6 @@ const viewPaymentsSorted = computed(() => {
   });
   return list;
 });
-
-function normalizeTicketImageUrl(url?: string | null): string | undefined {
-  if (!url?.trim()) return undefined;
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-
-  const path = url.startsWith("/") ? url : `/${url}`;
-  try {
-    const api = new URL(
-      baseURL,
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost:8000",
-    );
-    return `${api.origin}${path}`;
-  } catch {
-    const base = baseURL.replace(/\/+$/, "");
-    return base ? `${base}${path}` : path;
-  }
-}
 
 /** Image URL for the ticket detail modal. */
 const ticketImageUrl = computed(() =>
