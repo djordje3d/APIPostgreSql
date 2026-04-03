@@ -1,52 +1,80 @@
 <template>
-  <div class="flex flex-col gap-4">
-    <div class="flex flex-wrap items-center gap-4">
-      <router-link
-        to="/"
-        class="text-gray-600 hover:text-gray-900"
-      >
-        &larr; {{ t("garageDetail.dashboard") }}
-      </router-link>
-      <h1 v-if="garage" class="text-2xl font-bold text-gray-900">
-        {{ garage.name }}
-      </h1>
-      <h1 v-else class="text-2xl font-bold text-gray-900">
-        {{ t("garageDetail.garage") }} #{{ fallbackId }}
-      </h1>
-    </div>
-    <div
-      v-if="garage"
-      class="relative rounded-lg bg-white p-4 shadow ring-1 ring-gray-200"
-    >
-      <div
-        v-if="refreshing"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70"
-        aria-busy="true"
-      >
+  <section
+    class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
+  >
+    <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+            Garage
+          </p>
+          <h2 class="mt-1 text-xl font-semibold text-slate-900">
+            Configuration
+          </h2>
+        </div>
+
         <span
-          class="icon-spinner3 inline-block text-2xl animate-spin text-gray-500"
-          aria-hidden="true"
-        ></span>
+          class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+          :class="
+            refreshing
+              ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+              : 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+          "
+        >
+          {{ refreshing ? "Refreshing..." : "Ready" }}
+        </span>
       </div>
-      <p class="text-sm text-gray-600">
-        {{ t("garageDetail.capacity") }}: {{ garage.capacity }} ·
-        {{ t("garageDetail.defaultRate") }}:
-        {{ formatRate(garage.default_rate) }} RSD
-      </p>
     </div>
-  </div>
+
+    <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Garage ID
+        </p>
+        <p class="mt-2 text-2xl font-bold text-slate-900">
+          {{ garage?.id ?? fallbackId ?? "—" }}
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Capacity
+        </p>
+        <p class="mt-2 text-2xl font-bold text-slate-900">
+          {{ garage?.capacity ?? "—" }}
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Default rate
+        </p>
+        <p class="mt-2 text-2xl font-bold text-slate-900">
+          {{ garage?.default_rate ?? "—" }} RSD
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Status
+        </p>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
+          <span class="text-lg font-semibold text-slate-900">Operational</span>
+        </div>
+      </div>
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import type { Garage } from "../../api/garages";
-import { formatRate } from "../../composables/useFormatters";
-
-const { t } = useI18n();
-
 defineProps<{
-  garage: Garage | null;
-  fallbackId: string;
-  refreshing?: boolean;
-}>();
+  garage: {
+    id?: number | string
+    capacity?: number | string
+    default_rate?: number | string
+  } | null
+  fallbackId?: string | number
+  refreshing?: boolean
+}>()
 </script>
