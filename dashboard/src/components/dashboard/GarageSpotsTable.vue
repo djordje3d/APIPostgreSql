@@ -107,6 +107,11 @@
                   <th
                     class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
                   >
+                    {{ t("garageDetail.spotOccupancy") }}
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  >
                     {{ t("garageDetail.rentableSpots") }}
                   </th>
                   <th
@@ -127,6 +132,23 @@
                     class="border-t border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900"
                   >
                     {{ s.code }}
+                  </td>
+
+                  <td class="border-t border-slate-100 px-4 py-3 text-sm">
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
+                      :class="
+                        s.is_occupied
+                          ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
+                          : 'bg-slate-50 text-slate-700 ring-1 ring-slate-200'
+                      "
+                    >
+                      {{
+                        s.is_occupied
+                          ? t('garageDetail.spotOccupied')
+                          : t('garageDetail.spotFree')
+                      }}
+                    </span>
                   </td>
 
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
@@ -165,7 +187,7 @@
                 </tr>
 
                 <tr v-if="spots.length === 0">
-                  <td colspan="3" class="px-4 py-0">
+                  <td colspan="4" class="px-4 py-0">
                     <div
                       class="mx-2 my-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center"
                     >

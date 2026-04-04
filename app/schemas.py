@@ -65,6 +65,7 @@ class SpotResponse(BaseModel):
     code: str
     is_rentable: bool
     is_active: bool
+    is_occupied: bool
 
 
 class TicketResponse(BaseModel):

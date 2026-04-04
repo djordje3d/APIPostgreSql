@@ -116,6 +116,47 @@ def test_get_spot_404(client: TestClient) -> None:
     assert r.status_code == 404
 
 
+def test_list_spots_is_occupied_matches_open_ticket(client: TestClient) -> None:
+    """GET /spots includes is_occupied true when spot has an OPEN ticket."""
+    r = client.post(
+        "/garages",
+        json={"name": "Occ Garage", "capacity": 5, "default_rate": "30.00"},
+    )
+    assert r.status_code == 200
+    garage_id = r.json()["id"]
+    r = client.post(
+        "/spots",
+        json={"garage_id": garage_id, "code": "O01", "is_rentable": True, "is_active": True},
+    )
+    assert r.status_code == 200
+    spot_id = r.json()["id"]
+    assert r.json()["is_occupied"] is False
+
+    r = client.post("/vehicle-types", json={"type": "OccBike", "rate": "5.00"})
+    assert r.status_code == 200
+    vt_id = r.json()["id"]
+    r = client.post(
+        "/vehicles",
+        json={"licence_plate": "OCC-1", "vehicle_type_id": vt_id, "status": 1},
+    )
+    assert r.status_code == 200
+    vehicle_id = r.json()["id"]
+    r = client.post(
+        "/tickets/entry",
+        json={"vehicle_id": vehicle_id, "garage_id": garage_id, "spot_id": spot_id},
+    )
+    assert r.status_code == 200
+
+    r = client.get("/spots", params={"garage_id": garage_id})
+    assert r.status_code == 200
+    row = next(s for s in r.json()["items"] if s["id"] == spot_id)
+    assert row["is_occupied"] is True
+
+    r = client.get(f"/spots/{spot_id}")
+    assert r.status_code == 200
+    assert r.json()["is_occupied"] is True
+
+
 def test_list_spots_only_free(client: TestClient) -> None:
     """GET /spots?only_free=true returns only spots not occupied by an OPEN ticket."""
     r = client.post(

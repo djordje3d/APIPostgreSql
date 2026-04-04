@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from app.db import get_db
 from app import models, schemas
 from app.errors import api_error
+from app.services import spots as spots_service
 
 router = APIRouter(prefix="/spots", tags=["Parking Spots"])
 # Tag "Parking Spots" je za dokumentaciju (Swagger UI).
@@ -43,8 +44,15 @@ def list_spots(
     q = q.order_by(models.ParkingSpot.id.desc())
     total = q.count()
     items = q.limit(limit).offset(offset).all()
+    occupied_ids = spots_service.spot_ids_with_open_tickets(db, [s.id for s in items])
     return schemas.PaginatedResponse(
-        total=total, limit=limit, offset=offset, items=items
+        total=total,
+        limit=limit,
+        offset=offset,
+        items=[
+            spots_service.to_spot_response(db, s, occupied=s.id in occupied_ids)
+            for s in items
+        ],
     )
 
 
@@ -53,7 +61,7 @@ def get_spot(spot_id: int, db: Session = Depends(get_db)):
     spot = db.get(models.ParkingSpot, spot_id)
     if not spot:
         raise api_error(404, "SPOT_NOT_FOUND", "Parking spot not found.")
-    return spot
+    return spots_service.to_spot_response(db, spot)
 
 
 @router.post("", response_model=schemas.SpotResponse)
@@ -72,7 +80,7 @@ def create_spot(data: schemas.SpotCreate, db: Session = Depends(get_db)):
     try:
         db.commit()
         db.refresh(spot)
-        return spot
+        return spots_service.to_spot_response(db, spot)
     except IntegrityError:
         db.rollback()
         raise api_error(
@@ -98,7 +106,7 @@ def update_spot(spot_id: int, data: schemas.SpotUpdate, db: Session = Depends(ge
     try:
         db.commit()
         db.refresh(spot)
-        return spot
+        return spots_service.to_spot_response(db, spot)
     except IntegrityError:
         db.rollback()
         raise api_error(
@@ -141,4 +149,4 @@ def activate_spot(spot_id: int, db: Session = Depends(get_db)):
     spot.is_active = True
     db.commit()
     db.refresh(spot)
-    return spot
+    return spots_service.to_spot_response(db, spot)

@@ -8,6 +8,8 @@ export interface Spot {
   code: string
   is_rentable: boolean
   is_active: boolean
+  /** True when the spot has at least one OPEN ticket. */
+  is_occupied: boolean
 }
 
 export function listSpots(
