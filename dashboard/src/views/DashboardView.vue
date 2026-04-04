@@ -15,7 +15,7 @@
       <div
         role="button"
         tabindex="0"
-        title="Refresh now"
+        :title="t('garageDetail.refreshNow')"
         class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-800 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-emerald-500/50"
         @click="refreshAll"
         @keydown.enter.space.prevent="refreshAll"
@@ -68,7 +68,7 @@
               :class="{ 'dashboard-tab--active': activeTab === 'overview' }"
               @click="activeTab = 'overview'"
             >
-              Overview
+              {{ t("dashboard.tabOverview") }}
             </button>
             <button
               type="button"
@@ -76,7 +76,7 @@
               :class="{ 'dashboard-tab--active': activeTab === 'tickets' }"
               @click="activeTab = 'tickets'"
             >
-              Tickets
+              {{ t("dashboard.tabTickets") }}
             </button>
             <button
               type="button"
@@ -84,7 +84,7 @@
               :class="{ 'dashboard-tab--active': activeTab === 'timeline' }"
               @click="activeTab = 'timeline'"
             >
-              Timeline
+              {{ t("dashboard.tabTimeline") }}
             </button>
           </div>
 
@@ -93,7 +93,7 @@
             class="w-full max-w-[240px]"
           >
             <StandardDropdown
-              label="Time Frame"
+              :label="t('dashboard.timeFrame')"
               :options="timeFrameOptions"
               :model-value="selectedTimeFrame"
               :nullable="false"
@@ -173,6 +173,7 @@ import { getDashboardAnalytics } from "../api/dashboard";
 import type { DashboardAnalytics } from "../api/dashboard";
 import { listTicketsDashboard } from "../api/tickets";
 import type { TicketDashboardRow } from "../api/tickets";
+import { useI18n } from "vue-i18n";
 import {
   readGaragesCache,
   writeGaragesCache,
@@ -184,6 +185,8 @@ const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 
 const WIDGET_FETCH_TIMEOUT_MS = 45_000;
+
+const { t } = useI18n();
 
 const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(
@@ -197,12 +200,12 @@ const garageWatchReady = ref(false);
 const activeTab = ref<"overview" | "tickets" | "timeline">("overview");
 
 const selectedTimeFrame = ref("realtime");
-const timeFrameOptions = [
-  { id: "realtime", label: "Real time (last 5 days)" },
-  { id: "last7", label: "Last 7 days" },
-  { id: "last30", label: "Last 30 days" },
-  { id: "last90", label: "Last 90 days" },
-];
+const timeFrameOptions = computed(() => [
+  { id: "realtime", label: t("dashboard.timeFrameRealtime") },
+  { id: "last7", label: t("dashboard.timeFrameLast7") },
+  { id: "last30", label: t("dashboard.timeFrameLast30") },
+  { id: "last90", label: t("dashboard.timeFrameLast90") },
+]);
 
 const analytics = ref<DashboardAnalytics | null>(null);
 const analyticsLoading = ref(true);

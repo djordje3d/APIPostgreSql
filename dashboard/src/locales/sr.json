@@ -61,7 +61,8 @@
     "imageResizeFailed": "Obrada slike nije uspela. Probajte drugi fajl.",
     "clearImage": "Ukloni sliku",
     "cancel": "Otkaži",
-    "createEntry": "Kreiraj ulaz"
+    "createEntry": "Kreiraj ulaz",
+    "createFailed": "Kreiranje ulaza nije uspelo."
   },
   "payment": {
     "ticket": "Karta",
@@ -206,6 +207,43 @@
     "refreshNow": "Osveži sada",
     "loadFailed": "Učitavanje garaže nije uspelo.",
     "viewTicketImage": "Pogledaj sliku",
-    "noTicketImage": "Nema slike"
+    "noTicketImage": "Nema slike",
+    "liveOverview": "Pregled uživo"
+  },
+  "common": {
+    "refreshing": "Osvežavanje…",
+    "ready": "Spremno"
+  },
+  "garageHeaderCard": {
+    "title": "Konfiguracija",
+    "status": "Status",
+    "operational": "U radu"
+  },
+  "timeline": {
+    "title": "Vremenska linija",
+    "yAxisMetric": "Metrika na Y osi",
+    "loadFailed": "Učitavanje podataka za vremensku liniju nije uspelo.",
+    "loading": "Učitavanje vremenske linije…",
+    "noDataForPeriod": "Nema podataka za izabrani period.",
+    "zoomRange": "Opseg zumiranja",
+    "entriesPerDay": "Ulazi po danu",
+    "exitsPerDay": "Izlazi po danu",
+    "zoomStartDay": "Početak zumiranja (dan)",
+    "zoomEndDay": "Kraj zumiranja (dan)"
+  },
+  "dashboard": {
+    "tabOverview": "Pregled",
+    "tabTickets": "Kartice",
+    "tabTimeline": "Vremenska linija",
+    "timeFrame": "Vremenski okvir",
+    "timeFrameRealtime": "Uživo (poslednjih 5 dana)",
+    "timeFrameLast7": "Poslednjih 7 dana",
+    "timeFrameLast30": "Poslednjih 30 dana",
+    "timeFrameLast90": "Poslednjih 90 dana"
+  },
+  "garageSpots": {
+    "subtitle": "Pregled aktivnih i rentabilnih parking mesta.",
+    "loadFailed": "Učitavanje mesta nije uspelo.",
+    "totalCount": "{count} ukupno"
   }
 }

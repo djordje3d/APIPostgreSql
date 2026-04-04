@@ -178,13 +178,13 @@
                     v-if="garageSec.refreshing || revenueSec.refreshing || spotsSec.refreshing || ticketsSec.refreshing"
                     class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
                   >
-                    Refreshing...
+                    {{ t("common.refreshing") }}
                   </span>
                   <span
                     v-else
                     class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700"
                   >
-                    Live overview
+                    {{ t("garageDetail.liveOverview") }}
                   </span>
                 </div>
 

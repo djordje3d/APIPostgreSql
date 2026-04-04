@@ -10,13 +10,13 @@
           <p
             class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400"
           >
-            Garage
+            {{ t("garageOverview.garage") }}
           </p>
           <h2 class="mt-1 text-xl font-semibold text-slate-900">
             {{ t("garageDetail.spots") }}
           </h2>
           <p class="mt-1 text-sm text-slate-500">
-            Overview of active and rentable parking spots.
+            {{ t("garageSpots.subtitle") }}
           </p>
         </div>
 
@@ -24,14 +24,14 @@
           <span
             class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 ring-1 ring-slate-200"
           >
-            {{ total }} total
+            {{ t("garageSpots.totalCount", { count: total }) }}
           </span>
 
           <span
             v-if="refreshing"
             class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200"
           >
-            Refreshing...
+            {{ t("common.refreshing") }}
           </span>
         </div>
       </div>
@@ -46,7 +46,7 @@
         class="rounded-2xl border border-red-200 bg-red-50 px-6 py-8 text-center"
       >
         <p class="text-base font-medium text-red-700">
-          Failed to load spots.
+          {{ t("garageSpots.loadFailed") }}
         </p>
         <button
           type="button"
@@ -91,7 +91,7 @@
                   aria-hidden="true"
                 ></span>
                 <span class="text-sm font-medium text-slate-600">
-                  Refreshing...
+                  {{ t("common.refreshing") }}
                 </span>
               </div>
             </div>

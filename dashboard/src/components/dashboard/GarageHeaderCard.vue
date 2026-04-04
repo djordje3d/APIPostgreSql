@@ -6,10 +6,10 @@
       <div class="flex items-center justify-between gap-3">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Garage
+            {{ t("garageOverview.garage") }}
           </p>
           <h2 class="mt-1 text-xl font-semibold text-slate-900">
-            Configuration
+            {{ t("garageHeaderCard.title") }}
           </h2>
         </div>
 
@@ -21,7 +21,7 @@
               : 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
           "
         >
-          {{ refreshing ? "Refreshing..." : "Ready" }}
+          {{ refreshing ? t("common.refreshing") : t("common.ready") }}
         </span>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
       <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Garage ID
+          {{ t("garageOverview.garageId") }}
         </p>
         <p class="mt-2 text-2xl font-bold text-slate-900">
           {{ garage?.id ?? fallbackId ?? "—" }}
@@ -38,7 +38,7 @@
 
       <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Capacity
+          {{ t("garageDetail.capacity") }}
         </p>
         <p class="mt-2 text-2xl font-bold text-slate-900">
           {{ garage?.capacity ?? "—" }}
@@ -47,7 +47,7 @@
 
       <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Default rate
+          {{ t("garageDetail.defaultRate") }}
         </p>
         <p class="mt-2 text-2xl font-bold text-slate-900">
           {{ garage?.default_rate ?? "—" }} RSD
@@ -56,11 +56,13 @@
 
       <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Status
+          {{ t("garageHeaderCard.status") }}
         </p>
         <div class="mt-2 flex items-center gap-2">
           <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
-          <span class="text-lg font-semibold text-slate-900">Operational</span>
+          <span class="text-lg font-semibold text-slate-900">{{
+            t("garageHeaderCard.operational")
+          }}</span>
         </div>
       </div>
     </div>
@@ -68,6 +70,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 defineProps<{
   garage: {
     id?: number | string

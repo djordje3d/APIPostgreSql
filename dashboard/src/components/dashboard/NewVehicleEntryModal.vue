@@ -290,12 +290,12 @@ async function submit() {
       imageBlob: form.value.resizedImageBlob,
       imageFileName: "ticket.jpg",
     });
-    success.value = "Entry created.";
+    success.value = t("toast.vehicleCreated");
     setTimeout(() => {
       emit("done");
     }, 800);
   } catch (e: unknown) {
-    error.value = parseApiError(e, "Entry failed.").message;
+    error.value = parseApiError(e, t("entry.createFailed")).message;
   } finally {
     loading.value = false;
   }

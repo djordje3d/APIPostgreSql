@@ -61,7 +61,8 @@
     "imageResizeFailed": "Could not process the image. Try another file.",
     "clearImage": "Clear image",
     "cancel": "Cancel",
-    "createEntry": "Create entry"
+    "createEntry": "Create entry",
+    "createFailed": "Could not create entry."
   },
   "payment": {
     "ticket": "Karta",
@@ -203,7 +204,44 @@
       "refreshNow": "Refresh now",
       "loadFailed": "Could not load garage.",
       "viewTicketImage": "View image",
-      "noTicketImage": "No image"
-    }
+      "noTicketImage": "No image",
+      "liveOverview": "Live overview"
+    },
+  "common": {
+    "refreshing": "Refreshing...",
+    "ready": "Ready"
+  },
+  "garageHeaderCard": {
+    "title": "Configuration",
+    "status": "Status",
+    "operational": "Operational"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "yAxisMetric": "Y-axis metric",
+    "loadFailed": "Failed to load timeline data.",
+    "loading": "Loading timeline...",
+    "noDataForPeriod": "No timeline data for selected period.",
+    "zoomRange": "Zoom range",
+    "entriesPerDay": "Entries per day",
+    "exitsPerDay": "Exits per day",
+    "zoomStartDay": "Zoom start day",
+    "zoomEndDay": "Zoom end day"
+  },
+  "dashboard": {
+    "tabOverview": "Overview",
+    "tabTickets": "Tickets",
+    "tabTimeline": "Timeline",
+    "timeFrame": "Time Frame",
+    "timeFrameRealtime": "Real time (last 5 days)",
+    "timeFrameLast7": "Last 7 days",
+    "timeFrameLast30": "Last 30 days",
+    "timeFrameLast90": "Last 90 days"
+  },
+  "garageSpots": {
+    "subtitle": "Overview of active and rentable parking spots.",
+    "loadFailed": "Failed to load spots.",
+    "totalCount": "{count} total"
+  }
 }
 

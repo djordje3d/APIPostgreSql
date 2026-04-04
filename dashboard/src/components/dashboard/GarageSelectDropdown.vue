@@ -45,10 +45,6 @@ const emit = defineEmits<{
 const garageOptions = computed(() =>
   props.garages.map((g) => ({ id: g.id, label: g.name })),
 );
-
-const selectedGarageName = computed(
-  () => props.garages.find((g) => g.id === props.modelValue)?.name ?? "Garage",
-);
 </script>
 
 <style scoped>

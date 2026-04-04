@@ -2,11 +2,11 @@
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold text-gray-900">Timeline</h2>
+        <h2 class="text-lg font-semibold text-gray-900">{{ t("timeline.title") }}</h2>
         <div class="flex items-center gap-3">
           <div class="w-[220px]">
             <StandardDropdown
-              label="Y-axis metric"
+              :label="t('timeline.yAxisMetric')"
               :options="yAxisOptions"
               :model-value="yAxisMode"
               :nullable="false"
@@ -28,20 +28,20 @@
         class="flex min-h-[320px] items-center justify-center text-red-600"
         role="alert"
       >
-        Failed to load timeline data.
+        {{ t("timeline.loadFailed") }}
       </div>
       <div
         v-else-if="loading"
         class="flex min-h-[320px] flex-col items-center justify-center gap-3 text-gray-500"
       >
         <span class="icon-spinner11 inline-block animate-spin text-2xl"></span>
-        <span>Loading timeline...</span>
+        <span>{{ t("timeline.loading") }}</span>
       </div>
       <div
         v-else-if="!hasLoadedOnce || points.length === 0"
         class="flex min-h-[320px] items-center justify-center text-gray-500"
       >
-        No timeline data for selected period.
+        {{ t("timeline.noDataForPeriod") }}
       </div>
       <div v-else class="relative min-h-[320px]">
         <div
@@ -121,7 +121,7 @@
 
         <div class="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
           <label class="text-sm text-gray-700">
-            Zoom start day
+            {{ t("timeline.zoomStartDay") }}
             <input
               type="range"
               min="0"
@@ -132,7 +132,7 @@
             />
           </label>
           <label class="text-sm text-gray-700">
-            Zoom end day
+            {{ t("timeline.zoomEndDay") }}
             <input
               type="range"
               min="0"
@@ -150,7 +150,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import StandardDropdown from "../ui/StandardDropdown.vue";
+
+const { t } = useI18n();
 
 type Series = { name: string; values: number[]; color: string };
 
@@ -184,10 +187,10 @@ const chartRef = ref<HTMLElement | null>(null);
 const hoverIndex = ref<number | null>(null);
 const hoverX = ref<number | null>(null);
 const visibleSeries = ref<Record<string, boolean>>({});
-const yAxisOptions = [
-  { id: "entries", label: "Entries per day" },
-  { id: "exits", label: "Exits per day" },
-];
+const yAxisOptions = computed(() => [
+  { id: "entries", label: t("timeline.entriesPerDay") },
+  { id: "exits", label: t("timeline.exitsPerDay") },
+]);
 
 const safeZoomStart = computed(() =>
   Math.min(Math.max(props.zoomStart, 0), Math.max(props.points.length - 1, 0)),

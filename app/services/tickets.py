@@ -90,9 +90,7 @@ def _resolve_spot_id(db: Session, data: schemas.TicketEntry) -> int:
         raise NoFreeSpotError(str(exc)) from exc
 
 
-def create_ticket_entry(
-    db: Session, data: schemas.TicketEntry
-) -> models.Ticket:
+def create_ticket_entry(db: Session, data: schemas.TicketEntry) -> models.Ticket:
     vehicle = db.get(models.Vehicle, data.vehicle_id)
     if not vehicle:
         raise InvalidVehicleError("Invalid vehicle_id")
@@ -130,6 +128,8 @@ def create_ticket_entry(
     )
 
 
+# Validate spot reassignment to avoid race conditions
+# between ticket entry and exit
 def _validate_spot_reassignment(
     db: Session, ticket: models.Ticket, new_spot_id: int
 ) -> None:
@@ -155,6 +155,10 @@ def _validate_spot_reassignment(
         raise SpotOccupiedError("Spot is occupied")
 
 
+# Apply ticket update to avoid race conditions
+# between ticket entry and exit
+
+
 def apply_ticket_update(
     db: Session, ticket_id: int, data: schemas.TicketUpdate
 ) -> models.Ticket:
@@ -162,7 +166,7 @@ def apply_ticket_update(
     if not ticket:
         raise TicketNotFoundError("Ticket not found")
 
-    updates = data.model_dump(exclude_unset=True)
+    updates = data.model_dump(exclude_unset=True)  # exclude fields that are not set
     if not updates:
         return ticket
 
