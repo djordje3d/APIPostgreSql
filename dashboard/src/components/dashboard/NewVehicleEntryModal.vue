@@ -98,7 +98,9 @@
           </div>
         </div>
       </div>
-      <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
+      <p v-if="displayError" class="mt-2 text-sm text-red-600">
+        {{ displayError }}
+      </p>
       <p v-if="success" class="mt-2 text-sm text-green-600">{{ success }}</p>
 
       <div class="mt-6 flex justify-between gap-2">
@@ -126,19 +128,13 @@
 import { computed, ref, watch } from "vue";
 import Modal from "../ui/Modal.vue";
 import StandardDropdown from "../ui/StandardDropdown.vue";
-import { listVehicleTypes } from "../../api/vehicleTypes";
-import { listGarages } from "../../api/garages";
-import { listSpots } from "../../api/spots";
-import { getVehicleByPlate, createVehicle } from "../../api/vehicles";
-import { ticketEntry } from "../../api/tickets";
-import { uploadTicketImage } from "../../api/upload";
 import { parseApiError } from "../../api/error";
-import type { VehicleType } from "../../api/vehicleTypes";
-import type { Garage } from "../../api/garages";
-import type { Spot } from "../../api/spots";
 import ButtonIn from "../ui/ButtonIn.vue";
 import InputIn from "../ui/InputIn.vue";
 import { useI18n } from "vue-i18n";
+import { resizeImageToJpeg } from "../../utils/imageResize";
+import { useVehicleEntryOptions } from "../../composables/useVehicleEntryOptions";
+import { createParkingEntry } from "../../services/createParkingEntry";
 
 const props = defineProps<{ modelValue: boolean }>();
 const { t } = useI18n();
@@ -157,26 +153,25 @@ const form = ref({
   resizedImageBlob: null as Blob | null,
 });
 
+const {
+  vehicleTypeOptions,
+  garageOptions,
+  spotOptions,
+  optionsError,
+  loadVehicleTypesAndGarages,
+  onGarageSelect,
+  resetSpots,
+} = useVehicleEntryOptions(form);
+
 const imageInputRef = ref<HTMLInputElement | null>(null);
 const imagePickGeneration = ref(0);
 const imageProcessing = ref(false);
-const imageError = ref("");
-const vehicleTypes = ref<VehicleType[]>([]);
-const garages = ref<Garage[]>([]);
-const freeSpots = ref<Spot[]>([]);
 const loading = ref(false);
 
-const vehicleTypeOptions = computed(() =>
-  vehicleTypes.value.map((vt) => ({ id: vt.id, label: vt.type })),
-);
-const garageOptions = computed(() =>
-  garages.value.map((g) => ({ id: g.id, label: g.name })),
-);
-const spotOptions = computed(() =>
-  freeSpots.value.map((s) => ({ id: s.id, label: s.code })),
-);
 const error = ref("");
 const success = ref("");
+
+const displayError = computed(() => error.value || optionsError.value);
 
 const isImageReady = computed(() => !!form.value.resizedImageBlob);
 const isFormFieldsReady = computed(() => {
@@ -187,7 +182,9 @@ const isFormFieldsReady = computed(() => {
     form.value.garage_id !== null
   );
 });
-const isCreateEntryReady = computed(() => isFormFieldsReady.value && isImageReady.value);
+const isCreateEntryReady = computed(
+  () => isFormFieldsReady.value && isImageReady.value,
+);
 
 function close() {
   emit("update:modelValue", false);
@@ -212,13 +209,12 @@ async function onImageChange(e: Event) {
   imagePickGeneration.value += 1;
   const gen = imagePickGeneration.value;
 
-  // odmah prikaži naziv odabranog fajla
   form.value.ticketImageDisplayName = file.name;
   form.value.resizedImageBlob = null;
   imageProcessing.value = true;
 
   try {
-    const blob = await resizeImage(file);
+    const blob = await resizeImageToJpeg(file);
 
     if (gen !== imagePickGeneration.value) return;
 
@@ -250,105 +246,14 @@ function clearImage() {
   }
 }
 
-const MAX_IMAGE_DIM = 1200;
-const JPEG_QUALITY = 0.85;
-
-// blob is a binary large object that can be used to store images ready to be uploaded to the server.
-/** Resize image client-side to max 1200px and return as JPEG blob. */
-// return Promise<Blob> because the function is asynchronous and returns a promise.
-// resolve is a function that is called when the promise is resolved.
-// reject is a function that is called when the promise is rejected.
-function resizeImage(file: File): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file); // create a temporary local URL from the file to load the image into the canvas.
-
-    // internal browser URL that can be used to Image() object to load content from the file.
-// 1. User chooses an image file 2. Browser creates a temporary local URL from the file 3. That URL is used to load the image into the canvas (memory). 
-
-img.onload = () => {
-      URL.revokeObjectURL(url);
-      let { width, height } = img;
-      if (width <= MAX_IMAGE_DIM && height <= MAX_IMAGE_DIM) {
-        width = img.width; 
-        height = img.height;
-      } else {
-        const r = Math.min(MAX_IMAGE_DIM / width, MAX_IMAGE_DIM / height);
-        width = Math.round(width * r);
-        height = Math.round(height * r);
-      }
-      const canvas = document.createElement("canvas"); // canvas is a HTML element that can be used to draw images. it is used to resize the image.
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("Canvas not supported"));
-        return;
-      }
-      ctx.drawImage(img, 0, 0, width, height); // draw the loaded image onto the canvas to resize it before converting to blob.
-      
-      // toBlob is a method that can be used to convert the canvas to a blob. it is used to convert the canvas to a blob.
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))),
-        "image/jpeg",
-        JPEG_QUALITY,
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Image load failed"));
-    };
-    img.src = url;
-  });
-}
-
-// options for dropdowns lists, vehicle types and garages ...
-async function loadOptions() {
-  try {
-    const [vtRes, gRes] = await Promise.all([
-      listVehicleTypes({ limit: 100 }),
-      listGarages({ limit: 100 }),
-    ]);
-    vehicleTypes.value = vtRes.data.items;
-    garages.value = gRes.data.items;
-  } catch {
-    error.value = "Failed to load options";
-  }
-}
-
-async function onGarageChange() {
-  const gid = form.value.garage_id;
-  if (!gid) {
-    freeSpots.value = [];
-    return;
-  }
-  try {
-    const res = await listSpots({
-      garage_id: gid,
-      only_free: true,
-      active_only: true,
-      limit: 500,
-    });
-    freeSpots.value = res.data.items;
-  } catch {
-    freeSpots.value = [];
-  }
-}
-
-function onGarageSelect(value: number | null) {
-  form.value.garage_id = value ?? null;
-  form.value.spot_id = null;
-  onGarageChange();
-}
-
 watch(
   () => props.modelValue,
   (open) => {
     if (open) {
-      loadOptions();
+      optionsError.value = "";
+      loadVehicleTypesAndGarages();
       imagePickGeneration.value += 1;
       imageProcessing.value = false;
-      imageError.value = "";
       form.value = {
         licence_plate: "",
         vehicle_type_id: null,
@@ -358,7 +263,7 @@ watch(
         ticketImageDisplayName: null,
       };
       if (imageInputRef.value) imageInputRef.value.value = "";
-      freeSpots.value = [];
+      resetSpots();
     }
   },
 );
@@ -377,35 +282,13 @@ async function submit() {
 
   loading.value = true;
   try {
-    let vehicleId: number;
-    try {
-      const byPlate = await getVehicleByPlate(plate);
-      vehicleId = byPlate.data.id;
-    } catch (e: unknown) {
-      const status = (e as { response?: { status?: number } })?.response
-        ?.status;
-      if (status === 404) {
-        const create = await createVehicle({
-          licence_plate: plate,
-          vehicle_type_id: vehicleTypeId,
-        });
-        vehicleId = create.data.id;
-      } else throw e;
-    }
-    let imageUrl: string | undefined;
-    if (form.value.resizedImageBlob) {
-      const { url } = await uploadTicketImage(
-        form.value.resizedImageBlob,
-        "ticket.jpg",
-      );
-      imageUrl = url;
-    }
-    await ticketEntry({
-      vehicle_id: vehicleId,
-      garage_id: garageId,
-      spot_id: form.value.spot_id ?? undefined,
-      rentable_only: false,
-      image_url: imageUrl ?? undefined,
+    await createParkingEntry({
+      licencePlate: plate,
+      vehicleTypeId,
+      garageId,
+      spotId: form.value.spot_id,
+      imageBlob: form.value.resizedImageBlob,
+      imageFileName: "ticket.jpg",
     });
     success.value = "Entry created.";
     setTimeout(() => {

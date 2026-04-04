@@ -232,3 +232,98 @@ def test_get_ticket_404(client: TestClient) -> None:
     """GET /tickets/{id} returns 404 for non-existent id."""
     r = client.get("/tickets/999999")
     assert r.status_code == 404
+
+
+def _setup_open_ticket(client: TestClient, *, suffix: str = "a") -> tuple[int, int, int]:
+    """Returns (ticket_id, garage_id, vehicle_id)."""
+    r = client.post(
+        "/garages",
+        json={
+            "name": f"PUT Ticket Garage {suffix}",
+            "capacity": 5,
+            "default_rate": "20.00",
+        },
+    )
+    assert r.status_code == 200
+    garage_id = r.json()["id"]
+    for code in (f"P{suffix}01", f"P{suffix}02"):
+        r = client.post(
+            "/spots",
+            json={
+                "garage_id": garage_id,
+                "code": code,
+                "is_rentable": False,
+                "is_active": True,
+            },
+        )
+        assert r.status_code == 200
+    r = client.post(
+        "/vehicle-types",
+        json={"type": f"PutTicketVT{suffix}", "rate": "10.00"},
+    )
+    assert r.status_code == 200
+    vt_id = r.json()["id"]
+    r = client.post(
+        "/vehicles",
+        json={
+            "licence_plate": f"PUT-{suffix}",
+            "vehicle_type_id": vt_id,
+            "status": 1,
+        },
+    )
+    assert r.status_code == 200
+    vehicle_id = r.json()["id"]
+    r = client.post(
+        "/tickets/entry",
+        json={"vehicle_id": vehicle_id, "garage_id": garage_id},
+    )
+    assert r.status_code == 200
+    return r.json()["id"], garage_id, vehicle_id
+
+
+def test_put_ticket_operational_status(client: TestClient) -> None:
+    """PUT /tickets/{id} may update operational_status."""
+    ticket_id, _, _ = _setup_open_ticket(client, suffix="op")
+    r = client.put(
+        f"/tickets/{ticket_id}",
+        json={"operational_status": "MALFUNCTION"},
+    )
+    assert r.status_code == 200
+    assert r.json()["operational_status"] == "MALFUNCTION"
+
+
+def test_put_ticket_rejects_unknown_fields(client: TestClient) -> None:
+    """PUT /tickets/{id} rejects direct ticket_state changes (extra=forbid)."""
+    ticket_id, _, _ = _setup_open_ticket(client, suffix="422")
+    r = client.put(
+        f"/tickets/{ticket_id}",
+        json={"ticket_state": "CLOSED"},
+    )
+    assert r.status_code == 422
+
+
+def test_put_ticket_spot_reassign_open(client: TestClient) -> None:
+    """PUT may reassign spot on OPEN ticket when spot is free and same garage."""
+    ticket_id, garage_id, _ = _setup_open_ticket(client, suffix="spot")
+    r = client.get("/spots", params={"garage_id": garage_id, "limit": 10})
+    assert r.status_code == 200
+    spots = r.json()["items"]
+    assert len(spots) >= 2
+    t = client.get(f"/tickets/{ticket_id}").json()
+    cur = t["spot_id"]
+    alt = next(s["id"] for s in spots if s["id"] != cur)
+    r = client.put(f"/tickets/{ticket_id}", json={"spot_id": alt})
+    assert r.status_code == 200
+    assert r.json()["spot_id"] == alt
+
+
+def test_put_ticket_spot_change_forbidden_when_closed(client: TestClient) -> None:
+    """PUT cannot change spot after ticket is closed."""
+    ticket_id, garage_id, _ = _setup_open_ticket(client, suffix="cls")
+    r = client.get("/spots", params={"garage_id": garage_id, "limit": 10})
+    assert r.status_code == 200
+    spots = r.json()["items"]
+    alt = spots[-1]["id"]
+    client.post(f"/tickets/{ticket_id}/exit", json={})
+    r = client.put(f"/tickets/{ticket_id}", json={"spot_id": alt})
+    assert r.status_code == 409

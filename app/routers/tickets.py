@@ -22,6 +22,7 @@ from app.services.tickets import (
     TicketPersistenceError,
     TicketStateError,
     TicketTokenRetryExceededError,
+    apply_ticket_update,
     close_ticket,
     create_ticket_entry,
 )
@@ -155,15 +156,28 @@ def update_ticket(
     data: schemas.TicketUpdate,
     db: Session = Depends(get_db),
 ):
-    t = db.get(models.Ticket, ticket_id)
-    if not t:
+    try:
+        return apply_ticket_update(db, ticket_id, data)
+    except TicketNotFoundError:
         raise api_error(404, "TICKET_NOT_FOUND", "Ticket not found.")
-    update = data.model_dump(exclude_unset=True)
-    for key, value in update.items():
-        setattr(t, key, value)
-    db.commit()
-    db.refresh(t)
-    return t
+    except InvalidSpotError as e:
+        raise api_error(400, "INVALID_SPOT_UPDATE", str(e))
+    except SpotGarageMismatchError:
+        raise api_error(
+            409,
+            "SPOT_GARAGE_MISMATCH",
+            "Selected parking spot does not belong to this ticket's garage.",
+        )
+    except SpotInactiveError:
+        raise api_error(409, "SPOT_INACTIVE", "Selected parking spot is inactive.")
+    except SpotOccupiedError:
+        raise api_error(
+            409,
+            "SPOT_OCCUPIED",
+            "The selected parking spot is already occupied.",
+        )
+    except TicketStateError as e:
+        raise api_error(409, "TICKET_NOT_OPEN", str(e))
 
 
 @router.delete("/{ticket_id}")

@@ -130,6 +130,62 @@ def create_ticket_entry(
     )
 
 
+def _validate_spot_reassignment(
+    db: Session, ticket: models.Ticket, new_spot_id: int
+) -> None:
+    if new_spot_id == ticket.spot_id:
+        return
+    spot = db.get(models.ParkingSpot, new_spot_id)
+    if not spot:
+        raise InvalidSpotError("Invalid spot_id")
+    if spot.garage_id != ticket.garage_id:
+        raise SpotGarageMismatchError("spot_id does not belong to garage")
+    if not spot.is_active:
+        raise SpotInactiveError("Spot is not active")
+    occupied = (
+        db.query(models.Ticket)
+        .filter(
+            models.Ticket.spot_id == new_spot_id,
+            models.Ticket.ticket_state == "OPEN",
+            models.Ticket.id != ticket.id,
+        )
+        .first()
+    )
+    if occupied:
+        raise SpotOccupiedError("Spot is occupied")
+
+
+def apply_ticket_update(
+    db: Session, ticket_id: int, data: schemas.TicketUpdate
+) -> models.Ticket:
+    ticket = db.get(models.Ticket, ticket_id)
+    if not ticket:
+        raise TicketNotFoundError("Ticket not found")
+
+    updates = data.model_dump(exclude_unset=True)
+    if not updates:
+        return ticket
+
+    if "operational_status" in updates:
+        ticket.operational_status = updates["operational_status"]
+
+    if "image_url" in updates:
+        ticket.image_url = updates["image_url"]
+
+    if "spot_id" in updates:
+        if ticket.ticket_state != "OPEN":
+            raise TicketStateError("Spot can only be changed on open tickets")
+        new_sid = updates["spot_id"]
+        if new_sid is None:
+            raise InvalidSpotError("spot_id cannot be cleared")
+        _validate_spot_reassignment(db, ticket, new_sid)
+        ticket.spot_id = new_sid
+
+    db.commit()
+    db.refresh(ticket)
+    return ticket
+
+
 def close_ticket(
     db: Session, ticket_id: int, data: schemas.TicketExit
 ) -> models.Ticket:

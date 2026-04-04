@@ -170,14 +170,19 @@ class TicketExit(BaseModel):
 
 
 class TicketUpdate(BaseModel):
-    ticket_state: TicketState | None = None
-    payment_status: PaymentStatus | None = None
-    operational_status: OperationalStatus | None = None
-    fee: Decimal | None = None
-    entry_time: datetime | None = None
+    """Partial update with domain-safe fields only.
 
+    Lifecycle fields (ticket_state, payment_status, fee, entry_time) are
+    controlled by entry/exit and payment flows — not by this endpoint.
+    garage_id cannot be changed; use operational notes, image, or spot
+    reassignment on OPEN tickets only.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    operational_status: OperationalStatus | None = None
     spot_id: int | None = None
-    garage_id: int | None = None
+    image_url: str | None = Field(None, max_length=512)
 
 
 class PaymentCreate(BaseModel):

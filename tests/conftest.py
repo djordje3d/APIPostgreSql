@@ -5,6 +5,9 @@ import os
 # So tests work without DB triggers: API computes fee on exit and payment_status after payments.
 os.environ.setdefault("USE_API_FEE_CALCULATION", "true")
 os.environ.setdefault("USE_API_PAYMENT_STATUS", "true")
+# Integration tests call the API without headers; .env may set API_KEY. Empty string makes
+# config treat auth as disabled; test_auth.py patches app.auth.API_KEY when it needs auth on.
+os.environ["API_KEY"] = ""
 
 import pytest
 from fastapi.testclient import TestClient
