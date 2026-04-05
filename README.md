@@ -1,6 +1,6 @@
 # Parking API (FastAPI + PostgreSQL)
 
-API for managing parking garages, spots, vehicles, tickets, and payments. Supports entry/exit flow, spot allocation, and payment recording for closed tickets.
+API for managing parking garages, spots, vehicles, tickets, and payments. Supports entry/exit flow, spot allocation, payment recording for closed tickets, and optional ticket image uploads served under `/uploads`. A Vue 3 dashboard lives in `dashboard/` (see [Frontend](#frontend-optional) below).
 
 ## Requirements
 
@@ -39,14 +39,18 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
    | `AUTH_USERNAME`              | Single-user login: username for `POST /auth/login`. When set with `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`), login is enabled. | `admin` |
    | `AUTH_PASSWORD`              | Single-user login: plain password. Omit if using `AUTH_PASSWORD_HASH`. | `secret` |
    | `AUTH_PASSWORD_HASH`         | Single-user login: bcrypt-hashed password. When set, `AUTH_PASSWORD` is ignored. | `$2b$12$...` |
+   | `AUTH_PREFERRED_LANGUAGE`   | Optional. Preferred language code for login responses (default: `en`). | `en` |
    | `SQL_ECHO`                   | Set to `true` to log SQL statements (default: off)                         | `false` |
    | `USE_API_FEE_CALCULATION`     | Set to `true` if the DB has no trigger for ticket fee/state on exit; the API will compute fee and set ticket_state to CLOSED. Default: `false` (expect DB trigger). | `false` |
    | `USE_API_PAYMENT_STATUS`     | Set to `true` if the DB has no trigger to update ticket payment_status after payments; the API will recalc and update it. Default: `false` (expect DB trigger). | `false` |
    | `CORS_ORIGINS`              | Optional. Comma-separated origins allowed for browser requests (CORS). If unset, defaults to localhost variants. **In production** (when `ENVIRONMENT` or `ENV` is production), must be set if CORS is enabled. | `http://localhost:3000,https://myapp.com` |
    | `CORS_DISABLED`            | Optional. Set to `true` to disable CORS (no CORSMiddleware). Use for server-only or same-origin deployments. Default: `false`. | `false` |
    | `CORS_MAX_AGE`              | Optional. How long (seconds) browsers may cache preflight (OPTIONS) responses. Default: `600`. | `600` |
+   | `UPLOAD_TICKET_IMAGE_MAX_BYTES` | Optional. Maximum body size in bytes for ticket image uploads (default: 5 MB). Clients should resize before upload. | `5242880` |
 
    If `DATABASE_URL` is not set, the app falls back to a default URL (see `app/db.py`). **Do not rely on the default in production;** set `DATABASE_URL` explicitly.
+
+   **Ticket images:** Uploaded files are stored under `static/uploads/` at the project root (see `UPLOAD_DIR` in `app/config.py`) and exposed by the app at **`/uploads/...`** via `StaticFiles`. Upload handling is in `app/routers/upload.py`. For flow and API details, see **[docs/TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md)**.
 
    **CORS:** The API allows credentials (cookies, `X-API-Key`). Allowed methods are GET, POST, PUT, PATCH, DELETE; allowed headers include `Content-Type`, `Accept`, `Authorization`, `X-API-Key`. Each origin in `CORS_ORIGINS` must start with `http://` or `https://` and have no path (invalid entries are skipped with a log warning). With `ENVIRONMENT=production` or `ENV=production`, invalid or missing `CORS_ORIGINS` cause startup to fail unless `CORS_DISABLED=true`. Set `CORS_DISABLED=true` when the API is only used server-to-server or same-origin (no browser CORS needed).
 
@@ -54,7 +58,7 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
 
    **Authentication (API key and JWT):**
    - **If `API_KEY` is not set**: the middleware does not require auth; all requests are allowed (e.g. local dev).
-   - **If `API_KEY` is set**: every request except `GET /`, `GET /health`, and `POST /auth/login` must send either **`X-API-Key`** with the same value **or** **`Authorization: Bearer <token>`** (JWT from `POST /auth/login`). Otherwise the API returns **401 Unauthorized**.
+   - **If `API_KEY` is set**: every request except `GET /`, `GET /health`, `POST /auth/login`, and **`GET` requests under `/uploads/`** (static ticket images) must send either **`X-API-Key`** with the same value **or** **`Authorization: Bearer <token>`** (JWT from `POST /auth/login`). Otherwise the API returns **401 Unauthorized**.
    - **Login:** Set `AUTH_USERNAME` and `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`) in `.env` to enable `POST /auth/login`. The dashboard can then log in and use the returned JWT. Set `JWT_SECRET_KEY` in production.
 
 ## How to run
@@ -83,12 +87,16 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - **ReDoc:** http://localhost:8000/redoc  
 - **Health check:** http://localhost:8000/health (returns 200 when app and DB are OK, 503 if the database is unavailable)
 
+## Frontend (optional)
+
+The repo includes a **Vue 3 + Tailwind** garage dashboard in `dashboard/`. Install dependencies, run the dev server, and point it at this API (CORS already allows `http://localhost:5173` by default). Full steps: **[dashboard/README.md](dashboard/README.md)**.
+
 ### Postman (and other clients)
 
 When using the API from Postman (or any HTTP client), keep the following in mind:
 
 1. **Authentication (when `API_KEY` is set)**  
-   Every request except `GET /`, `GET /health`, and `POST /auth/login` must include either **`X-API-Key`** or **`Authorization: Bearer <token>`** (get token from `POST /auth/login` with body `{"username":"...","password":"..."}`).  
+   Every request except `GET /`, `GET /health`, `POST /auth/login`, and **`GET /uploads/...`** must include either **`X-API-Key`** or **`Authorization: Bearer <token>`** (get token from `POST /auth/login` with body `{"username":"...","password":"..."}`).  
    - **API key:** In the request’s **Headers** tab, add: Key `X-API-Key`, **Headers** add `X-API-Key`, or in **Collection** → **Authorization** set Type = API Key, Key = `X-API-Key`, Add to = Header.  
    - **Bearer token:** Call `POST /auth/login`, copy `access_token`, then in **Authorization** set Type = Bearer Token and paste it.
    If both are missing or invalid, the API returns **401 Unauthorized**.
@@ -123,14 +131,20 @@ Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, 
 
 ## Project layout
 
-- `app/main.py` — FastAPI app and route registration (imports `app.config` first so `.env` is loaded before the DB engine is created)
-- `app/config.py` — environment variables and flags; loads `.env` via `python-dotenv`; `API_KEY` read once at startup
+- `app/main.py` — FastAPI app and route registration (imports `app.config` first so `.env` is loaded before the DB engine is created); mounts `/uploads` for static ticket images
+- `app/config.py` — environment variables and flags; loads `.env` via `python-dotenv`; `API_KEY` read once at startup; `UPLOAD_DIR` / upload size limits
 - `app/auth.py` — API key and JWT middleware (accepts `X-API-Key` or `Authorization: Bearer <jwt>`)
 - `app/auth_jwt.py` — JWT create/verify and FastAPI dependencies
 - `app/routers/auth.py` — `POST /auth/login` (returns JWT when `AUTH_USERNAME`/`AUTH_PASSWORD` set)
+- `app/routers/upload.py` — ticket image upload endpoints
+- `app/routers/dashboard.py` — aggregated dashboard metrics for the UI
 - `app/db.py` — database engine, session, and `get_db` dependency (expects env already loaded by config)
 - `app/models.py` — SQLAlchemy models
 - `app/schemas.py` — Pydantic request/response schemas
-- `app/routers/` — API route handlers (garages, vehicle-types, vehicles, tickets, payments, spots)
+- `app/routers/` — API route handlers (garages, vehicle-types, vehicles, tickets, payments, spots, upload, dashboard)
 - `app/services/` — business logic (e.g. spot allocation, pricing, payment status)
+- `static/uploads/` — on-disk storage for uploaded ticket images (served under `/uploads`)
+- `dashboard/` — Vue 3 frontend (see [dashboard/README.md](dashboard/README.md))
+- `docs/` — additional documentation (e.g. [TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md))
+- `scripts/` — utility scripts (e.g. presentation builder)
 - `tests/` — API integration tests (pytest, transactional rollback isolation)
