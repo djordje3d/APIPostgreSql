@@ -1,6 +1,6 @@
 <template>
   <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-    <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ t('paymenetsRevenue.title') }}</h2>
+    <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ t('paymentsRevenue.title') }}</h2>
 
     <div
       v-if="error"
@@ -50,15 +50,15 @@
       </div>
 
       <div class="space-y-4">
-        <SummaryRow :label="t('paymenetsRevenue.todayRevenue')" :value="formatMoney(todayRevenue)" />
-        <SummaryRow :label="t('paymenetsRevenue.thisMonthRevenue')" :value="formatMoney(monthRevenue)" />
+        <SummaryRow :label="t('paymentsRevenue.todayRevenue')" :value="formatMoney(todayRevenue)" />
+        <SummaryRow :label="t('paymentsRevenue.thisMonthRevenue')" :value="formatMoney(monthRevenue)" />
         <SummaryRow
-          :label="t('paymenetsRevenue.unpaidPartiallyPaidTickets')"
+          :label="t('paymentsRevenue.unpaidPartiallyPaidTickets')"
           :value="unpaidCount"
           value-class="text-amber-700"
         />
         <SummaryRow
-          :label="t('paymenetsRevenue.restToPayDescription')"
+          :label="t('paymentsRevenue.restToPayDescription')"
           :value="formatMoney(totalOutstanding)"
           value-class="text-amber-700"
         />
