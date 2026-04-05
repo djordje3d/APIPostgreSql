@@ -17,11 +17,49 @@
         <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
           {{ t("ticket.exitTime") }}
         </th>
-        <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
-          {{ t("ticket.fee") }}
+        <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+          <span class="inline-flex items-center gap-1">
+            {{ t("ticket.state") }}
+            <HelpTooltip
+              as-icon
+              :text="t('help.ticket.ticketState')"
+              :aria-label="t('help.aria.ticketState')"
+            />
+          </span>
         </th>
-        <th class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
-          {{ t("ticket.restToPay") }}
+        <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+          <span class="inline-flex items-center gap-1">
+            {{ t("ticket.payment") }}
+            <HelpTooltip
+              as-icon
+              :text="t('help.ticket.paymentStatus')"
+              :aria-label="t('help.aria.paymentStatus')"
+            />
+          </span>
+        </th>
+        <th
+          class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
+        >
+          <span class="inline-flex w-full items-center justify-end gap-1">
+            {{ t("ticket.fee") }}
+            <HelpTooltip
+              as-icon
+              :text="t('help.ticket.fee')"
+              :aria-label="t('help.aria.ticketFee')"
+            />
+          </span>
+        </th>
+        <th
+          class="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500"
+        >
+          <span class="inline-flex w-full items-center justify-end gap-1">
+            {{ t("ticket.restToPay") }}
+            <HelpTooltip
+              as-icon
+              :text="t('help.ticket.restToPay')"
+              :aria-label="t('help.aria.restToPay')"
+            />
+          </span>
         </th>
         <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
           {{ t("ticket.image") }}
@@ -47,7 +85,7 @@
       />
 
       <tr v-if="tickets.length === 0">
-        <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+        <td colspan="11" class="px-4 py-6 text-center text-gray-500">
           {{ t("ticket.noTickets") }}
         </td>
       </tr>
@@ -57,6 +95,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+import HelpTooltip from "../ui/HelpTooltip.vue";
 import type { TicketDashboardRow } from "../../api/tickets";
 import { formatMoney } from "../../composables/useFormatters";
 import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl";

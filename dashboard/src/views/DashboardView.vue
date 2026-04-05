@@ -4,13 +4,15 @@
       <div
         class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"
       ></div>
-      <RefreshCountdownRing
-        :duration-ms="intervalMs"
-        :remaining-ms="remainingMs"
-        :enabled="isRunning"
-        :auto-refresh-enabled="autoRefreshEnabled"
-        @toggle-auto-refresh="toggleAutoRefresh"
-      />
+      <HelpTooltip :text="t('help.autoRefresh')">
+        <RefreshCountdownRing
+          :duration-ms="intervalMs"
+          :remaining-ms="remainingMs"
+          :enabled="isRunning"
+          :auto-refresh-enabled="autoRefreshEnabled"
+          @toggle-auto-refresh="toggleAutoRefresh"
+        />
+      </HelpTooltip>
 
       <div
         role="button"
@@ -92,8 +94,16 @@
             v-if="activeTab !== 'overview'"
             class="w-full max-w-[240px]"
           >
+            <div class="mb-1 flex items-center gap-1 text-gray-600">
+              <span class="block text-sm">{{ t("dashboard.timeFrame") }}</span>
+              <HelpTooltip
+                as-icon
+                :text="t('help.dashboard.timeFrame')"
+                :aria-label="t('help.aria.timeFrame')"
+              />
+            </div>
             <StandardDropdown
-              :label="t('dashboard.timeFrame')"
+              label=""
               :options="timeFrameOptions"
               :model-value="selectedTimeFrame"
               :nullable="false"
@@ -163,6 +173,7 @@ import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
 import StandardDropdown from "../components/ui/StandardDropdown.vue";
+import HelpTooltip from "../components/ui/HelpTooltip.vue";
 import TimelineVehicleTypeChartBrush from "../components/dashboard/TimelineVehicleTypeChartBrush.vue";
 
 import { useDashboardPolling } from "../composables/useDashboardPolling";

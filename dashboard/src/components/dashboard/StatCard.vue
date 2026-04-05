@@ -8,8 +8,16 @@
       >
         {{ icon }}
       </span>
-      <div>
-        <p class="text-sm font-medium text-gray-500">{{ label }}</p>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-1">
+          <p class="text-sm font-medium text-gray-500">{{ label }}</p>
+          <HelpTooltip
+            v-if="helpText"
+            as-icon
+            :text="helpText"
+            :aria-label="helpAriaLabel"
+          />
+        </div>
         <p class="text-2xl font-semibold text-gray-900">{{ value }}</p>
       </div>
     </div>
@@ -17,7 +25,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
+import HelpTooltip from "../ui/HelpTooltip.vue";
 
 const VARIANT_CONFIG: Record<
   string,
@@ -29,19 +38,20 @@ const VARIANT_CONFIG: Record<
   slate: { icon: '🧾', badgeClass: 'bg-slate-100 text-slate-700' },
 }
 
-// TODO: add a tooltip to the icon
 const props = withDefaults(
   defineProps<{
-    label: string
-    value: number
-    variant?: 'green' | 'red' | 'amber' | 'slate'
-    icon?: string
+    label: string;
+    value: number;
+    variant?: "green" | "red" | "amber" | "slate";
+    icon?: string;
+    /** Shown next to the label when set. */
+    helpText?: string;
+    helpAriaLabel?: string;
   }>(),
-  { variant: 'slate' }
-)
+  { variant: "slate" },
+);
 
-// TODO: add a tooltip to the value
-const config = computed(() => VARIANT_CONFIG[props.variant] ?? VARIANT_CONFIG.slate)
+const config = computed(() => VARIANT_CONFIG[props.variant] ?? VARIANT_CONFIG.slate);
 const icon = computed(() => props.icon ?? config.value.icon)
 const badgeClass = computed(() => config.value.badgeClass)
 </script>

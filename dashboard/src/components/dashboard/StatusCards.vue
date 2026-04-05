@@ -51,10 +51,34 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
-      <StatCard :label="t('statusCards.freeSpots')" :value="freeSpots" variant="green" />
-      <StatCard :label="t('statusCards.occupiedSpots')" :value="occupiedSpots" variant="red" />
-      <StatCard :label="t('statusCards.inactiveSpots')" :value="inactiveSpots" variant="amber" />
-      <StatCard :label="t('statusCards.openTickets')" :value="openTickets" variant="slate" />
+      <StatCard
+        :label="t('statusCards.freeSpots')"
+        :value="freeSpots"
+        variant="green"
+        :help-text="t('help.statusCards.freeSpots')"
+        :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.freeSpots') })"
+      />
+      <StatCard
+        :label="t('statusCards.occupiedSpots')"
+        :value="occupiedSpots"
+        variant="red"
+        :help-text="t('help.statusCards.occupiedSpots')"
+        :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.occupiedSpots') })"
+      />
+      <StatCard
+        :label="t('statusCards.inactiveSpots')"
+        :value="inactiveSpots"
+        variant="amber"
+        :help-text="t('help.statusCards.inactiveSpots')"
+        :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.inactiveSpots') })"
+      />
+      <StatCard
+        :label="t('statusCards.openTickets')"
+        :value="openTickets"
+        variant="slate"
+        :help-text="t('help.statusCards.openTickets')"
+        :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.openTickets') })"
+      />
     </div>
   </div>
 </template>

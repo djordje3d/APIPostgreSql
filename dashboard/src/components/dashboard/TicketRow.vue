@@ -20,6 +20,14 @@
       {{ formatTime(ticket.exit_time) }}
     </td>
 
+    <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+      {{ ticketStateLabel }}
+    </td>
+
+    <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+      {{ paymentStatusLabel }}
+    </td>
+
     <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
       {{ formatMoney(ticket.fee) }}
     </td>
@@ -91,15 +99,33 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { formatTime, formatMoney } from "../../composables/useFormatters";
 import type { TicketDashboardRow } from "../../api/tickets";
 
-defineProps<{
+const props = defineProps<{
   ticket: TicketDashboardRow;
   ticketImageUrl?: string;
   restToPayValue: string;
   restToPayClass: string;
 }>();
+
+const { t, te } = useI18n();
+
+const ticketStateLabel = computed(() => {
+  const s = props.ticket.ticket_state;
+  if (!s) return "–";
+  const key = `ticket.ticketState.${s}`;
+  return te(key) ? t(key) : s;
+});
+
+const paymentStatusLabel = computed(() => {
+  const s = props.ticket.payment_status;
+  if (!s) return "–";
+  const key = `ticket.paymentStatus.${s}`;
+  return te(key) ? t(key) : s;
+});
 
 defineEmits<{
   "view-ticket": [ticket: TicketDashboardRow];

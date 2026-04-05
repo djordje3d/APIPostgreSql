@@ -34,13 +34,15 @@
               </div>
 
               <div class="flex items-center justify-end gap-3">
-                <RefreshCountdownRing
-                  :duration-ms="intervalMs"
-                  :remaining-ms="remainingMs"
-                  :enabled="isRunning"
-                  :auto-refresh-enabled="autoRefreshEnabled"
-                  @toggle-auto-refresh="toggleAutoRefresh"
-                />
+                <HelpTooltip :text="t('help.autoRefresh')">
+                  <RefreshCountdownRing
+                    :duration-ms="intervalMs"
+                    :remaining-ms="remainingMs"
+                    :enabled="isRunning"
+                    :auto-refresh-enabled="autoRefreshEnabled"
+                    @toggle-auto-refresh="toggleAutoRefresh"
+                  />
+                </HelpTooltip>
                 <button
                   type="button"
                   :title="t('garageDetail.refreshNow')"
@@ -202,13 +204,15 @@
               </div>
 
               <div class="flex items-center justify-end gap-3">
-                <RefreshCountdownRing
-                  :duration-ms="intervalMs"
-                  :remaining-ms="remainingMs"
-                  :enabled="isRunning"
-                  :auto-refresh-enabled="autoRefreshEnabled"
-                  @toggle-auto-refresh="toggleAutoRefresh"
-                />
+                <HelpTooltip :text="t('help.autoRefresh')">
+                  <RefreshCountdownRing
+                    :duration-ms="intervalMs"
+                    :remaining-ms="remainingMs"
+                    :enabled="isRunning"
+                    :auto-refresh-enabled="autoRefreshEnabled"
+                    @toggle-auto-refresh="toggleAutoRefresh"
+                  />
+                </HelpTooltip>
                 <button
                   type="button"
                   :title="t('garageDetail.refreshNow')"
@@ -290,6 +294,7 @@ import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
+import HelpTooltip from "../components/ui/HelpTooltip.vue";
 import GarageHeaderCard from "../components/dashboard/GarageHeaderCard.vue";
 import GarageSpotsTable from "../components/dashboard/GarageSpotsTable.vue";
 import GarageOpenTicketsTable from "../components/dashboard/GarageOpenTicketsTable.vue";

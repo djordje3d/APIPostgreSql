@@ -3,10 +3,18 @@
     <div class="border-b border-gray-200 px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-lg font-semibold text-gray-900">{{ t("timeline.title") }}</h2>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
           <div class="w-[220px]">
+            <div class="mb-1 flex items-center gap-1 text-gray-600">
+              <span class="block text-sm">{{ t("timeline.yAxisMetric") }}</span>
+              <HelpTooltip
+                as-icon
+                :text="t('help.timeline.yAxis')"
+                :aria-label="t('help.aria.timelineYAxis')"
+              />
+            </div>
             <StandardDropdown
-              :label="t('timeline.yAxisMetric')"
+              label=""
               :options="yAxisOptions"
               :model-value="yAxisMode"
               :nullable="false"
@@ -51,6 +59,14 @@
           <span class="icon-spinner11 inline-block animate-spin text-3xl text-gray-500"></span>
         </div>
 
+        <div class="mb-2 flex items-center gap-1 text-sm text-gray-600">
+          <span>{{ t("timeline.vehicleSeriesFilter") }}</span>
+          <HelpTooltip
+            as-icon
+            :text="t('help.timeline.series')"
+            :aria-label="t('help.aria.timelineSeries')"
+          />
+        </div>
         <div class="mb-3 flex flex-wrap gap-3">
           <label
             v-for="s in series"
@@ -120,7 +136,14 @@
         </div>
 
         <div class="mt-4 rounded border border-gray-200 bg-gray-50 p-3">
-          <div class="mb-2 text-sm text-gray-700">{{ t("timeline.zoomRange") }}</div>
+          <div class="mb-2 flex items-center gap-1 text-sm text-gray-700">
+            <span>{{ t("timeline.zoomRange") }}</span>
+            <HelpTooltip
+              as-icon
+              :text="t('help.timeline.zoomRange')"
+              :aria-label="t('help.aria.timelineZoom')"
+            />
+          </div>
           <div
             ref="brushRef"
             class="relative h-[88px] w-full cursor-crosshair rounded border border-gray-200 bg-white"
@@ -181,6 +204,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import StandardDropdown from "../ui/StandardDropdown.vue";
+import HelpTooltip from "../ui/HelpTooltip.vue";
 
 const { t } = useI18n();
 

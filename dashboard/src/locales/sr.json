@@ -110,7 +110,17 @@
     "restToPay": "Ostatak za plaćanje",
     "paymentWhen": "Vreme plaćanja",
     "paymentMethod": "Metoda plaćanja",
-    "barcode": "Barkod"
+    "barcode": "Barkod",
+    "ticketState": {
+      "OPEN": "Otvoreno",
+      "CLOSED": "Zatvoreno"
+    },
+    "paymentStatus": {
+      "NOT_APPLICABLE": "Nije primenjivo",
+      "UNPAID": "Neplaćeno",
+      "PARTIALLY_PAID": "Delimično plaćeno",
+      "PAID": "Plaćeno"
+    }
   },
   "garageOverview": {
     "title": "Pregled garaža",
@@ -229,7 +239,8 @@
     "entriesPerDay": "Ulazi po danu",
     "exitsPerDay": "Izlazi po danu",
     "zoomStartDay": "Početak zumiranja (dan)",
-    "zoomEndDay": "Kraj zumiranja (dan)"
+    "zoomEndDay": "Kraj zumiranja (dan)",
+    "vehicleSeriesFilter": "Tipovi vozila (linije)"
   },
   "dashboard": {
     "tabOverview": "Pregled",
@@ -245,5 +256,41 @@
     "subtitle": "Pregled aktivnih i rentabilnih parking mesta.",
     "loadFailed": "Učitavanje mesta nije uspelo.",
     "totalCount": "{count} ukupno"
+  },
+  "help": {
+    "statusCards": {
+      "freeSpots": "Parking mesta koja su aktivna, izdajna i trenutno nisu zauzeta.",
+      "occupiedSpots": "Mesta na kojima trenutno stoji vozilo (otvorena karta).",
+      "inactiveSpots": "Mesta koja nisu aktivna ili nisu dostupna za parking.",
+      "openTickets": "Vozila koja su još u garaži: kartice koje još nisu zatvorene."
+    },
+    "autoRefresh": "Kada je uključeno, tabla se osvežava u intervalu. Klik na prsten uključuje ili isključuje automatsko osvežavanje; broj su sekunde do sledećeg osvežavanja.",
+    "autoRefreshAriaOn": "Automatsko osvežavanje uključeno. Kliknite da pauzirate.",
+    "autoRefreshAriaOff": "Automatsko osvežavanje isključeno. Kliknite da nastavite.",
+    "dashboard": {
+      "timeFrame": "Ograničava listu kartica i vremensku liniju na izabrani period. „Uživo“ koristi poslednje dane; duži periodi učitavaju širi opseg."
+    },
+    "timeline": {
+      "yAxis": "Bira da li se po danu broji ulaz ili izlaz vozila. Graf i opseg koriste istu metriku.",
+      "zoomRange": "Prevucite plavi prozor ili ivice na malom grafu da fokusirate deo perioda. Glavni graf prikazuje samo izabrane dane.",
+      "series": "Uključite ili isključite tipove vozila da prikažete ili sakrijete njihove linije na grafu."
+    },
+    "ticket": {
+      "ticketState": "Otvoreno znači da je vozilo još u garaži. Zatvoreno znači da je izlaz zabeležen; plaćanje može još uvek biti potrebno.",
+      "paymentStatus": "Da li je parking potpuno plaćen, delimično, neplaćen, ili nije primenjivo (npr. otvorena karta).",
+      "fee": "Ukupna cena parkinga izračunata pri zatvaranju kartice (tarifni pravila).",
+      "restToPay": "Iznos koji još treba platiti nakon uplate. „–“ dok je karta otvorena, „0“ kada je sve plaćeno."
+    },
+    "aria": {
+      "statusCard": "Pomoć: {topic}",
+      "timeFrame": "Pomoć: vremenski okvir",
+      "timelineYAxis": "Pomoć: metrika na Y osi",
+      "timelineZoom": "Pomoć: opseg zumiranja",
+      "timelineSeries": "Pomoć: linije tipova vozila",
+      "ticketState": "Pomoć: kolona stanja karte",
+      "paymentStatus": "Pomoć: kolona statusa plaćanja",
+      "ticketFee": "Pomoć: kolona cene",
+      "restToPay": "Pomoć: kolona ostatka za plaćanje"
+    }
   }
 }

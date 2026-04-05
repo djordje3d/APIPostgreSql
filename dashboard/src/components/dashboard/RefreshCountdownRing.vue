@@ -4,7 +4,11 @@
     :class="{ 'countdown--paused': !autoRefreshEnabled }"
     role="button"
     tabindex="0"
-    :title="autoRefreshEnabled ? 'Auto-refresh ON' : 'Auto-refresh OFF'"
+    :aria-label="
+      autoRefreshEnabled
+        ? t('help.autoRefreshAriaOn')
+        : t('help.autoRefreshAriaOff')
+    "
     @click="emit('toggle-auto-refresh')"
     @keydown.enter.space.prevent="emit('toggle-auto-refresh')"
   >
@@ -24,6 +28,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   durationMs: number;
