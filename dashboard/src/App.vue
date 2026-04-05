@@ -20,6 +20,7 @@
         </div>
       </div>
     </Transition>
+    
     <!-- Brief "Connection restored" toast -->
     <Teleport to="body">
       <Transition name="toast-fade">
@@ -36,6 +37,7 @@
         </div>
       </Transition>
     </Teleport>
+
     <!-- Snackbar toast: only on dashboard and only when entry is created -->
     <Teleport to="body">
       <Transition name="toast-snackbar-fade">
@@ -49,6 +51,7 @@
         </div>
       </Transition>
     </Teleport>
+
     <!-- Session expiry modal: only when idle (no click/mouse move). Blocks entire dashboard until "Continue session". -->
     <Teleport to="body">
       <div
@@ -79,6 +82,7 @@
         </div>
       </div>
     </Teleport>
+
     <!-- Session expired (401): shown when API returns unauthorized, then redirect to login. -->
     <Teleport to="body">
       <div
@@ -111,6 +115,8 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Dashboard content -->
     <Transition name="fade" mode="out-in">
       <div v-if="!routerReady" key="waiting" class="min-h-screen bg-gray-100" />
       <div v-else-if="isLoginPage" key="login">
@@ -506,7 +512,7 @@ onUnmounted(() => {
 });
 
 function onNewEntryDone() {
-  nextTick(() => {
+  nextTick(() => { // wait for the DOM to be updated
     showNewEntry.value = false;
     showToast("Vehicle entry created.");
     window.dispatchEvent(new CustomEvent("dashboard-refresh"));
