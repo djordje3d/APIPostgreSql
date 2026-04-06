@@ -89,7 +89,7 @@ async function onSubmit() {
 
   try {
     await login(username.value, password.value);
-    const redirect = (route.query.redirect as string) || "/";
+    const redirect = (route.query.redirect as string) || "/dashboard";
     await router.push(redirect);
   } catch (e: unknown) {
     error.value = parseApiError(

@@ -128,7 +128,10 @@
             class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-3 gap-x-4 px-4 py-3 sm:px-6"
           >
             <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
-              <router-link to="/" class="text-base font-semibold sm:text-xl">
+              <router-link
+                :to="{ name: 'dashboard' }"
+                class="text-base font-semibold sm:text-xl"
+              >
                 {{ t("header.dashboard") }}
               </router-link>
               <LanguageSwitcher />

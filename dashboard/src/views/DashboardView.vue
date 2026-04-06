@@ -42,7 +42,11 @@
       </div>
 
       <div class="by-garage-card dashboard-fade dashboard-fade--0 lg:col-span-3">
-        <GarageSelectDropdown v-model="selectedGarageId" :garages="garages" />
+        <GarageSelectDropdown
+          :model-value="selectedGarageId"
+          :garages="garages"
+          @update:model-value="onGarageSelect($event as number | null)"
+        />
       </div>
 
       <div class="dashboard-fade dashboard-fade--4 lg:col-span-4">
@@ -185,6 +189,7 @@ import type { DashboardAnalytics } from "../api/dashboard";
 import { listTicketsDashboard } from "../api/tickets";
 import type { TicketDashboardRow } from "../api/tickets";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import {
   readGaragesCache,
   writeGaragesCache,
@@ -198,6 +203,8 @@ const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 const WIDGET_FETCH_TIMEOUT_MS = 45_000;
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 
 const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(
@@ -208,6 +215,46 @@ const autoRefreshEnabled = inject<Ref<boolean>>(
 const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
 const garageWatchReady = ref(false);
+
+function garageIdParamAsString(): string | undefined {
+  const raw = route.params.garageId;
+  if (raw == null || raw === "") return undefined;
+  if (Array.isArray(raw)) return raw[0];
+  return String(raw);
+}
+
+async function applyGarageFromRoute() {
+  const s = garageIdParamAsString();
+  if (s !== undefined && s !== "") {
+    const n = Number.parseInt(s, 10);
+    if (!Number.isFinite(n) || n <= 0) {
+      await router.replace({ name: "dashboard" });
+      return;
+    }
+    selectedGarageId.value = n;
+    return;
+  }
+  selectedGarageId.value = null;
+}
+
+watch(
+  () => route.params.garageId,
+  () => {
+    void applyGarageFromRoute();
+  },
+  { immediate: true },
+);
+
+function onGarageSelect(v: number | null) {
+  const s = garageIdParamAsString();
+  if (v == null && s === undefined) return;
+  if (v != null && s === String(v)) return;
+  if (v == null) {
+    router.push({ name: "dashboard" });
+  } else {
+    router.push({ name: "dashboard", params: { garageId: String(v) } });
+  }
+}
 const activeTab = ref<"overview" | "tickets" | "timeline">("overview");
 
 const selectedTimeFrame = ref("realtime");
@@ -338,15 +385,23 @@ function waitForTwoWidgetFetches(epoch: number): Promise<void> {
   });
 }
 
-function reconcileGarageSelection() {
-  if (garages.value.length === 1 && selectedGarageId.value == null) {
-    selectedGarageId.value = garages.value[0].id;
-  }
+async function reconcileGarageSelection() {
+  const hasGarageParam = garageIdParamAsString() !== undefined;
+
   if (
     selectedGarageId.value != null &&
+    garages.value.length > 0 &&
     !garages.value.some((g) => g.id === selectedGarageId.value)
   ) {
-    selectedGarageId.value = null;
+    await router.replace({ name: "dashboard" });
+    return;
+  }
+
+  if (garages.value.length === 1 && !hasGarageParam) {
+    await router.replace({
+      name: "dashboard",
+      params: { garageId: String(garages.value[0].id) },
+    });
   }
 }
 
@@ -354,14 +409,14 @@ async function loadGarages() {
   const cached = readGaragesCache();
   if (cached?.fresh) {
     garages.value = cached.items;
-    reconcileGarageSelection();
+    await reconcileGarageSelection();
     return;
   }
   try {
     const res = await listGarages({ limit: 200 });
     garages.value = res.data.items;
     writeGaragesCache(res.data.items);
-    reconcileGarageSelection();
+    await reconcileGarageSelection();
   } catch {
     garages.value = [];
   }

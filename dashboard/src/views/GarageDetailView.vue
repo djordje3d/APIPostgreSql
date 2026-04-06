@@ -166,7 +166,7 @@
               <div class="min-w-0 space-y-3">
                 <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                   <router-link
-                    to="/"
+                    :to="{ name: 'dashboard' }"
                     class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-900"
                   >
                     &larr; {{ t("garageDetail.dashboard") }}
