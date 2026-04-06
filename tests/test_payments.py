@@ -63,7 +63,7 @@ def test_create_payment_for_closed_ticket(client: TestClient) -> None:
 
 
 def test_payment_rejected_for_open_ticket(client: TestClient) -> None:
-    """Payment only allowed for closed tickets."""
+    """Payment only allowed for closed tickets (conflict -> 409)."""
     r = client.post(
         "/garages",
         json={"name": "Pay Garage 2", "capacity": 5, "default_rate": "80.00"},
@@ -95,11 +95,11 @@ def test_payment_rejected_for_open_ticket(client: TestClient) -> None:
         "/payments",
         json={"ticket_id": ticket_id, "amount": "10.00", "method": "CARD", "currency": "RSD"},
     )
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 
 def test_payment_overpayment_rejected(client: TestClient) -> None:
-    """Payment that would exceed ticket fee is rejected."""
+    """Payment that would exceed ticket fee is rejected (conflict -> 409)."""
     r = client.post(
         "/garages",
         json={"name": "Pay Garage 3", "capacity": 5, "default_rate": "30.00"},
@@ -134,7 +134,7 @@ def test_payment_overpayment_rejected(client: TestClient) -> None:
         "/payments",
         json={"ticket_id": ticket_id, "amount": "99999.00", "method": "CASH", "currency": "RSD"},
     )
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 
 def test_get_payment_404(client: TestClient) -> None:

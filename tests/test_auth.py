@@ -23,8 +23,9 @@ def test_protected_endpoint_returns_401_without_api_key(
     response = client.get("/garages")
     assert response.status_code == 401
     data = response.json()
-    assert "detail" in data
-    assert "authentication" in data["detail"].lower() or "api key" in data["detail"].lower()
+    assert "error" in data
+    message = data["error"]["message"].lower()
+    assert "authentication" in message or "api key" in message
 
 
 def test_protected_endpoint_returns_401_with_wrong_api_key(
@@ -64,7 +65,7 @@ def test_protected_endpoint_returns_401_with_expired_token(
     token = create_token("testuser")
     response = client.get("/garages", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 401
-    assert "detail" in response.json()
+    assert "error" in response.json()
 
 
 def test_health_allowed_without_api_key_when_auth_enabled(
@@ -120,7 +121,7 @@ def test_login_returns_401_when_wrong_credentials(
         json={"username": "testuser", "password": "wrong"},
     )
     assert response.status_code == 401
-    assert "detail" in response.json()
+    assert "error" in response.json()
 
 
 def test_login_returns_401_when_unknown_user(
@@ -144,7 +145,7 @@ def test_login_returns_503_when_not_configured(
         json={"username": "u", "password": "p"},
     )
     assert response.status_code == 503
-    assert "detail" in response.json()
+    assert "error" in response.json()
 
 
 # --- GET /auth/me ---
@@ -157,7 +158,7 @@ def test_auth_me_returns_200_with_valid_bearer_token(
     token = create_token("testuser")
     response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
-    assert response.json() == {"sub": "testuser"}
+    assert response.json()["sub"] == "testuser"
 
 
 def test_auth_me_returns_401_without_token(

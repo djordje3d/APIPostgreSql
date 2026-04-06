@@ -89,7 +89,7 @@ def test_patch_vehicle(client: TestClient) -> None:
 
 
 def test_delete_vehicle_with_tickets_400(client: TestClient) -> None:
-    """DELETE /vehicles/{id} returns 400 when vehicle has tickets."""
+    """DELETE /vehicles/{id} returns 409 when vehicle has tickets."""
     r = client.post(
         "/garages",
         json={"name": "Del Garage", "capacity": 5, "default_rate": "20.00"},
@@ -117,4 +117,4 @@ def test_delete_vehicle_with_tickets_400(client: TestClient) -> None:
     assert r.status_code == 200
 
     r = client.delete(f"/vehicles/{vehicle_id}")
-    assert r.status_code == 400
+    assert r.status_code == 409

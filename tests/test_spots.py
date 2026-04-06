@@ -91,7 +91,7 @@ def test_create_spot_and_get(client: TestClient) -> None:
 
 
 def test_spot_code_unique_per_garage(client: TestClient) -> None:
-    """Duplicate code in same garage returns 400."""
+    """Duplicate code in same garage returns 409."""
     r = client.post(
         "/garages",
         json={"name": "Spot Garage 4", "capacity": 5, "default_rate": "70.00"},
@@ -107,7 +107,7 @@ def test_spot_code_unique_per_garage(client: TestClient) -> None:
         "/spots",
         json={"garage_id": garage_id, "code": "S04", "is_rentable": False, "is_active": True},
     )
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 
 def test_get_spot_404(client: TestClient) -> None:

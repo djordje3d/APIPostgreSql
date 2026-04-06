@@ -14,13 +14,13 @@ def test_list_tickets_returns_paginated(client: TestClient) -> None:
 
 
 def test_ticket_entry_requires_valid_vehicle(client: TestClient) -> None:
-    """POST /tickets/entry returns 400 for invalid vehicle_id."""
+    """POST /tickets/entry returns 404 for invalid vehicle_id."""
     payload = {
         "vehicle_id": 999999,
         "garage_id": 1,
     }
     response = client.post("/tickets/entry", json=payload)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
 
 def test_ticket_entry_and_list(
@@ -132,7 +132,7 @@ def test_ticket_exit_success(client: TestClient) -> None:
 
 
 def test_ticket_exit_already_closed_400(client: TestClient) -> None:
-    """POST /tickets/{id}/exit returns 400 if ticket is not OPEN."""
+    """POST /tickets/{id}/exit returns 409 if ticket is not OPEN."""
     r = client.post(
         "/garages",
         json={"name": "Exit Garage 2", "capacity": 5, "default_rate": "30.00"},
@@ -162,7 +162,7 @@ def test_ticket_exit_already_closed_400(client: TestClient) -> None:
     r = client.post(f"/tickets/{ticket_id}/exit", json={})
     assert r.status_code == 200
     r = client.post(f"/tickets/{ticket_id}/exit", json={})
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 
 def test_list_tickets_filter_by_state(client: TestClient) -> None:
