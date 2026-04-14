@@ -54,28 +54,28 @@
       <StatCard
         :label="t('statusCards.freeSpots')"
         :value="freeSpots"
-        variant="green"
+        type="free"
         :help-text="t('help.statusCards.freeSpots')"
         :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.freeSpots') })"
       />
       <StatCard
         :label="t('statusCards.occupiedSpots')"
         :value="occupiedSpots"
-        variant="red"
+        type="occupied"
         :help-text="t('help.statusCards.occupiedSpots')"
         :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.occupiedSpots') })"
       />
       <StatCard
         :label="t('statusCards.inactiveSpots')"
         :value="inactiveSpots"
-        variant="amber"
+        type="inactive"
         :help-text="t('help.statusCards.inactiveSpots')"
         :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.inactiveSpots') })"
       />
       <StatCard
         :label="t('statusCards.openTickets')"
         :value="openTickets"
-        variant="slate"
+        type="tickets"
         :help-text="t('help.statusCards.openTickets')"
         :help-aria-label="t('help.aria.statusCard', { topic: t('statusCards.openTickets') })"
       />

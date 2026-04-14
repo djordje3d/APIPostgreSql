@@ -567,7 +567,7 @@ const connectionBannerIcon = computed(() => {
 // This is the polling that refreshes the dashboard every ?? seconds
 useDashboardPolling(refreshDashboardEverywhere, {
   intervalMs: POLL_MS,
-  enabled: pollingEnabled,
+  enabled: pollingEnabled, // only refresh if autoRefreshEnabled is true and not on login page
 });
 </script>
 

@@ -18,11 +18,11 @@
         role="button"
         tabindex="0"
         :title="t('garageDetail.refreshNow')"
-        class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-800 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-emerald-500/50"
+        class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-500 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-green-500/50"
         @click="refreshAll"
         @keydown.enter.space.prevent="refreshAll"
       >
-        <span class="icon-spinner11 text-4xl" aria-hidden="true"></span>
+        <span class="icon-spinner11 text-[42px] leading-none" aria-hidden="true"></span>
       </div>
     </div>
 
@@ -203,8 +203,8 @@ const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 const WIDGET_FETCH_TIMEOUT_MS = 45_000;
 
 const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
+const route = useRoute(); /** Rute za dashboard . Čita se iz URL-a*/
+const router = useRouter(); /** Router za dashboard . Koristi se za preusmeravanje na druge stranice */
 
 const toast = inject<ToastApi | null>("toast", null);
 const autoRefreshEnabled = inject<Ref<boolean>>(
@@ -216,6 +216,7 @@ const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
 const garageWatchReady = ref(false);
 
+/** this function gets the garage id from the route params */
 function garageIdParamAsString(): string | undefined {
   const raw = route.params.garageId;
   if (raw == null || raw === "") return undefined;
@@ -223,15 +224,16 @@ function garageIdParamAsString(): string | undefined {
   return String(raw);
 }
 
+/** this function applies the garage from the route params */
 async function applyGarageFromRoute() {
   const s = garageIdParamAsString();
   if (s !== undefined && s !== "") {
     const n = Number.parseInt(s, 10);
-    if (!Number.isFinite(n) || n <= 0) {
-      await router.replace({ name: "dashboard" });
+    if (!Number.isFinite(n) || n <= 0) { /** Proverava da li je broj validan */
+      await router.replace({ name: "dashboard" }); /** Ako je broj nevalidan, preusmerava na početnu stranicu */
       return;
     }
-    selectedGarageId.value = n;
+    selectedGarageId.value = n; /** Ako je broj validan, postavlja izabranu garazu */
     return;
   }
   selectedGarageId.value = null;
@@ -248,7 +250,7 @@ watch(
 function onGarageSelect(v: number | null) {
   const s = garageIdParamAsString();
   if (v == null && s === undefined) return;
-  if (v != null && s === String(v)) return;
+  if (v != null && s === String(v)) return; /** Ako je izabrana garaza (u ovom slučaju v) ista kao i ona koja je već izabrana (u ovom slučaju s), funkcija se ne izvršava */
   if (v == null) {
     router.push({ name: "dashboard" });
   } else {
@@ -385,6 +387,7 @@ function waitForTwoWidgetFetches(epoch: number): Promise<void> {
   });
 }
 
+/** Funkcija koja se koristi za rekoncilijaciju izbora garaze */
 async function reconcileGarageSelection() {
   const hasGarageParam = garageIdParamAsString() !== undefined;
 
