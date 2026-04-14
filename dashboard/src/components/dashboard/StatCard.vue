@@ -1,18 +1,18 @@
 <template>
-  <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
-    <div class="flex items-center gap-3">
-      <!-- ICON BADGE -->
+  <div
+    class="group rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md"
+  >
+    <div class="flex items-center gap-4">
       <span
-        class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600"
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition group-hover:bg-slate-200"
         aria-hidden="true"
       >
         <span :class="`icon-${icon}`" class="text-lg"></span>
       </span>
 
-      <!-- TEXT -->
       <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-1">
-          <p class="text-sm font-medium text-gray-500">{{ label }}</p>
+        <div class="flex items-center gap-1.5">
+          <p class="truncate text-sm font-medium text-gray-500">{{ label }}</p>
           <HelpTooltip
             v-if="helpText"
             as-icon
@@ -21,7 +21,9 @@
           />
         </div>
 
-        <p class="text-2xl font-semibold text-gray-900">{{ value }}</p>
+        <p class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+          {{ value }}
+        </p>
       </div>
     </div>
   </div>
@@ -31,12 +33,8 @@
 import { computed } from "vue";
 import HelpTooltip from "../ui/HelpTooltip.vue";
 
-
-/**
- * DEFAULT ICONS (fallback ako ne proslediš icon)
- */
- const DEFAULT_ICONS: Record<string, string> = {
-  free: "checkmark2",
+const DEFAULT_ICONS: Record<string, string> = {
+  free: "checkmark",
   occupied: "truck",
   inactive: "blocked",
   tickets: "ticket",
@@ -46,10 +44,9 @@ import HelpTooltip from "../ui/HelpTooltip.vue";
 const props = defineProps<{
   label: string;
   value: number;
-  /** Direktno prosleđena ikona iz parenta */
   icon?: string;
-  /** Opcioni semantic key ako ne proslediš icon */
   type?: "free" | "occupied" | "inactive" | "tickets";
+  subtitle?: string;
   helpText?: string;
   helpAriaLabel?: string;
 }>();
@@ -59,5 +56,4 @@ const icon = computed(() => {
   if (props.type) return DEFAULT_ICONS[props.type];
   return DEFAULT_ICONS.default;
 });
-
 </script>

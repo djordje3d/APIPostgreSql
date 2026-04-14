@@ -1,7 +1,12 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+  <div
+    class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100"
+  >
     <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-      <div v-if="!garageId" class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 shadow-sm">
+      <div
+        v-if="!garageId"
+        class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 shadow-sm"
+      >
         {{ t("garageDetail.invalidGarageId") }}
       </div>
 
@@ -14,17 +19,25 @@
               class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
             >
               <div class="min-w-0 space-y-3">
-                <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                  <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+                <div
+                  class="flex flex-wrap items-center gap-3 text-sm text-slate-500"
+                >
+                  <span
+                    class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700"
+                  >
                     {{ t("garageDetail.dashboard") }}
                   </span>
-                  <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
+                  <span
+                    class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
+                  >
                     {{ t("garageDetail.loading") }}
                   </span>
                 </div>
 
                 <div>
-                  <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  <h1
+                    class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+                  >
                     {{ t("garageDetail.garage") }} #{{ fallbackId }}
                   </h1>
                   <p class="mt-1 text-sm text-slate-500">
@@ -43,14 +56,19 @@
                     @toggle-auto-refresh="toggleAutoRefresh"
                   />
                 </HelpTooltip>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabindex="0"
                   :title="t('garageDetail.refreshNow')"
-                  class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-500 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-green-500/50"
                   @click="refreshNow"
+                  @keydown.enter.space.prevent="refreshNow"
                 >
-                  <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
-                </button>
+                  <span
+                    class="icon-spinner11 text-[42px] leading-none"
+                    aria-hidden="true"
+                  ></span>
+                </div>
               </div>
             </div>
           </section>
@@ -67,8 +85,12 @@
               <RevenueSummary
                 :today-revenue="revenueSec.revenueDash?.today_revenue ?? 0"
                 :month-revenue="revenueSec.revenueDash?.month_revenue ?? 0"
-                :unpaid-count="revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0"
-                :total-outstanding="revenueSec.revenueDash?.total_outstanding ?? 0"
+                :unpaid-count="
+                  revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0
+                "
+                :total-outstanding="
+                  revenueSec.revenueDash?.total_outstanding ?? 0
+                "
                 :loading="revenueSec.loading && !revenueSec.hasLoadedOnce"
                 :refreshing="revenueSec.refreshing"
                 :error="revenueSec.error"
@@ -91,17 +113,25 @@
               class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
             >
               <div class="min-w-0 space-y-3">
-                <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                  <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+                <div
+                  class="flex flex-wrap items-center gap-3 text-sm text-slate-500"
+                >
+                  <span
+                    class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700"
+                  >
                     {{ t("garageDetail.dashboard") }}
                   </span>
-                  <span class="inline-flex items-center rounded-full bg-red-50 px-3 py-1 font-medium text-red-700">
+                  <span
+                    class="inline-flex items-center rounded-full bg-red-50 px-3 py-1 font-medium text-red-700"
+                  >
                     {{ t("garageDetail.loadFailed") }}
                   </span>
                 </div>
 
                 <div>
-                  <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  <h1
+                    class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+                  >
                     {{ t("garageDetail.garage") }} #{{ fallbackId }}
                   </h1>
                   <p class="mt-1 text-sm text-slate-500">
@@ -143,7 +173,9 @@
         </template>
 
         <template v-else-if="!garageSec.garage">
-          <section class="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-red-700 shadow-sm">
+          <section
+            class="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-red-700 shadow-sm"
+          >
             <GarageHeaderCard
               :garage="garageSec.garage"
               :fallback-id="fallbackId"
@@ -164,7 +196,9 @@
               class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
             >
               <div class="min-w-0 space-y-3">
-                <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                <div
+                  class="flex flex-wrap items-center gap-3 text-sm text-slate-500"
+                >
                   <router-link
                     :to="{ name: 'dashboard' }"
                     class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-900"
@@ -172,12 +206,19 @@
                     &larr; {{ t("garageDetail.dashboard") }}
                   </router-link>
 
-                  <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 font-medium text-sky-700">
+                  <span
+                    class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 font-medium text-sky-700"
+                  >
                     ID: {{ garageSec.garage.id }}
                   </span>
 
                   <span
-                    v-if="garageSec.refreshing || revenueSec.refreshing || spotsSec.refreshing || ticketsSec.refreshing"
+                    v-if="
+                      garageSec.refreshing ||
+                      revenueSec.refreshing ||
+                      spotsSec.refreshing ||
+                      ticketsSec.refreshing
+                    "
                     class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
                   >
                     {{ t("common.refreshing") }}
@@ -191,11 +232,14 @@
                 </div>
 
                 <div>
-                  <h1 class="truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  <h1
+                    class="truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+                  >
                     {{ garageSec.garage.name }}
                   </h1>
                   <p class="mt-1 text-sm text-slate-500">
-                    {{ t("garageDetail.capacity") }}: {{ garageSec.garage.capacity }}
+                    {{ t("garageDetail.capacity") }}:
+                    {{ garageSec.garage.capacity }}
                     ·
                     {{ t("garageDetail.defaultRate") }}:
                     {{ garageSec.garage.default_rate }} RSD
@@ -213,20 +257,27 @@
                     @toggle-auto-refresh="toggleAutoRefresh"
                   />
                 </HelpTooltip>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabindex="0"
                   :title="t('garageDetail.refreshNow')"
-                  class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-500 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-green-500/50"
                   @click="refreshNow"
+                  @keydown.enter.space.prevent="refreshNow"
                 >
-                  <span class="icon-spinner11 text-2xl" aria-hidden="true"></span>
-                </button>
+                  <span
+                    class="icon-spinner11 text-[42px] leading-none"
+                    aria-hidden="true"
+                  ></span>
+                </div>
               </div>
             </div>
           </section>
 
           <!-- TOP GRID -->
-          <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+          <div
+            class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start"
+          >
             <div class="dashboard-fade dashboard-fade--2 lg:col-span-7">
               <GarageHeaderCard
                 :garage="garageSec.garage"
@@ -239,8 +290,12 @@
               <RevenueSummary
                 :today-revenue="revenueSec.revenueDash?.today_revenue ?? 0"
                 :month-revenue="revenueSec.revenueDash?.month_revenue ?? 0"
-                :unpaid-count="revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0"
-                :total-outstanding="revenueSec.revenueDash?.total_outstanding ?? 0"
+                :unpaid-count="
+                  revenueSec.revenueDash?.unpaid_partially_paid_count ?? 0
+                "
+                :total-outstanding="
+                  revenueSec.revenueDash?.total_outstanding ?? 0
+                "
                 :loading="revenueSec.loading && !revenueSec.hasLoadedOnce"
                 :refreshing="revenueSec.refreshing"
                 :error="revenueSec.error"
@@ -402,7 +457,11 @@ function retryOpenTickets(): void {
 watch(
   () => [spotsSec.page, spotsSec.pageSize] as const,
   () => {
-    if (!garageId.value || !garageSec.hasLoadedOnce || refreshInProgress.value) {
+    if (
+      !garageId.value ||
+      !garageSec.hasLoadedOnce ||
+      refreshInProgress.value
+    ) {
       return;
     }
     spotsPagAbort?.abort();
@@ -414,7 +473,11 @@ watch(
 watch(
   () => [ticketsSec.page, ticketsSec.pageSize] as const,
   () => {
-    if (!garageId.value || !garageSec.hasLoadedOnce || refreshInProgress.value) {
+    if (
+      !garageId.value ||
+      !garageSec.hasLoadedOnce ||
+      refreshInProgress.value
+    ) {
       return;
     }
     ticketsPagAbort?.abort();

@@ -7,6 +7,7 @@
       <p class="text-sm text-gray-600">
         Showing {{ start }}–{{ end }} of {{ total }}
       </p>
+
       <label
         v-if="showPageSize"
         class="flex items-center gap-2 text-sm text-gray-600"
@@ -23,27 +24,38 @@
         </select>
       </label>
     </div>
+
     <div class="flex items-center gap-2">
       <ButtonIn
         v-if="page > 1"
         type="button"
         id="previousPage"
         variant="outline"
+        class="min-w-0 px-3"
         @userclick="goPrev"
-        :label="t('garageDetail.previousPage')"
-      />
+        aria-label="Previous page"
+        :caption="t('garageDetail.previousPage')"
+      >
+        <span class="icon-arrow-left text-sm" aria-hidden="true"></span>
+      </ButtonIn>
+
       <span class="text-sm text-gray-600">
         {{ t("garageDetail.page") }} {{ page }} {{ t("garageDetail.of") }}
         {{ totalPages }}
       </span>
+
       <ButtonIn
         v-if="page < totalPages"
         type="button"
         id="nextPage"
         variant="outline"
+        class="min-w-0 px-3"
         @userclick="goNext"
-        :label="t('garageDetail.nextPage')"
-      />
+        aria-label="Next page"
+        :caption="t('garageDetail.nextPage')"
+      >
+        <span class="icon-arrow-right text-sm" aria-hidden="true"></span>
+      </ButtonIn>
     </div>
   </div>
 </template>

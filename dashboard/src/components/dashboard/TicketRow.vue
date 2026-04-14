@@ -65,36 +65,46 @@
     </td>
 
     <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
+  <div class="flex items-center justify-end gap-2">
+    <button
+      type="button"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
+      title="View ticket & payments"
+      aria-label="View ticket & payments"
+      @click="$emit('view-ticket', ticket)"
+    >
+      <span class="icon-barcode text-lg" aria-hidden="true"></span>
+    </button>
+
+    <template v-if="ticket.ticket_state === 'OPEN'">
       <button
         type="button"
-        class="icon-barcode text-2xl font-bold text-slate-800 hover:text-slate-900"
-        title="View ticket & payments"
-        @click="$emit('view-ticket', ticket)"
-        style="line-height: 1"
-      ></button>
-
-      <template v-if="ticket.ticket_state === 'OPEN'">
-        <button
-          type="button"
-          class="icon-exit ml-2 text-2xl font-bold text-amber-600 hover:text-amber-800"
-          title="Close ticket"
-          @click="$emit('close-ticket', ticket.id)"
-        ></button>
-      </template>
-
-      <template
-        v-else-if="
-          ticket.ticket_state === 'CLOSED' && ticket.payment_status !== 'PAID'
-        "
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-100 hover:text-indigo-800"
+        title="Close ticket"
+        aria-label="Close ticket"
+        @click="$emit('close-ticket', ticket.id)"
       >
-        <button
-          type="button"
-          class="icon-credit-card ml-2 text-2xl font-bold text-emerald-600 hover:text-emerald-800"
-          title="Go to payment"
-          @click="$emit('open-payment', ticket)"
-        ></button>
-      </template>
-    </td>
+        <span class="icon-exit text-lg" aria-hidden="true"></span>
+      </button>
+    </template>
+
+    <template
+      v-else-if="
+        ticket.ticket_state === 'CLOSED' && ticket.payment_status !== 'PAID'
+      "
+    >
+      <button
+        type="button"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+        title="Go to payment"
+        aria-label="Go to payment"
+        @click="$emit('open-payment', ticket)"
+      >
+        <span class="icon-credit-card text-lg" aria-hidden="true"></span>
+      </button>
+    </template>
+  </div>
+</td>
   </tr>
 </template>
 
