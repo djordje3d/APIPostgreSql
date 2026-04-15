@@ -5,6 +5,7 @@
         <h2 class="text-lg font-semibold text-gray-900">
           {{ t("timeline.title") }}
         </h2>
+
         <div class="flex flex-wrap items-center gap-3">
           <div class="w-[220px]">
             <div class="mb-1 flex items-center gap-1 text-gray-600">
@@ -15,6 +16,7 @@
                 :aria-label="t('help.aria.timelineYAxis')"
               />
             </div>
+
             <StandardDropdown
               label=""
               :options="yAxisOptions"
@@ -28,6 +30,7 @@
               "
             />
           </div>
+
           <div class="text-sm text-gray-500">{{ fromDate }} - {{ toDate }}</div>
         </div>
       </div>
@@ -41,6 +44,7 @@
       >
         {{ t("timeline.loadFailed") }}
       </div>
+
       <div
         v-else-if="loading"
         class="flex min-h-[320px] flex-col items-center justify-center gap-3 text-gray-500"
@@ -48,12 +52,14 @@
         <span class="icon-spinner11 inline-block animate-spin text-2xl"></span>
         <span>{{ t("timeline.loading") }}</span>
       </div>
+
       <div
         v-else-if="!hasLoadedOnce || points.length === 0"
         class="flex min-h-[320px] items-center justify-center text-gray-500"
       >
         {{ t("timeline.noDataForPeriod") }}
       </div>
+
       <div v-else class="relative min-h-[320px]">
         <div
           v-if="refreshing"
@@ -72,6 +78,7 @@
             :aria-label="t('help.aria.timelineSeries')"
           />
         </div>
+
         <div class="mb-3 flex flex-wrap gap-3">
           <label
             v-for="s in series"
@@ -94,7 +101,7 @@
         <div
           ref="chartRef"
           class="relative h-[260px] w-full rounded border border-gray-200 bg-white"
-          @mouseleave="hoverIndex = null"
+          @mouseleave="onMouseLeave"
           @mousemove="onMouseMove"
         >
           <svg
@@ -102,9 +109,17 @@
             viewBox="0 0 1000 260"
             preserveAspectRatio="none"
           >
+            <!-- horizontal grid -->
             <line x1="40" y1="220" x2="980" y2="220" stroke="#d1d5db" />
+            <line x1="40" y1="170" x2="980" y2="170" stroke="#eef2f7" />
+            <line x1="40" y1="120" x2="980" y2="120" stroke="#eef2f7" />
+            <line x1="40" y1="70" x2="980" y2="70" stroke="#eef2f7" />
+            <line x1="40" y1="20" x2="980" y2="20" stroke="#eef2f7" />
+
+            <!-- y axis -->
             <line x1="40" y1="20" x2="40" y2="220" stroke="#d1d5db" />
 
+            <!-- main lines -->
             <g v-for="line in visibleLines" :key="line.name">
               <path
                 :d="line.path"
@@ -116,6 +131,7 @@
               />
             </g>
 
+            <!-- hover vertical line -->
             <line
               v-if="hoverIndex != null && hoverX != null"
               :x1="hoverX"
@@ -125,6 +141,20 @@
               stroke="#9ca3af"
               stroke-dasharray="4 4"
             />
+
+            <!-- hover markers -->
+            <g v-if="hoverIndex != null">
+              <circle
+                v-for="line in visibleLines"
+                :key="`hover-${line.name}`"
+                :cx="line.plotPoints[hoverIndex]?.x"
+                :cy="line.plotPoints[hoverIndex]?.y"
+                r="4.5"
+                :fill="line.color"
+                stroke="#ffffff"
+                stroke-width="2"
+              />
+            </g>
           </svg>
 
           <div
@@ -135,6 +165,7 @@
             <div class="mb-1 font-semibold text-gray-800">
               {{ visiblePoints[hoverIndex] }}
             </div>
+
             <div
               v-for="row in tooltipRows"
               :key="row.name"
@@ -159,6 +190,7 @@
               :aria-label="t('help.aria.timelineZoom')"
             />
           </div>
+
           <div
             ref="brushRef"
             class="relative h-[88px] w-full cursor-crosshair rounded border border-gray-200 bg-white"
@@ -170,6 +202,7 @@
               preserveAspectRatio="none"
             >
               <line x1="0" y1="75" x2="1000" y2="75" stroke="#e5e7eb" />
+
               <g v-for="line in overviewLines" :key="line.name">
                 <path
                   :d="line.path"
@@ -187,6 +220,7 @@
               class="absolute inset-y-0 bg-gray-400/25"
               :style="{ left: '0%', width: `${brushLeftPercent}%` }"
             ></div>
+
             <div
               class="absolute inset-y-0 bg-gray-400/25"
               :style="{
@@ -208,6 +242,7 @@
                 class="absolute inset-y-0 left-0 w-3 -translate-x-1/2 cursor-ew-resize bg-blue-500/80"
                 @pointerdown.stop.prevent="onHandlePointerDown('start', $event)"
               ></button>
+
               <button
                 type="button"
                 aria-label="Resize end"
@@ -216,6 +251,7 @@
               ></button>
             </div>
           </div>
+
           <div class="mt-2 text-xs text-gray-500">
             {{ points[safeZoomStart] }} - {{ points[safeZoomEnd] }}
           </div>
@@ -268,6 +304,7 @@ const brushRef = ref<HTMLElement | null>(null);
 const hoverIndex = ref<number | null>(null);
 const hoverX = ref<number | null>(null);
 const visibleSeries = ref<Record<string, boolean>>({});
+
 const yAxisOptions = computed(() => [
   { id: "entries", label: t("timeline.entriesPerDay") },
   { id: "exits", label: t("timeline.exitsPerDay") },
@@ -284,6 +321,7 @@ const dragState = ref<{
 const safeZoomStart = computed(() =>
   Math.min(Math.max(props.zoomStart, 0), Math.max(props.points.length - 1, 0)),
 );
+
 const safeZoomEnd = computed(() =>
   Math.min(
     Math.max(props.zoomEnd, safeZoomStart.value),
@@ -360,6 +398,7 @@ const overviewLines = computed(() =>
 const tooltipRows = computed(() => {
   const idx = hoverIndex.value;
   if (idx == null) return [];
+
   return activeSeries.value.map((s) => ({
     name: s.name,
     color: s.color,
@@ -368,16 +407,26 @@ const tooltipRows = computed(() => {
 });
 
 const tooltipLeft = computed(() => {
-  if (hoverX.value == null) return 10;
-  return Math.min(Math.max(hoverX.value / 10 + 10, 10), 80);
+  if (hoverX.value == null || !chartRef.value) return 12;
+
+  const chartWidth = chartRef.value.clientWidth;
+  const leftPx = (hoverX.value / 1000) * chartWidth + 12;
+  const estimatedTooltipWidth = 180;
+
+  return Math.min(
+    Math.max(leftPx, 12),
+    Math.max(chartWidth - estimatedTooltipWidth - 12, 12),
+  );
 });
 
 const brushLeftPercent = computed(() =>
   percentForIndex(safeZoomStart.value, Math.max(props.points.length - 1, 0)),
 );
+
 const brushRightPercent = computed(() =>
   percentForIndex(safeZoomEnd.value, Math.max(props.points.length - 1, 0)),
 );
+
 const brushWidthPercent = computed(() =>
   Math.max(brushRightPercent.value - brushLeftPercent.value, 0),
 );
@@ -390,9 +439,11 @@ function percentForIndex(index: number, maxIndex: number) {
 function indexFromClientX(clientX: number) {
   const el = brushRef.value;
   if (!el || props.points.length === 0) return 0;
+
   const rect = el.getBoundingClientRect();
   const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
   const ratio = rect.width > 0 ? x / rect.width : 0;
+
   return Math.round(ratio * Math.max(props.points.length - 1, 0));
 }
 
@@ -400,6 +451,7 @@ function setZoom(start: number, end: number) {
   const maxIndex = Math.max(props.points.length - 1, 0);
   const nextStart = Math.min(Math.max(start, 0), maxIndex);
   const nextEnd = Math.min(Math.max(end, nextStart), maxIndex);
+
   emit("update:zoomStart", nextStart);
   emit("update:zoomEnd", nextEnd);
 }
@@ -416,18 +468,23 @@ function startDrag(mode: DragMode, pointerId: number, clientX: number) {
 
 function onBrushPointerDown(e: PointerEvent) {
   if (props.points.length === 0) return;
+
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
   const clickedIndex = indexFromClientX(e.clientX);
   const distToStart = Math.abs(clickedIndex - safeZoomStart.value);
   const distToEnd = Math.abs(clickedIndex - safeZoomEnd.value);
+
   if (distToStart <= 1 && distToStart <= distToEnd) {
     startDrag("start", e.pointerId, e.clientX);
     return;
   }
+
   if (distToEnd <= 1) {
     startDrag("end", e.pointerId, e.clientX);
     return;
   }
+
   if (
     clickedIndex >= safeZoomStart.value &&
     clickedIndex <= safeZoomEnd.value
@@ -452,6 +509,7 @@ function onHandlePointerDown(mode: "start" | "end", e: PointerEvent) {
 
 function onBrushPointerMove(e: PointerEvent) {
   if (!dragState.value || e.pointerId !== dragState.value.pointerId) return;
+
   const state = dragState.value;
   const currentIndex = indexFromClientX(e.clientX);
   const delta = currentIndex - state.originIndex;
@@ -494,6 +552,7 @@ function toggleSeries(name: string) {
 
 function onMouseMove(e: MouseEvent) {
   if (!chartRef.value || visiblePoints.value.length === 0) return;
+
   const rect = chartRef.value.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const clamped = Math.min(Math.max(x, 0), rect.width);
@@ -503,11 +562,17 @@ function onMouseMove(e: MouseEvent) {
     Math.max(idx, 0),
     visiblePoints.value.length - 1,
   );
+
   hoverIndex.value = normalizedIndex;
   hoverX.value =
     visiblePoints.value.length <= 1
       ? 40
       : 40 + (940 * normalizedIndex) / (visiblePoints.value.length - 1);
+}
+
+function onMouseLeave() {
+  hoverIndex.value = null;
+  hoverX.value = null;
 }
 
 function onWindowPointerUp(e: PointerEvent) {
