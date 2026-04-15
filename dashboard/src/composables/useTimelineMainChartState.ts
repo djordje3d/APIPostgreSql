@@ -8,7 +8,7 @@ import {
   alignSeriesToPointCount,
   type PlotPoint,
   type TimelineSeries,
-} from "./useTimelineChartUtils";
+} from "./timelineChart.utils";
 
 type YAxisMode = "entries" | "exits";
 

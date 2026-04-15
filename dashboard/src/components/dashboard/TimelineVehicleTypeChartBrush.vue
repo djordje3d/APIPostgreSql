@@ -311,7 +311,7 @@ import {
   percentForIndex,
   type PlotPoint,
   type TimelineSeries,
-} from "../../composables/useTimelineChartUtils";
+} from "../../composables/timelineChart.utils";
 import { useTimelineMainChartState } from "../../composables/useTimelineMainChartState";
 
 const { t } = useI18n();
