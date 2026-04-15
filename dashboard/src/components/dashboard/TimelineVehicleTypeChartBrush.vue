@@ -81,14 +81,14 @@
 
         <div class="mb-3 flex flex-wrap gap-3">
           <label
-            v-for="s in series"
-            :key="s.name"
+            v-for="s in normalizedSeries"
+            :key="s.id"
             class="inline-flex items-center gap-2 text-sm text-gray-700"
           >
             <input
               type="checkbox"
-              :checked="visibleSeries[s.name] !== false"
-              @change="toggleSeries(s.name)"
+              :checked="visibleSeries[s.id] !== false"
+              @change="toggleSeries(s.id)"
             />
             <span
               class="inline-block h-2.5 w-2.5 rounded-full"
@@ -106,21 +106,55 @@
         >
           <svg
             class="h-full w-full"
-            viewBox="0 0 1000 260"
+            :viewBox="`0 0 ${TIMELINE_LAYOUT.main.viewBoxWidth} ${TIMELINE_LAYOUT.main.viewBoxHeight}`"
             preserveAspectRatio="none"
           >
             <!-- horizontal grid -->
-            <line x1="40" y1="220" x2="980" y2="220" stroke="#d1d5db" />
-            <line x1="40" y1="170" x2="980" y2="170" stroke="#eef2f7" />
-            <line x1="40" y1="120" x2="980" y2="120" stroke="#eef2f7" />
-            <line x1="40" y1="70" x2="980" y2="70" stroke="#eef2f7" />
-            <line x1="40" y1="20" x2="980" y2="20" stroke="#eef2f7" />
+            <line
+              v-for="grid in mainGridLines"
+              :key="`grid-${grid.y}`"
+              :x1="TIMELINE_LAYOUT.main.axisLeft"
+              :y1="grid.y"
+              :x2="TIMELINE_LAYOUT.main.axisLeft + TIMELINE_LAYOUT.main.plotWidth"
+              :y2="grid.y"
+              :stroke="grid.stroke"
+            />
 
             <!-- y axis -->
-            <line x1="40" y1="20" x2="40" y2="220" stroke="#d1d5db" />
+            <line
+              :x1="TIMELINE_LAYOUT.main.axisLeft"
+              :y1="TIMELINE_LAYOUT.main.axisTop"
+              :x2="TIMELINE_LAYOUT.main.axisLeft"
+              :y2="TIMELINE_LAYOUT.main.axisBottom"
+              stroke="#d1d5db"
+            />
+
+            <text
+              v-for="grid in mainGridLines"
+              :key="`grid-label-${grid.y}`"
+              :x="TIMELINE_LAYOUT.main.axisLeft - 6"
+              :y="grid.y + 3"
+              text-anchor="end"
+              font-size="10"
+              fill="#6b7280"
+            >
+              {{ grid.value }}
+            </text>
+
+            <text
+              v-for="tick in xAxisTicks"
+              :key="`x-tick-${tick.index}`"
+              :x="tick.x"
+              :y="TIMELINE_LAYOUT.main.axisBottom + 16"
+              text-anchor="middle"
+              font-size="9"
+              fill="#6b7280"
+            >
+              {{ tick.label }}
+            </text>
 
             <!-- main lines -->
-            <g v-for="line in visibleLines" :key="line.name">
+            <g v-for="line in visibleLines" :key="line.id">
               <path
                 :d="line.path"
                 fill="none"
@@ -146,7 +180,7 @@
             <g v-if="hoverIndex != null">
               <circle
                 v-for="line in visibleLines"
-                :key="`hover-${line.name}`"
+                :key="`hover-${line.id}`"
                 :cx="line.plotPoints[hoverIndex]?.x"
                 :cy="line.plotPoints[hoverIndex]?.y"
                 r="4.5"
@@ -163,12 +197,12 @@
             :style="{ left: `${tooltipLeft}px`, top: '8px' }"
           >
             <div class="mb-1 font-semibold text-gray-800">
-              {{ visiblePoints[hoverIndex] }}
+              {{ formatXAxisLabel(visiblePoints[hoverIndex]) }}
             </div>
 
             <div
               v-for="row in tooltipRows"
-              :key="row.name"
+              :key="row.id"
               class="flex items-center gap-2"
             >
               <span
@@ -198,12 +232,12 @@
           >
             <svg
               class="absolute inset-0 h-full w-full"
-              viewBox="0 0 1000 88"
+              :viewBox="`0 0 ${TIMELINE_LAYOUT.brush.viewBoxWidth} ${TIMELINE_LAYOUT.brush.viewBoxHeight}`"
               preserveAspectRatio="none"
             >
               <line x1="0" y1="75" x2="1000" y2="75" stroke="#e5e7eb" />
 
-              <g v-for="line in overviewLines" :key="line.name">
+              <g v-for="line in overviewLines" :key="line.id">
                 <path
                   :d="line.path"
                   fill="none"
@@ -266,11 +300,24 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import StandardDropdown from "../ui/StandardDropdown.vue";
 import HelpTooltip from "../ui/HelpTooltip.vue";
+import {
+  TIMELINE_LAYOUT,
+  buildQuadraticSmoothPath,
+  clamp,
+  createRafThrottled,
+  indexFromClientX,
+  mapIndexToMainChartX,
+  mapIndexToOverviewX,
+  maxFromAll,
+  maxFromRange,
+  normalizeSeries,
+  percentForIndex,
+  type PlotPoint,
+  type TimelineSeries,
+} from "../../composables/useTimelineChartUtils";
 
 const { t } = useI18n();
 
-type Series = { name: string; values: number[]; color: string };
-type PlotPoint = { x: number; y: number };
 type DragMode = "move" | "start" | "end";
 
 const props = withDefaults(
@@ -278,7 +325,7 @@ const props = withDefaults(
     fromDate: string;
     toDate: string;
     points: string[];
-    series: Series[];
+    series: TimelineSeries[];
     loading: boolean;
     refreshing: boolean;
     error: boolean;
@@ -304,6 +351,9 @@ const brushRef = ref<HTMLElement | null>(null);
 const hoverIndex = ref<number | null>(null);
 const hoverX = ref<number | null>(null);
 const visibleSeries = ref<Record<string, boolean>>({});
+const normalizedSeries = computed(() =>
+  normalizeSeries(props.series, props.points.length),
+);
 
 const yAxisOptions = computed(() => [
   { id: "entries", label: t("timeline.entriesPerDay") },
@@ -334,21 +384,59 @@ const visiblePoints = computed(() =>
 );
 
 const activeSeries = computed(() =>
-  props.series.filter((s) => visibleSeries.value[s.name] !== false),
+  normalizedSeries.value.filter((s) => visibleSeries.value[s.id] !== false),
 );
 
 const maxY = computed(() => {
-  const values = activeSeries.value.flatMap((s) =>
-    s.values.slice(safeZoomStart.value, safeZoomEnd.value + 1),
-  );
-  const max = Math.max(...values, 0);
-  return max === 0 ? 1 : max;
+  return maxFromRange(activeSeries.value, safeZoomStart.value, safeZoomEnd.value);
+});
+
+const mainGridLines = computed(() => {
+  const count = 5;
+  const span = TIMELINE_LAYOUT.main.axisBottom - TIMELINE_LAYOUT.main.axisTop;
+  return Array.from({ length: count }, (_, index) => {
+    const ratio = index / (count - 1);
+    const y = TIMELINE_LAYOUT.main.axisBottom - ratio * span;
+    const value = Math.round(ratio * maxY.value);
+    const isBase = index === 0;
+    const stroke = isBase ? "#d1d5db" : "#eef2f7";
+    return { y, value, stroke };
+  });
+});
+
+function formatXAxisLabel(value: string): string {
+  return value || "–";
+}
+
+const xAxisTicks = computed(() => {
+  const count = visiblePoints.value.length;
+  if (count === 0) return [];
+
+  const targetTicks = 8;
+  const step = Math.max(1, Math.floor((count - 1) / Math.max(targetTicks - 1, 1)));
+  const ticks: Array<{ index: number; x: number; label: string }> = [];
+
+  for (let index = 0; index < count; index += step) {
+    ticks.push({
+      index,
+      x: mapIndexToMainChartX(index, count),
+      label: formatXAxisLabel(visiblePoints.value[index]),
+    });
+  }
+
+  if (ticks[ticks.length - 1]?.index !== count - 1) {
+    ticks.push({
+      index: count - 1,
+      x: mapIndexToMainChartX(count - 1, count),
+      label: formatXAxisLabel(visiblePoints.value[count - 1]),
+    });
+  }
+
+  return ticks;
 });
 
 const overviewMaxY = computed(() => {
-  const values = activeSeries.value.flatMap((s) => s.values);
-  const max = Math.max(...values, 0);
-  return max === 0 ? 1 : max;
+  return maxFromAll(activeSeries.value);
 });
 
 const visibleLines = computed(() =>
@@ -356,17 +444,16 @@ const visibleLines = computed(() =>
     const values = s.values.slice(safeZoomStart.value, safeZoomEnd.value + 1);
 
     const plotPoints: PlotPoint[] = values.map((value, i) => {
-      const x =
-        visiblePoints.value.length <= 1
-          ? 40
-          : 40 + (940 * i) / (visiblePoints.value.length - 1);
-
-      const y = 220 - (200 * value) / maxY.value;
+      const x = mapIndexToMainChartX(i, visiblePoints.value.length);
+      const y =
+        TIMELINE_LAYOUT.main.axisBottom -
+        (TIMELINE_LAYOUT.main.plotHeight * value) / maxY.value;
 
       return { x, y };
     });
 
     return {
+      id: s.id,
       name: s.name,
       color: s.color,
       plotPoints,
@@ -380,13 +467,16 @@ const overviewLines = computed(() =>
     const values = s.values.length ? s.values : [0];
 
     const plotPoints: PlotPoint[] = values.map((value, i) => {
-      const x = values.length <= 1 ? 0 : (1000 * i) / (values.length - 1);
-      const y = 75 - (63 * value) / overviewMaxY.value;
+      const x = mapIndexToOverviewX(i, values.length);
+      const y =
+        TIMELINE_LAYOUT.brush.baselineY -
+        (TIMELINE_LAYOUT.brush.plotHeight * value) / overviewMaxY.value;
 
       return { x, y };
     });
 
     return {
+      id: s.id,
       name: s.name,
       color: s.color,
       plotPoints,
@@ -400,6 +490,7 @@ const tooltipRows = computed(() => {
   if (idx == null) return [];
 
   return activeSeries.value.map((s) => ({
+    id: s.id,
     name: s.name,
     color: s.color,
     value: s.values[safeZoomStart.value + idx] ?? 0,
@@ -407,15 +498,23 @@ const tooltipRows = computed(() => {
 });
 
 const tooltipLeft = computed(() => {
-  if (hoverX.value == null || !chartRef.value) return 12;
+  if (hoverX.value == null || !chartRef.value) {
+    return TIMELINE_LAYOUT.main.tooltipOffset;
+  }
 
   const chartWidth = chartRef.value.clientWidth;
-  const leftPx = (hoverX.value / 1000) * chartWidth + 12;
-  const estimatedTooltipWidth = 180;
+  const leftPx =
+    (hoverX.value / TIMELINE_LAYOUT.main.viewBoxWidth) * chartWidth +
+    TIMELINE_LAYOUT.main.tooltipOffset;
 
   return Math.min(
-    Math.max(leftPx, 12),
-    Math.max(chartWidth - estimatedTooltipWidth - 12, 12),
+    Math.max(leftPx, TIMELINE_LAYOUT.main.tooltipOffset),
+    Math.max(
+      chartWidth -
+        TIMELINE_LAYOUT.main.tooltipEstimatedWidth -
+        TIMELINE_LAYOUT.main.tooltipOffset,
+      TIMELINE_LAYOUT.main.tooltipOffset,
+    ),
   );
 });
 
@@ -427,30 +526,22 @@ const brushRightPercent = computed(() =>
   percentForIndex(safeZoomEnd.value, Math.max(props.points.length - 1, 0)),
 );
 
-const brushWidthPercent = computed(() =>
-  Math.max(brushRightPercent.value - brushLeftPercent.value, 0),
-);
+const brushWidthPercent = computed(() => {
+  return Math.max(brushRightPercent.value - brushLeftPercent.value, 0);
+});
 
-function percentForIndex(index: number, maxIndex: number) {
-  if (maxIndex <= 0) return 0;
-  return (index / maxIndex) * 100;
-}
-
-function indexFromClientX(clientX: number) {
-  const el = brushRef.value;
-  if (!el || props.points.length === 0) return 0;
-
-  const rect = el.getBoundingClientRect();
-  const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
-  const ratio = rect.width > 0 ? x / rect.width : 0;
-
-  return Math.round(ratio * Math.max(props.points.length - 1, 0));
+function indexFromClientXWithinBrush(clientX: number) {
+  return indexFromClientX(
+    clientX,
+    brushRef.value,
+    Math.max(props.points.length - 1, 0),
+  );
 }
 
 function setZoom(start: number, end: number) {
   const maxIndex = Math.max(props.points.length - 1, 0);
-  const nextStart = Math.min(Math.max(start, 0), maxIndex);
-  const nextEnd = Math.min(Math.max(end, nextStart), maxIndex);
+  const nextStart = clamp(start, 0, maxIndex);
+  const nextEnd = clamp(end, nextStart, maxIndex);
 
   emit("update:zoomStart", nextStart);
   emit("update:zoomEnd", nextEnd);
@@ -460,7 +551,7 @@ function startDrag(mode: DragMode, pointerId: number, clientX: number) {
   dragState.value = {
     mode,
     pointerId,
-    originIndex: indexFromClientX(clientX),
+    originIndex: indexFromClientXWithinBrush(clientX),
     startAtDown: safeZoomStart.value,
     endAtDown: safeZoomEnd.value,
   };
@@ -471,7 +562,7 @@ function onBrushPointerDown(e: PointerEvent) {
 
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
-  const clickedIndex = indexFromClientX(e.clientX);
+  const clickedIndex = indexFromClientXWithinBrush(e.clientX);
   const distToStart = Math.abs(clickedIndex - safeZoomStart.value);
   const distToEnd = Math.abs(clickedIndex - safeZoomEnd.value);
 
@@ -511,31 +602,25 @@ function onBrushPointerMove(e: PointerEvent) {
   if (!dragState.value || e.pointerId !== dragState.value.pointerId) return;
 
   const state = dragState.value;
-  const currentIndex = indexFromClientX(e.clientX);
+  const currentIndex = indexFromClientXWithinBrush(e.clientX);
   const delta = currentIndex - state.originIndex;
   const maxIndex = Math.max(props.points.length - 1, 0);
 
   if (state.mode === "move") {
     const width = state.endAtDown - state.startAtDown;
     let nextStart = state.startAtDown + delta;
-    nextStart = Math.min(Math.max(nextStart, 0), Math.max(maxIndex - width, 0));
+    nextStart = clamp(nextStart, 0, Math.max(maxIndex - width, 0));
     setZoom(nextStart, nextStart + width);
     return;
   }
 
   if (state.mode === "start") {
-    const nextStart = Math.min(
-      Math.max(state.startAtDown + delta, 0),
-      safeZoomEnd.value,
-    );
+    const nextStart = clamp(state.startAtDown + delta, 0, safeZoomEnd.value);
     setZoom(nextStart, safeZoomEnd.value);
     return;
   }
 
-  const nextEnd = Math.max(
-    Math.min(state.endAtDown + delta, maxIndex),
-    safeZoomStart.value,
-  );
+  const nextEnd = clamp(state.endAtDown + delta, safeZoomStart.value, maxIndex);
   setZoom(safeZoomStart.value, nextEnd);
 }
 
@@ -545,29 +630,23 @@ function endDrag(pointerId: number) {
   }
 }
 
-function toggleSeries(name: string) {
-  const current = visibleSeries.value[name] !== false;
-  visibleSeries.value = { ...visibleSeries.value, [name]: !current };
+function toggleSeries(id: string) {
+  const current = visibleSeries.value[id] !== false;
+  visibleSeries.value = { ...visibleSeries.value, [id]: !current };
 }
 
-function onMouseMove(e: MouseEvent) {
+function setHoverFromMouse(e: MouseEvent) {
   if (!chartRef.value || visiblePoints.value.length === 0) return;
 
   const rect = chartRef.value.getBoundingClientRect();
   const x = e.clientX - rect.left;
-  const clamped = Math.min(Math.max(x, 0), rect.width);
-  const ratio = rect.width > 0 ? clamped / rect.width : 0;
+  const clampedX = clamp(x, 0, rect.width);
+  const ratio = rect.width > 0 ? clampedX / rect.width : 0;
   const idx = Math.round(ratio * (visiblePoints.value.length - 1));
-  const normalizedIndex = Math.min(
-    Math.max(idx, 0),
-    visiblePoints.value.length - 1,
-  );
+  const normalizedIndex = clamp(idx, 0, visiblePoints.value.length - 1);
 
   hoverIndex.value = normalizedIndex;
-  hoverX.value =
-    visiblePoints.value.length <= 1
-      ? 40
-      : 40 + (940 * normalizedIndex) / (visiblePoints.value.length - 1);
+  hoverX.value = mapIndexToMainChartX(normalizedIndex, visiblePoints.value.length);
 }
 
 function onMouseLeave() {
@@ -578,41 +657,26 @@ function onMouseLeave() {
 function onWindowPointerUp(e: PointerEvent) {
   endDrag(e.pointerId);
 }
+const onMouseMove = createRafThrottled((e: MouseEvent) => {
+  setHoverFromMouse(e);
+});
 
-function buildQuadraticSmoothPath(points: PlotPoint[]): string {
-  if (points.length === 0) return "";
-  if (points.length === 1) {
-    return `M ${points[0].x} ${points[0].y}`;
-  }
-  if (points.length === 2) {
-    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
-  }
+const onBrushPointerMoveThrottled = createRafThrottled((e: PointerEvent) => {
+  onBrushPointerMove(e);
+});
 
-  let d = `M ${points[0].x} ${points[0].y}`;
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const current = points[i];
-    const next = points[i + 1];
-    const midX = (current.x + next.x) / 2;
-    const midY = (current.y + next.y) / 2;
-
-    d += ` Q ${current.x} ${current.y}, ${midX} ${midY}`;
-  }
-
-  const last = points[points.length - 1];
-  d += ` T ${last.x} ${last.y}`;
-
-  return d;
+function onWindowPointerMove(e: PointerEvent) {
+  onBrushPointerMoveThrottled(e);
 }
 
 onMounted(() => {
-  window.addEventListener("pointermove", onBrushPointerMove);
+  window.addEventListener("pointermove", onWindowPointerMove);
   window.addEventListener("pointerup", onWindowPointerUp);
   window.addEventListener("pointercancel", onWindowPointerUp);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("pointermove", onBrushPointerMove);
+  window.removeEventListener("pointermove", onWindowPointerMove);
   window.removeEventListener("pointerup", onWindowPointerUp);
   window.removeEventListener("pointercancel", onWindowPointerUp);
 });
