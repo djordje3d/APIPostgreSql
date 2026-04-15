@@ -2,7 +2,9 @@
   <div class="rounded-lg bg-white shadow ring-1 ring-gray-200">
     <div class="border-b border-gray-200 px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold text-gray-900">{{ t("timeline.title") }}</h2>
+        <h2 class="text-lg font-semibold text-gray-900">
+          {{ t("timeline.title") }}
+        </h2>
         <div class="flex flex-wrap items-center gap-3">
           <div class="w-[220px]">
             <div class="mb-1 flex items-center gap-1 text-gray-600">
@@ -19,9 +21,10 @@
               :model-value="yAxisMode"
               :nullable="false"
               @update:model-value="
-                emit('update:yAxisMode', (($event as string) ?? 'entries') as
-                  | 'entries'
-                  | 'exits')
+                emit(
+                  'update:yAxisMode',
+                  (($event as string) ?? 'entries') as 'entries' | 'exits',
+                )
               "
             />
           </div>
@@ -56,7 +59,9 @@
           v-if="refreshing"
           class="absolute inset-0 z-10 flex items-center justify-center bg-white/60"
         >
-          <span class="icon-spinner11 inline-block animate-spin text-3xl text-gray-500"></span>
+          <span
+            class="icon-spinner11 inline-block animate-spin text-3xl text-gray-500"
+          ></span>
         </div>
 
         <div class="mb-2 flex items-center gap-1 text-sm text-gray-600">
@@ -92,16 +97,20 @@
           @mouseleave="hoverIndex = null"
           @mousemove="onMouseMove"
         >
-          <svg class="h-full w-full" viewBox="0 0 1000 260" preserveAspectRatio="none">
+          <svg
+            class="h-full w-full"
+            viewBox="0 0 1000 260"
+            preserveAspectRatio="none"
+          >
             <line x1="40" y1="220" x2="980" y2="220" stroke="#d1d5db" />
             <line x1="40" y1="20" x2="40" y2="220" stroke="#d1d5db" />
 
             <g v-for="line in visibleLines" :key="line.name">
-              <polyline
-                :points="line.points"
+              <path
+                :d="line.path"
                 fill="none"
                 :stroke="line.color"
-                stroke-width="2.2"
+                stroke-width="2.6"
                 stroke-linejoin="round"
                 stroke-linecap="round"
               />
@@ -123,8 +132,14 @@
             class="pointer-events-none absolute z-20 rounded border border-gray-200 bg-white px-3 py-2 text-xs shadow"
             :style="{ left: `${tooltipLeft}px`, top: '8px' }"
           >
-            <div class="mb-1 font-semibold text-gray-800">{{ visiblePoints[hoverIndex] }}</div>
-            <div v-for="row in tooltipRows" :key="row.name" class="flex items-center gap-2">
+            <div class="mb-1 font-semibold text-gray-800">
+              {{ visiblePoints[hoverIndex] }}
+            </div>
+            <div
+              v-for="row in tooltipRows"
+              :key="row.name"
+              class="flex items-center gap-2"
+            >
               <span
                 class="inline-block h-2 w-2 rounded-full"
                 :style="{ backgroundColor: row.color }"
@@ -149,11 +164,15 @@
             class="relative h-[88px] w-full cursor-crosshair rounded border border-gray-200 bg-white"
             @pointerdown="onBrushPointerDown"
           >
-            <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1000 88" preserveAspectRatio="none">
+            <svg
+              class="absolute inset-0 h-full w-full"
+              viewBox="0 0 1000 88"
+              preserveAspectRatio="none"
+            >
               <line x1="0" y1="75" x2="1000" y2="75" stroke="#e5e7eb" />
               <g v-for="line in overviewLines" :key="line.name">
-                <polyline
-                  :points="line.points"
+                <path
+                  :d="line.path"
                   fill="none"
                   :stroke="line.color"
                   stroke-width="1.8"
@@ -170,12 +189,18 @@
             ></div>
             <div
               class="absolute inset-y-0 bg-gray-400/25"
-              :style="{ left: `${brushRightPercent}%`, width: `${100 - brushRightPercent}%` }"
+              :style="{
+                left: `${brushRightPercent}%`,
+                width: `${100 - brushRightPercent}%`,
+              }"
             ></div>
 
             <div
               class="absolute inset-y-0 border-2 border-blue-500 bg-blue-200/20"
-              :style="{ left: `${brushLeftPercent}%`, width: `${brushWidthPercent}%` }"
+              :style="{
+                left: `${brushLeftPercent}%`,
+                width: `${brushWidthPercent}%`,
+              }"
             >
               <button
                 type="button"
@@ -209,6 +234,7 @@ import HelpTooltip from "../ui/HelpTooltip.vue";
 const { t } = useI18n();
 
 type Series = { name: string; values: number[]; color: string };
+type PlotPoint = { x: number; y: number };
 type DragMode = "move" | "start" | "end";
 
 const props = withDefaults(
@@ -290,31 +316,44 @@ const overviewMaxY = computed(() => {
 const visibleLines = computed(() =>
   activeSeries.value.map((s) => {
     const values = s.values.slice(safeZoomStart.value, safeZoomEnd.value + 1);
-    const points = values
-      .map((value, i) => {
-        const x =
-          visiblePoints.value.length <= 1
-            ? 40
-            : 40 + (940 * i) / (visiblePoints.value.length - 1);
-        const y = 220 - (200 * value) / maxY.value;
-        return `${x},${y}`;
-      })
-      .join(" ");
-    return { name: s.name, color: s.color, points };
+
+    const plotPoints: PlotPoint[] = values.map((value, i) => {
+      const x =
+        visiblePoints.value.length <= 1
+          ? 40
+          : 40 + (940 * i) / (visiblePoints.value.length - 1);
+
+      const y = 220 - (200 * value) / maxY.value;
+
+      return { x, y };
+    });
+
+    return {
+      name: s.name,
+      color: s.color,
+      plotPoints,
+      path: buildQuadraticSmoothPath(plotPoints),
+    };
   }),
 );
 
 const overviewLines = computed(() =>
   activeSeries.value.map((s) => {
     const values = s.values.length ? s.values : [0];
-    const points = values
-      .map((value, i) => {
-        const x = values.length <= 1 ? 0 : (1000 * i) / (values.length - 1);
-        const y = 75 - (63 * value) / overviewMaxY.value;
-        return `${x},${y}`;
-      })
-      .join(" ");
-    return { name: s.name, color: s.color, points };
+
+    const plotPoints: PlotPoint[] = values.map((value, i) => {
+      const x = values.length <= 1 ? 0 : (1000 * i) / (values.length - 1);
+      const y = 75 - (63 * value) / overviewMaxY.value;
+
+      return { x, y };
+    });
+
+    return {
+      name: s.name,
+      color: s.color,
+      plotPoints,
+      path: buildQuadraticSmoothPath(plotPoints),
+    };
   }),
 );
 
@@ -389,7 +428,10 @@ function onBrushPointerDown(e: PointerEvent) {
     startDrag("end", e.pointerId, e.clientX);
     return;
   }
-  if (clickedIndex >= safeZoomStart.value && clickedIndex <= safeZoomEnd.value) {
+  if (
+    clickedIndex >= safeZoomStart.value &&
+    clickedIndex <= safeZoomEnd.value
+  ) {
     startDrag("move", e.pointerId, e.clientX);
   } else {
     const windowSize = Math.max(safeZoomEnd.value - safeZoomStart.value, 0);
@@ -457,7 +499,10 @@ function onMouseMove(e: MouseEvent) {
   const clamped = Math.min(Math.max(x, 0), rect.width);
   const ratio = rect.width > 0 ? clamped / rect.width : 0;
   const idx = Math.round(ratio * (visiblePoints.value.length - 1));
-  const normalizedIndex = Math.min(Math.max(idx, 0), visiblePoints.value.length - 1);
+  const normalizedIndex = Math.min(
+    Math.max(idx, 0),
+    visiblePoints.value.length - 1,
+  );
   hoverIndex.value = normalizedIndex;
   hoverX.value =
     visiblePoints.value.length <= 1
@@ -467,6 +512,32 @@ function onMouseMove(e: MouseEvent) {
 
 function onWindowPointerUp(e: PointerEvent) {
   endDrag(e.pointerId);
+}
+
+function buildQuadraticSmoothPath(points: PlotPoint[]): string {
+  if (points.length === 0) return "";
+  if (points.length === 1) {
+    return `M ${points[0].x} ${points[0].y}`;
+  }
+  if (points.length === 2) {
+    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+  }
+
+  let d = `M ${points[0].x} ${points[0].y}`;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const current = points[i];
+    const next = points[i + 1];
+    const midX = (current.x + next.x) / 2;
+    const midY = (current.y + next.y) / 2;
+
+    d += ` Q ${current.x} ${current.y}, ${midX} ${midY}`;
+  }
+
+  const last = points[points.length - 1];
+  d += ` T ${last.x} ${last.y}`;
+
+  return d;
 }
 
 onMounted(() => {
