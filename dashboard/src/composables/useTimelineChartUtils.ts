@@ -5,9 +5,7 @@ export type TimelineSeries = {
   color: string;
 };
 
-// NormalizedTimelineSeries is a type that represents a timeline series with normalized values.
-// The values are normalized to the range 0-100.
-export type NormalizedTimelineSeries = {
+export type AlignedTimelineSeries = {
   id: string;
   name: string;
   values: number[];
@@ -15,9 +13,8 @@ export type NormalizedTimelineSeries = {
 };
 
 export type PlotPoint = { x: number; y: number };
-// TIMELINE_LAYOUT is a constant that represents the layout of the timeline chart.
-// It contains the width and height of the main chart, the width and height of the brush chart,
-// the width and height of the plot, the width and height of the tooltip, and the width and height of the tooltip estimated width.
+
+// Shared layout constants for the main timeline chart and the brush overview.
 export const TIMELINE_LAYOUT = {
   main: {
     viewBoxWidth: 1000,
@@ -38,18 +35,17 @@ export const TIMELINE_LAYOUT = {
   },
 } as const;
 
-// clamp is a function that clamps the given value between the given minimum and maximum.
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-// percentForIndex is a function that converts the index of the point to the percentage of the point.
-// It is used to calculate the percentage of the point on the main chart.
+// Converts a point index into a 0-100 percentage within the current range.
 export function percentForIndex(index: number, maxIndex: number): number {
   if (maxIndex <= 0) return 0;
   return (index / maxIndex) * 100;
 }
-// indexFromClientX is a function that converts the client x coordinate to the index of the point.
+
+// Maps a pointer X position within an element to the nearest data-point index.
 export function indexFromClientX(
   clientX: number,
   element: HTMLElement | null,
@@ -62,7 +58,7 @@ export function indexFromClientX(
   return Math.round(ratio * maxIndex);
 }
 
-// mapIndexToMainChartX is a function that maps the index of the point to the x coordinate of the point on the main chart.
+// Converts a point index into its X coordinate in the main chart viewBox.
 export function mapIndexToMainChartX(index: number, pointCount: number): number {
   if (pointCount <= 1) return TIMELINE_LAYOUT.main.axisLeft;
   return (
@@ -70,20 +66,21 @@ export function mapIndexToMainChartX(index: number, pointCount: number): number 
     (TIMELINE_LAYOUT.main.plotWidth * index) / (pointCount - 1)
   );
 }
-
+// Converts a point index into its X coordinate in the brush overview viewBox.
 export function mapIndexToOverviewX(index: number, pointCount: number): number {
   if (pointCount <= 1) return 0;
   return (TIMELINE_LAYOUT.brush.viewBoxWidth * index) / (pointCount - 1);
 }
 
-// normalizeSeries is a function that normalizes the values of the series to the range 0-100.
-export function normalizeSeries(
+// Ensures each series has a stable `id`, truncates `values` to `pointCount`, or pads with zeros
+// so every series has the same length for shared indices (main chart, brush, tooltips).
+export function alignSeriesToPointCount(
   series: TimelineSeries[],
   pointCount: number,
-): NormalizedTimelineSeries[] {
+): AlignedTimelineSeries[] {
   return series.map((item, index) => {
     const stableId = item.id ?? `${item.name}__${item.color}__${index}`;
-    const normalizedValues =
+    const alignedValues =
       item.values.length >= pointCount
         ? item.values.slice(0, pointCount)
         : [...item.values, ...Array.from({ length: pointCount - item.values.length }, () => 0)];
@@ -91,14 +88,14 @@ export function normalizeSeries(
       id: stableId,
       name: item.name,
       color: item.color,
-      values: normalizedValues,
+      values: alignedValues,
     };
   });
 }
 
-// maxFromRange is a function that finds the maximum value in the given range of the series.
+// Returns the maximum value across all series within the inclusive [start, end] range.
 export function maxFromRange(
-  series: NormalizedTimelineSeries[],
+  series: AlignedTimelineSeries[],
   start: number,
   end: number,
 ): number {
@@ -112,8 +109,8 @@ export function maxFromRange(
   return max === 0 ? 1 : max;
 }
 
-// maxFromAll is a function that finds the maximum value in all the series.
-export function maxFromAll(series: NormalizedTimelineSeries[]): number {
+// Returns the maximum value across all points in all series.
+export function maxFromAll(series: AlignedTimelineSeries[]): number {
   let max = 0;
   for (const item of series) {
     for (const value of item.values) {
@@ -123,8 +120,7 @@ export function maxFromAll(series: NormalizedTimelineSeries[]): number {
   return max === 0 ? 1 : max;
 }
 
-// buildQuadraticSmoothPath is a function that builds a quadratic smooth path from the given points.
-// It uses the quadratic bezier curve to smooth the path.
+// Builds a smooth SVG path through the given points using quadratic Bézier segments.
 export function buildQuadraticSmoothPath(points: PlotPoint[]): string {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
@@ -145,7 +141,7 @@ export function buildQuadraticSmoothPath(points: PlotPoint[]): string {
   return d;
 }
 
-// createRafThrottled is a function that creates a throttled function that calls the given function at a maximum of 60 times per second.
+// Throttles calls so the wrapped function runs at most once per animation frame.
 export function createRafThrottled<T extends (...args: any[]) => void>(fn: T): T {
   let rafId: number | null = null;
   let lastArgs: Parameters<T> | null = null;

@@ -5,7 +5,7 @@ import {
   clamp,
   mapIndexToMainChartX,
   maxFromRange,
-  normalizeSeries,
+  alignSeriesToPointCount,
   type PlotPoint,
   type TimelineSeries,
 } from "./useTimelineChartUtils";
@@ -35,8 +35,8 @@ export function useTimelineMainChartState({
   const hoverX = ref<number | null>(null);
   const visibleSeries = ref<Record<string, boolean>>({});
 
-  const normalizedSeries = computed(() =>
-    normalizeSeries(series.value, points.value.length),
+  const alignedSeries = computed(() =>
+    alignSeriesToPointCount(series.value, points.value.length),
   );
 
   const yAxisOptions = computed(() => [
@@ -60,7 +60,7 @@ export function useTimelineMainChartState({
   );
 
   const activeSeries = computed(() =>
-    normalizedSeries.value.filter((s) => visibleSeries.value[s.id] !== false),
+    alignedSeries.value.filter((s) => visibleSeries.value[s.id] !== false),
   );
 
   const maxY = computed(() =>
@@ -195,7 +195,7 @@ export function useTimelineMainChartState({
   return {
     yAxisOptions,
     visibleSeries,
-    normalizedSeries,
+    alignedSeries,
     safeZoomStart,
     safeZoomEnd,
     visiblePoints,

@@ -81,7 +81,7 @@
 
         <div class="mb-3 flex flex-wrap gap-3">
           <label
-            v-for="s in normalizedSeries"
+            v-for="s in alignedSeries"
             :key="s.id"
             class="inline-flex items-center gap-2 text-sm text-gray-700"
           >
@@ -356,7 +356,7 @@ const dragState = ref<{
 const {
   yAxisOptions,
   visibleSeries,
-  normalizedSeries,
+  alignedSeries,
   safeZoomStart,
   safeZoomEnd,
   visiblePoints,
