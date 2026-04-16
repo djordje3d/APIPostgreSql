@@ -68,7 +68,7 @@
   <div class="flex items-center justify-end gap-2">
     <button
       type="button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
       title="View ticket & payments"
       aria-label="View ticket & payments"
       @click="$emit('view-ticket', ticket)"
@@ -79,7 +79,7 @@
     <template v-if="ticket.ticket_state === 'OPEN'">
       <button
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-100 hover:text-indigo-800"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
         title="Close ticket"
         aria-label="Close ticket"
         @click="$emit('close-ticket', ticket.id)"
@@ -95,7 +95,7 @@
     >
       <button
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
         title="Go to payment"
         aria-label="Go to payment"
         @click="$emit('open-payment', ticket)"
