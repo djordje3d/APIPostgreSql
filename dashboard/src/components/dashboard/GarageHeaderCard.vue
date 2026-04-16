@@ -1,8 +1,8 @@
 <template>
   <section
-    class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
+    class="h-full overflow-hidden rounded-lg bg-white shadow ring-1 ring-gray-200"
   >
-    <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
+    <div class="border-b border-gray-200 px-5 py-4 sm:px-6">
       <div class="flex items-center justify-between gap-3">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -27,7 +27,7 @@
     </div>
 
     <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
-      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {{ t("garageOverview.garageId") }}
         </p>
@@ -36,7 +36,7 @@
         </p>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {{ t("garageDetail.capacity") }}
         </p>
@@ -45,7 +45,7 @@
         </p>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {{ t("garageDetail.defaultRate") }}
         </p>
@@ -54,7 +54,7 @@
         </p>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {{ t("garageHeaderCard.status") }}
         </p>

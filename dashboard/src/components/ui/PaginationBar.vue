@@ -26,43 +26,38 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <ButtonIn
+      <button
         v-if="page > 1"
         type="button"
-        id="previousPage"
-        variant="outline"
-        class="min-w-0 px-3"
-        @userclick="goPrev"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
         aria-label="Previous page"
-        :caption="t('garageDetail.previousPage')"
+        :title="t('garageDetail.previousPage')"
+        @click="goPrev"
       >
         <span class="icon-arrow-left text-sm" aria-hidden="true"></span>
-      </ButtonIn>
+      </button>
 
       <span class="text-sm text-gray-600">
         {{ t("garageDetail.page") }} {{ page }} {{ t("garageDetail.of") }}
         {{ totalPages }}
       </span>
 
-      <ButtonIn
+      <button
         v-if="page < totalPages"
         type="button"
-        id="nextPage"
-        variant="outline"
-        class="min-w-0 px-3"
-        @userclick="goNext"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
         aria-label="Next page"
-        :caption="t('garageDetail.nextPage')"
+        :title="t('garageDetail.nextPage')"
+        @click="goNext"
       >
         <span class="icon-arrow-right text-sm" aria-hidden="true"></span>
-      </ButtonIn>
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import ButtonIn from "./ButtonIn.vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

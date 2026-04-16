@@ -73,8 +73,8 @@
             </div>
           </section>
 
-          <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div class="lg:col-span-7">
+          <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
+            <div class="h-full lg:col-span-7">
               <GarageHeaderCard
                 :garage="garageSec.garage"
                 :fallback-id="fallbackId"
@@ -276,9 +276,9 @@
 
           <!-- TOP GRID -->
           <div
-            class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start"
+            class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch"
           >
-            <div class="dashboard-fade dashboard-fade--2 lg:col-span-7">
+            <div class="dashboard-fade dashboard-fade--2 h-full lg:col-span-7">
               <GarageHeaderCard
                 :garage="garageSec.garage"
                 :fallback-id="fallbackId"

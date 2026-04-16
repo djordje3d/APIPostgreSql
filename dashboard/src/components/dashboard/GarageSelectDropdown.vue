@@ -1,5 +1,5 @@
 <template>
-  <div class="by-garage-card__right-row">
+  <div class="by-garage-card__right-row h-full">
     <div
       class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
     >
@@ -68,16 +68,17 @@ const garageOptions = computed(() =>
 }
 .by-garage-card__right-row {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 1rem;
   flex: 1;
+  height: 100%;
   min-width: 0;
 }
 .by-garage-card__dropdown-wrap {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  align-items: flex-start;
+  align-items: stretch;
   width: 100%;
   min-width: 11rem;
   max-width: 16rem;

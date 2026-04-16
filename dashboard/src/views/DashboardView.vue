@@ -26,8 +26,8 @@
       </div>
     </div>
 
-    <div class="dashboard-layout-lg lg:grid lg:grid-cols-12 lg:gap-6">
-      <div class="dashboard-fade dashboard-fade--1 lg:col-span-5">
+    <div class="dashboard-layout-lg lg:items-stretch lg:grid lg:grid-cols-12 lg:gap-6">
+      <div class="dashboard-fade dashboard-fade--1 h-full lg:col-span-5">
         <StatusCards
           :free-spots="analytics?.free_spots ?? 0"
           :occupied-spots="analytics?.occupied_spots ?? 0"
@@ -41,7 +41,7 @@
         />
       </div>
 
-      <div class="by-garage-card dashboard-fade dashboard-fade--0 lg:col-span-3">
+      <div class="by-garage-card dashboard-fade dashboard-fade--0 h-full lg:col-span-3">
         <GarageSelectDropdown
           :model-value="selectedGarageId"
           :garages="garages"
@@ -49,8 +49,9 @@
         />
       </div>
 
-      <div class="dashboard-fade dashboard-fade--4 lg:col-span-4">
+      <div class="dashboard-fade dashboard-fade--4 h-full lg:col-span-4">
         <RevenueSummary
+          class="h-full"
           :today-revenue="analytics?.today_revenue ?? 0"
           :month-revenue="analytics?.month_revenue ?? 0"
           :unpaid-count="analytics?.unpaid_partially_paid_count ?? 0"
@@ -589,21 +590,20 @@ defineExpose({ refreshAll });
 .by-garage-card {
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
+  align-items: stretch;
   gap: 1rem;
+  height: 100%;
   padding: 1rem;
   background: white;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgb(226 232 240);
+  border: 1px solid rgb(229 231 235);
   color: inherit;
   transition:
-    box-shadow 0.2s,
-    border-color 0.2s;
+    box-shadow 0.2s;
 }
 .by-garage-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: rgb(148 163 184);
 }
 .by-garage-card__cell {
   flex-shrink: 0;
