@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
+  <div class="dashboard-card p-4">
     <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ t('paymentsRevenue.title') }}</h2>
 
     <div

@@ -7,7 +7,7 @@
     <div
       class="login-content flex min-h-screen items-center justify-center px-4"
     >
-      <div class="card w-full max-w-sm rounded-lg bg-white px-6 py-8 shadow-md">
+      <div class="card dashboard-card w-full max-w-sm px-6 py-8">
         <h1 class="mb-6 text-center text-xl font-semibold text-slate-800">
           {{ t("login.title") }}
         </h1>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md"
+    class="dashboard-card group p-5"
   >
     <div class="flex items-center gap-4">
       <span

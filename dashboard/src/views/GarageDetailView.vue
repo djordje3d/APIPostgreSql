@@ -12,9 +12,7 @@
 
       <template v-else>
         <template v-if="garageSec.loading && !garageSec.hasLoadedOnce">
-          <section
-            class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
-          >
+          <section class="dashboard-card overflow-hidden">
             <div
               class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
             >
@@ -190,7 +188,7 @@
         <template v-else>
           <!-- HERO / TOP PANEL -->
           <section
-            class="dashboard-fade dashboard-fade--1 overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
+            class="dashboard-fade dashboard-fade--1 dashboard-card overflow-hidden"
           >
             <div
               class="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"

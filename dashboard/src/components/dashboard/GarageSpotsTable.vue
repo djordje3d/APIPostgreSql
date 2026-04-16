@@ -1,7 +1,5 @@
 <template>
-  <section
-    class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur"
-  >
+  <section class="dashboard-card overflow-hidden">
     <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
       <div
         class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
@@ -76,8 +74,7 @@
 
     <template v-else>
       <div class="p-5 sm:p-6">
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div class="relative overflow-x-auto">
+        <div class="relative overflow-x-auto">
             <div
               v-if="refreshing"
               class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px]"
@@ -202,7 +199,6 @@
                 </tr>
               </tbody>
             </table>
-          </div>
         </div>
 
         <div class="mt-4">

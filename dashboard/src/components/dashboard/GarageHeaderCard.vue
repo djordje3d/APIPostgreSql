@@ -1,6 +1,6 @@
 <template>
   <section
-    class="h-full overflow-hidden rounded-lg bg-white shadow ring-1 ring-gray-200"
+    class="dashboard-card h-full overflow-hidden"
   >
     <div class="border-b border-gray-200 px-5 py-4 sm:px-6">
       <div class="flex items-center justify-between gap-3">

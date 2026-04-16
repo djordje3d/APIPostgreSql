@@ -2,7 +2,7 @@
   <!-- Error -->
   <div
     v-if="error"
-    class="h-full rounded-2xl bg-white px-4 py-8 shadow-sm ring-1 ring-gray-200"
+    class="dashboard-card h-full px-4 py-8"
     role="alert"
   >
     <div class="flex flex-col items-center justify-center gap-2 text-center">
@@ -19,7 +19,7 @@
   <!-- Loading -->
   <div
     v-else-if="loading"
-    class="h-full rounded-2xl bg-white px-4 py-12 shadow-sm ring-1 ring-gray-200"
+    class="dashboard-card h-full px-4 py-12"
     aria-busy="true"
     aria-live="polite"
   >
@@ -35,7 +35,7 @@
   <!-- Idle -->
   <div
     v-else-if="!hasLoadedOnce && !refreshing"
-    class="h-full rounded-2xl bg-white px-4 py-12 text-center text-gray-400 shadow-sm ring-1 ring-gray-200"
+    class="dashboard-card h-full px-4 py-12 text-center text-gray-400"
   >
     —
   </div>
@@ -44,7 +44,7 @@
   <div v-else class="relative h-full">
     <div
       v-if="refreshing"
-      class="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/65 backdrop-blur-[1px]"
+      class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/65 backdrop-blur-[1px]"
       aria-busy="true"
       aria-label="Refreshing"
     >

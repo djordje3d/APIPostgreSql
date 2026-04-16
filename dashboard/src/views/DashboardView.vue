@@ -41,7 +41,9 @@
         />
       </div>
 
-      <div class="by-garage-card dashboard-fade dashboard-fade--0 h-full lg:col-span-3">
+      <div
+        class="by-garage-card dashboard-card dashboard-fade dashboard-fade--0 h-full p-4 lg:col-span-3"
+      >
         <GarageSelectDropdown
           :model-value="selectedGarageId"
           :garages="garages"
@@ -66,7 +68,7 @@
     </div>
 
     <div class="dashboard-fade dashboard-fade--2">
-      <div class="rounded-lg bg-white p-3 shadow ring-1 ring-gray-200">
+      <div class="dashboard-card p-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="dashboard-tabs">
             <button
@@ -593,17 +595,7 @@ defineExpose({ refreshAll });
   align-items: stretch;
   gap: 1rem;
   height: 100%;
-  padding: 1rem;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgb(229 231 235);
   color: inherit;
-  transition:
-    box-shadow 0.2s;
-}
-.by-garage-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .by-garage-card__cell {
   flex-shrink: 0;

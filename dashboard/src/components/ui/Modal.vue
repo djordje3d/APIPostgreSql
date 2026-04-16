@@ -8,7 +8,7 @@
         @click.self="close"
       >
         <div
-          class="modal-dialog max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl"
+          class="modal-dialog dashboard-card max-h-[90vh] w-full max-w-md overflow-auto p-6"
           role="dialog"
           aria-modal="true"
           :aria-labelledby="title ? 'modal-title' : undefined"
