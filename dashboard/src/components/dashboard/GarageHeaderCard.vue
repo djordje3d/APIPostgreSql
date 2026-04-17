@@ -62,7 +62,14 @@
             {{ t("garageHeaderCard.status") }}
           </p>
           <div class="mt-1 inline-flex items-center gap-2">
-            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+            <span
+              :class="
+                refreshing
+                  ? 'icon-spinner11 inline-block animate-spin text-emerald-600'
+                  : 'icon-info text-emerald-600'
+              "
+              aria-hidden="true"
+            ></span>
             <span class="text-sm font-semibold text-slate-900">{{
               t("garageHeaderCard.operational")
             }}</span>

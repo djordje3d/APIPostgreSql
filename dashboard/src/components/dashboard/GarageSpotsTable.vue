@@ -133,12 +133,7 @@
 
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
                     <span
-                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-                      :class="
-                        s.is_occupied
-                          ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
-                          : 'bg-slate-50 text-slate-700 ring-1 ring-slate-200'
-                      "
+                       class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
                     >
                       {{
                         s.is_occupied
@@ -150,12 +145,7 @@
 
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
                     <span
-                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-                      :class="
-                        s.is_rentable
-                          ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200'
-                          : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'
-                      "
+                      class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
                     >
                       {{
                         s.is_rentable
@@ -167,12 +157,7 @@
 
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
                     <span
-                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-                      :class="
-                        s.is_active
-                          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                          : 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'
-                      "
+                       class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
                     >
                       {{
                         s.is_active

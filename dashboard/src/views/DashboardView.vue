@@ -68,9 +68,9 @@
     </div>
 
     <div class="dashboard-fade dashboard-fade--2">
-      <div class="dashboard-card p-3">
+      <div class="dashboard-card px-5 py-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="dashboard-tabs">
+          <div class="dashboard-tabs gap-5">
             <button
               type="button"
               class="dashboard-tab"
@@ -643,7 +643,6 @@ defineExpose({ refreshAll });
 .dashboard-tabs {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 .dashboard-tab {
   border: 1px solid rgb(203 213 225);

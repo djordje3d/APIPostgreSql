@@ -1,23 +1,29 @@
 <template>
   <div class="by-garage-card__right-row h-full">
     <div
-      class="by-garage-card__dropdown-wrap by-garage-card__cell relative inline-block w-full"
+      class="by-garage-card__dropdown-wrap by-garage-card__cell relative flex h-full min-h-0 w-full flex-col"
     >
-      <span class="by-garage-card__icon" aria-hidden="true">
-        <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
-      </span>
-      <StandardDropdown
-        :label="t('garageSelectDropdown.title')"
-        label-class="text-base"
-        :options="garageOptions"
-        :model-value="modelValue"
-        :nullable="true"
-        :null-option-label="t('garageSelectDropdown.allGarages')"
-        :placeholder="t('garageSelectDropdown.selectGarage')"
-        @update:model-value="
-          (v) => emit('update:modelValue', v as number | null)
-        "
-      />
+      <div
+        class="by-garage-card__icon-region flex min-h-0 flex-1 items-center justify-center"
+      >
+        <span class="by-garage-card__icon" aria-hidden="true">
+          <img :src="garageIcon" alt="" class="by-garage-card__icon-img" />
+        </span>
+      </div>
+      <div class="w-full min-w-0 shrink-0">
+        <StandardDropdown
+          :label="t('garageSelectDropdown.title')"
+          label-class="text-base"
+          :options="garageOptions"
+          :model-value="modelValue"
+          :nullable="true"
+          :null-option-label="t('garageSelectDropdown.allGarages')"
+          :placeholder="t('garageSelectDropdown.selectGarage')"
+          @update:model-value="
+            (v) => emit('update:modelValue', v as number | null)
+          "
+        />
+      </div>
     </div>
 
   </div>
@@ -52,11 +58,11 @@ const garageOptions = computed(() =>
   flex-shrink: 0;
 }
 .by-garage-card__icon {
-  width: 5rem;
+  width: 6.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 4rem;
+  height: 6rem;
   border-radius: 0.375rem;
   background: rgb(241 245 249);
   color: rgb(71 85 105);
@@ -75,11 +81,7 @@ const garageOptions = computed(() =>
   min-width: 0;
 }
 .by-garage-card__dropdown-wrap {
-  display: flex;
-  flex-direction: column;
   gap: 0.5rem;
-  align-items: stretch;
-  width: 100%;
   min-width: 11rem;
   max-width: 16rem;
 }

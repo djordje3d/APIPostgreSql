@@ -205,12 +205,6 @@
                   </router-link>
 
                   <span
-                    class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 font-medium text-sky-700"
-                  >
-                    ID: {{ garageSec.garage.id }}
-                  </span>
-
-                  <span
                     v-if="
                       garageSec.refreshing ||
                       revenueSec.refreshing ||
@@ -235,13 +229,6 @@
                   >
                     {{ garageSec.garage.name }}
                   </h1>
-                  <p class="mt-1 text-sm text-slate-500">
-                    {{ t("garageDetail.capacity") }}:
-                    {{ garageSec.garage.capacity }}
-                    ·
-                    {{ t("garageDetail.defaultRate") }}:
-                    {{ garageSec.garage.default_rate }} RSD
-                  </p>
                 </div>
               </div>
 
