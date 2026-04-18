@@ -120,8 +120,9 @@ export function maxFromAll(series: AlignedTimelineSeries[]): number {
   return max === 0 ? 1 : max;
 }
 
-// Catmull-Rom-style cubics: curve passes through every point. Endpoints use duplicated
-// neighbors via `??` (not array negative indices — those are undefined in JS for dense arrays).
+// Monotone cubic Hermite (PCHIP / Fritsch–Carlson style): passes through every point and
+// avoids Catmull–Rom overshoot between samples, so y stays within each segment’s endpoints
+// when the discrete series is monotone there (e.g. nonnegative counts per day).
 export function buildSmoothInterpolatedPath(points: PlotPoint[]): string {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
@@ -129,21 +130,83 @@ export function buildSmoothInterpolatedPath(points: PlotPoint[]): string {
     return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
   }
 
+  const n = points.length;
+  const dx: number[] = [];
+  const slopes: number[] = [];
+
+  for (let i = 0; i < n - 1; i++) {
+    const h = points[i + 1].x - points[i].x;
+    dx.push(h);
+
+    if (h === 0) {
+      slopes.push(0);
+    } else {
+      slopes.push((points[i + 1].y - points[i].y) / h);
+    }
+  }
+
+  const tangents = new Array<number>(n).fill(0);
+
+  // Endpoints
+  tangents[0] = slopes[0];
+  tangents[n - 1] = slopes[n - 2];
+
+  // Interior tangents: Fritsch-Carlson style monotone tangents
+  for (let i = 1; i < n - 1; i++) {
+    const mPrev = slopes[i - 1];
+    const mNext = slopes[i];
+
+    // If slope changes sign or one side is flat, force tangent to zero.
+    // This prevents overshoot around local extrema / flat sections.
+    if (mPrev === 0 || mNext === 0 || mPrev * mNext <= 0) {
+      tangents[i] = 0;
+      continue;
+    }
+
+    const hPrev = dx[i - 1];
+    const hNext = dx[i];
+
+    const w1 = 2 * hNext + hPrev;
+    const w2 = hNext + 2 * hPrev;
+
+    tangents[i] = (w1 + w2) / (w1 / mPrev + w2 / mNext);
+  }
+
+  // Extra monotonicity clamp per segment
+  for (let i = 0; i < n - 1; i++) {
+    const m = slopes[i];
+
+    if (m === 0) {
+      tangents[i] = 0;
+      tangents[i + 1] = 0;
+      continue;
+    }
+
+    const a = tangents[i] / m;
+    const b = tangents[i + 1] / m;
+    const s = a * a + b * b;
+
+    if (s > 9) {
+      const t = 3 / Math.sqrt(s);
+      tangents[i] = t * a * m;
+      tangents[i + 1] = t * b * m;
+    }
+  }
+
   let d = `M ${points[0].x} ${points[0].y}`;
-  const tension = 1;
 
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const h = p1.x - p0.x;
 
-    const cp1x = p1.x + ((p2.x - p0.x) / 6) * tension;
-    const cp1y = p1.y + ((p2.y - p0.y) / 6) * tension;
-    const cp2x = p2.x - ((p3.x - p1.x) / 6) * tension;
-    const cp2y = p2.y - ((p3.y - p1.y) / 6) * tension;
+    const cp1x = p0.x + h / 3;
+    const cp1y = p0.y + (tangents[i] * h) / 3;
 
-    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    const cp2x = p1.x - h / 3;
+    const cp2y = p1.y - (tangents[i + 1] * h) / 3;
+
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
   }
 
   return d;
