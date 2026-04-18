@@ -2,6 +2,8 @@
 
 This document is a full review of your **Parking API** (FastAPI + PostgreSQL): what works well, what could be improved, and concrete suggestions.
 
+**Scope:** This note focuses on the **FastAPI + PostgreSQL** service. The **dashboard** (`dashboard/`, Vue) is a separate client; it is not reviewed here.
+
 ---
 
 ## 1. Project overview
@@ -12,10 +14,12 @@ The API manages:
 - **Parking spots** – per garage, with `code`, `is_rentable`, `is_active`
 - **Vehicle types** – type name and hourly rate
 - **Vehicles** – licence plate, type, status
-- **Tickets** – entry/exit, fee, state, payment status; optional spot assignment
+- **Tickets** – entry/exit, fee, state, payment status; optional spot assignment; optional **image** (`image_url` on entry and on `TicketUpdate`)
 - **Payments** – linked to closed tickets, with overpayment checks
 
-Notable features: optional API-key auth, CORS configuration (including production checks), configurable fee/payment-status logic (API vs DB triggers), spot allocation with `FOR UPDATE SKIP LOCKED`, and solid validation via Pydantic and Literals.
+**Schema changes** go through **Alembic** migrations under `alembic/versions/`.
+
+Notable features: optional API-key auth, CORS configuration (including production checks), configurable fee/payment-status logic (API vs DB triggers), spot allocation with `FOR UPDATE SKIP LOCKED`, solid validation via Pydantic and Literals, **ticket image upload** (`POST` upload route, files under configurable `UPLOAD_DIR`, served as `/uploads/...` — see `docs/TICKET_IMAGE_UPLOAD.md`).
 
 ---
 
@@ -24,7 +28,7 @@ Notable features: optional API-key auth, CORS configuration (including productio
 ### Architecture
 
 - Clear separation: **routers** (HTTP), **services** (business logic), **schemas** (validation/serialization), **models** (ORM). Easy to navigate and test.
-- **Config** is centralized in `app/config.py` with env-based flags (`USE_API_FEE_CALCULATION`, `USE_API_PAYMENT_STATUS`, CORS). Good for different deployments (with/without DB triggers).
+- **Config** is centralized in `app/config.py` with env-based flags (`USE_API_FEE_CALCULATION`, `USE_API_PAYMENT_STATUS`, CORS, upload limits/paths). Good for different deployments (with/without DB triggers).
 - **Dependencies**: `get_db()` used consistently; routers stay thin.
 
 ### API design
@@ -40,6 +44,11 @@ Notable features: optional API-key auth, CORS configuration (including productio
 - **Ticket exit**: Only for OPEN tickets; when `USE_API_FEE_CALCULATION` is true, fee and `ticket_state=CLOSED` are set in the API; otherwise DB trigger can do it.
 - **Payments**: Only for CLOSED tickets; overpayment rejected (total paid + new amount ≤ ticket fee); when `USE_API_PAYMENT_STATUS` is true, payment status is recalculated after create/update/delete.
 - **Deletes**: Garages, vehicle types, vehicles, tickets, payments, and spots handle `IntegrityError` and return clear 400 messages. Spot “delete” is implemented as deactivation (and activation endpoint exists).
+
+### Uploads and ticket images
+
+- **`app/routers/upload.py`**: Validates JPEG/PNG/WebP, enforces `UPLOAD_TICKET_IMAGE_MAX_BYTES`, writes under `UPLOAD_DIR/tickets/`, returns a path such as `/uploads/tickets/...` for storing on the ticket.
+- **Docs**: `docs/TICKET_IMAGE_UPLOAD.md` describes the client flow.
 
 ### Security & config
 
@@ -59,29 +68,25 @@ Notable features: optional API-key auth, CORS configuration (including productio
 
 ## 3. Suggestions for improvement
 
+Items marked **Addressed** are summarized in the table in §4; details live in README or code comments.
+
 ### 3.1 Critical / security
 
 **Hardcoded database URL and password (`app/db.py`)**
 
 - **Current**: `DATABASE_URL` defaults to a URL that contains a literal password. If the repo is shared or deployed, this is a security risk.
-- **Suggestion**:  
-  - Prefer no default with credentials. For example: `DATABASE_URL = os.getenv("DATABASE_URL")` and fail at startup if unset (or only in production).  
-  - Or keep a default only for local dev (e.g. `postgresql+psycopg2://user:pass@localhost:5432/garaza`) and document that **production must set `DATABASE_URL`** and never commit real credentials.  
+- **Suggestion**:
+  - Prefer no default with credentials. For example: `DATABASE_URL = os.getenv("DATABASE_URL")` and fail at startup if unset (or only in production).
+  - Or keep a default only for local dev (e.g. `postgresql+psycopg2://user:pass@localhost:5432/garaza`) and document that **production must set `DATABASE_URL`** and never commit real credentials.
   You already use `python-dotenv` in config; ensure `db.py` does not override with a default that includes real passwords in production.
 
-**SQL logging (`app/db.py`)** — **Addressed**
-
-- **Current**: `db.py` uses `echo=os.getenv("SQL_ECHO", "false").lower() in ("true", "1", "yes")`; SQL is logged only when `SQL_ECHO` is set. README documents `SQL_ECHO`.
+**SQL logging (`app/db.py`)** — **Addressed** (see §4: Security / Config / Run entry.)
 
 ### 3.2 Consistency and robustness
 
-**Config loading and import order** — **Addressed**
+**Config loading and import order** — **Addressed** (see §4.)
 
-- **Current**: `.env` is loaded only in `app/config.py`. `app/main.py` imports `app.config` before `app.db` (documented in a comment in `main.py`). `app/db.py` does not call `load_dotenv()` and documents that the entry point must import config first so `DATABASE_URL` is available when the engine is created.
-
-**Run entry point (`app/run.py`)** — **Addressed**
-
-- **Current**: `run.py` is the uvicorn entry point (`python -m app.run`); it reads `HOST`, `PORT`, `RELOAD` from env and runs `uvicorn.run("app.main:app", ...)`. README documents this.
+**Run entry point (`app/run.py`)** — **Addressed** (see §4.)
 
 **Vehicle create with `licence_plate is None`**
 
@@ -95,11 +100,14 @@ Notable features: optional API-key auth, CORS configuration (including productio
 - **Current**: `PaymentCreate.method` is a free-form string; `currency` defaults to `"RSD"` and is a string. DB has `method` as `String(20)`, `currency` as `String(3)`.
 - **Suggestion**: Optionally restrict `method` and `currency` (e.g. `Literal["CASH", "CARD", "BANK"]` and a small set of currency codes) and/or add `max_length` in Pydantic so validation and OpenAPI stay aligned with the DB and business rules.
 
-**Garage create/update types** — **Addressed**
+**Garage create/update types** — **Addressed** (see §4: Schemas.)
 
-- **Current**: `GarageCreate` and `GarageUpdate` use `Decimal` for rates and monetary fields; consistent with `GarageResponse` and the DB.
+### 3.4 Uploads and operations (ticket images)
 
-### 3.4 Structure and maintainability
+- **Current**: Images are stored on local disk under `UPLOAD_DIR`; API returns a relative URL path for `image_url`.
+- **Suggestion for production**: Decide whether upload and/or `/uploads` should require the same auth as the rest of the API; plan **backups** for `UPLOAD_DIR` (or move to object storage later). If tickets are exposed with rewritten tokens, keep any URL/token rules aligned with `app/services/rewrite_ticket_tokens.py` and your public ticket flows.
+
+### 3.5 Structure and maintainability
 
 **Pyright and `main.py`**
 
@@ -111,35 +119,38 @@ Notable features: optional API-key auth, CORS configuration (including productio
 - **Current**: `ParkingConfig` has no `relationship` to `ParkingSpot` or `Ticket`. Other models have relationships where needed.
 - **Suggestion**: If you often need “all spots for a garage” or “all tickets for a garage”, adding e.g. `spots = relationship("ParkingSpot", back_populates="garage")` (and backrefs on spots) can simplify code and avoid extra queries. Optional and only if it improves readability.
 
-### 3.5 Testing and ops
+### 3.6 Testing and ops
 
-**Test isolation** — **Addressed**
+**Test isolation** — **Addressed** (see §4: Tests.)
 
-- **Current**: `conftest.py` runs each test in a transaction that is rolled back; the app’s `get_db` is overridden so `commit()` only flushes. The database is not modified by tests; sequences are reset once per run so IDs remain valid after rollbacks.
-
-**Test coverage** — **Addressed**
-
-- **Current**: Tests cover health; garages (list, create, get, 404); vehicle types (list, create, etc.); vehicles (create, get by id, get by plate, 404, PATCH, delete with tickets → 400); spots (list, create, duplicate code → 400, filter by garage_id, only_free, deactivate, activate, 404); tickets (list, entry, exit, filters by state/payment_status/garage_id, 404); payments (create for closed ticket, open ticket → 400, overpayment → 400, list by ticket, 404).
+**Test coverage** — **Addressed** (see §4: Tests.)
 
 ---
 
 ## 4. Summary table
 
-| Area                    | Status / suggestion |
-|-------------------------|---------------------|
-| Architecture            | Good separation; keep routers thin and services for logic. |
-| Pagination & route order| In good shape. |
-| Auth & CORS             | Solid; API key read once at startup from config; CORS config clear. |
-| Fee / payment status    | Flexible (API vs DB); services used when flags are on. |
-| Security                | **SQL_ECHO** is configurable (addressed). Consider removing or restricting default DB URL with credentials for production. |
-| Config / env            | Addressed: `.env` loaded only in config; main imports config before db; documented. |
-| Run entry point         | Addressed: `run.py` is the uvicorn entry point; documented. |
-| Schemas                 | Garages use `Decimal`; optional Literals for payment method/currency. |
-| Tests                   | Addressed: transactional rollback isolation; coverage for health, garages, vehicle types, vehicles, spots, tickets, payments. |
-| Type checking           | Prefer targeted pyright over disabling for whole file. |
+| Area | Status / suggestion |
+|------|---------------------|
+| Architecture | Good separation; keep routers thin and services for logic. |
+| Scope | This document = API service only; dashboard is separate. |
+| Schema / DB | Alembic migrations for schema evolution. |
+| Pagination & route order | In good shape. |
+| Auth & CORS | Solid; API key read once at startup from config; CORS config clear. |
+| Fee / payment status | Flexible (API vs DB); services used when flags are on. |
+| Uploads & ticket images | Implemented (validate size/type, disk storage, docs). For production: auth strategy for upload/static, backups or object storage. |
+| Security | **SQL_ECHO** is configurable (**addressed**). **Open:** default `DATABASE_URL` in `db.py` still contains a literal password — require env in production and avoid real credentials in defaults. |
+| Config / env | **Addressed:** `.env` only in `app/config.py`; `main` imports config before `db`; documented in code. |
+| Run entry point | **Addressed:** `python -m app.run`; README. |
+| Schemas | **Addressed:** garages use `Decimal`. **Open:** optional Literals / lengths for payment method and currency. |
+| Tests | **Addressed:** transactional rollback in `conftest.py`; broad coverage (health, garages, vehicle types, vehicles, spots, tickets, payments). |
+| Type checking | Prefer targeted pyright over disabling for the whole `main.py`. |
 
 ---
 
 ## 5. Opinion
 
-The project is in good shape: clear structure, sensible API design, and careful handling of entry/exit, payments, and constraints. **Already addressed**: env loading (single place in config, import order documented), run entry point (`run.py`), SQL logging (`SQL_ECHO`), API key (read once at startup), and test coverage/isolation (transactional rollback, tests for all main resources). The main remaining gap is **security**: the default `DATABASE_URL` in `db.py` still contains a literal password; for production, require `DATABASE_URL` to be set and avoid a default with real credentials. The rest are incremental improvements (schemas, optional model relationships, type checking) that you can adopt as you go.
+The project is in good shape: clear structure, sensible API design, and careful handling of entry/exit, payments, and constraints. Ticket images and uploads add a real surface area; the implementation is reasonable for local/single-node use, with production decisions (auth, backups, storage) left to deployment.
+
+**Resolved or stable items** are consolidated in §4 (config order, `run.py`, SQL echo, Decimal garages, tests).
+
+**Main remaining security gap:** the default `DATABASE_URL` in `db.py` with embedded credentials. **Incremental next steps:** stricter payment `method`/`currency` validation if the business needs it; optional SQLAlchemy relationships; tighter Pyright scope on `main.py`.
