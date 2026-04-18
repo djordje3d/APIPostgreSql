@@ -61,6 +61,20 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
    - **If `API_KEY` is set**: every request except `GET /`, `GET /health`, `POST /auth/login`, and **`GET` requests under `/uploads/`** (static ticket images) must send either **`X-API-Key`** with the same value **or** **`Authorization: Bearer <token>`** (JWT from `POST /auth/login`). Otherwise the API returns **401 Unauthorized**.
    - **Login:** Set `AUTH_USERNAME` and `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`) in `.env` to enable `POST /auth/login`. The dashboard can then log in and use the returned JWT. Set `JWT_SECRET_KEY` in production.
 
+## Database migrations (Alembic)
+
+Schema changes live under `alembic/versions/`. Apply migrations when you point the API at a **new** database, or after pulling commits that add revisions.
+
+1. Ensure PostgreSQL is running and the target database exists (create an empty DB if needed).
+2. **URL for Alembic:** `alembic/env.py` reads the database URL from **`sqlalchemy.url` in `alembic.ini`** at the project root. It does **not** read `.env`. Set `sqlalchemy.url` to the same database as **`DATABASE_URL`** so migrations and the running app stay in sync (use the same driver form, e.g. `postgresql+psycopg2://...`).
+3. From the **project root** (next to `alembic.ini`), with your venv activated and dependencies installed (see [Setup](#setup); [Alembic](https://alembic.sqlalchemy.org/) is included in `requirements.txt`):
+
+   ```bash
+   alembic upgrade head
+   ```
+
+   To see the current revision: `alembic current`. To list revisions: `alembic history`.
+
 ## How to run
 
 From the project root:
@@ -143,6 +157,8 @@ Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, 
 - `app/schemas.py` — Pydantic request/response schemas
 - `app/routers/` — API route handlers (garages, vehicle-types, vehicles, tickets, payments, spots, upload, dashboard)
 - `app/services/` — business logic (e.g. spot allocation, pricing, payment status)
+- `alembic/` — Alembic migration scripts (`alembic upgrade head` from project root)
+- `alembic.ini` — Alembic config; `sqlalchemy.url` must point at the database you migrate
 - `static/uploads/` — on-disk storage for uploaded ticket images (served under `/uploads`)
 - `dashboard/` — Vue 3 frontend (see [dashboard/README.md](dashboard/README.md))
 - `docs/` — additional documentation (e.g. [TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md))
