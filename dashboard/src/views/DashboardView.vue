@@ -334,7 +334,15 @@ const timelinePoints = computed(() => {
 });
 
 const timelineSeries = computed(() => {
-  const colorPalette = ["#ef4444", "#3b82f6", "#eab308", "#22c55e", "#a855f7", "#f97316"];
+  //const colorPalette = ["#ef4444", "#3b82f6", "#eab308", "#22c55e", "#a855f7", "#f97316"];
+  const colorPalette = [
+  "hsl(0, 60%, 68%)",    // soft red
+  "hsl(210, 60%, 68%)",  // soft blue
+  "hsl(48, 60%, 62%)",   // darker yellow for visibility
+  "hsl(145, 50%, 60%)",  // slightly less saturated green
+  "hsl(270, 55%, 68%)",  // soft purple
+  "hsl(24, 65%, 64%)",   // orange with a bit more strength
+];
   const perType = new Map<string, Record<string, number>>();
   for (const row of timelineRows.value) {
     const daySource = timelineYAxisMode.value === "entries" ? row.entry_time : row.exit_time;

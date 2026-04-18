@@ -143,6 +143,7 @@
                 fill="none"
                 :stroke="line.color"
                 stroke-width="3"
+                stroke-opacity="0.9"
                 stroke-linejoin="round"
                 stroke-linecap="round"
               />

@@ -1,7 +1,7 @@
 import { computed, ref, type Ref } from "vue";
 import {
   TIMELINE_LAYOUT,
-  buildQuadraticSmoothPath,
+  buildSmoothInterpolatedPath,
   clamp,
   mapIndexToMainChartX,
   maxFromRange,
@@ -130,7 +130,7 @@ export function useTimelineMainChartState({
         name: s.name,
         color: s.color,
         plotPoints,
-        path: buildQuadraticSmoothPath(plotPoints),
+        path: buildSmoothInterpolatedPath(plotPoints),
       };
     }),
   );

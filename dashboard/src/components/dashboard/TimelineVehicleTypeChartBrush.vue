@@ -91,7 +91,7 @@
               @change="toggleSeries(s.id)"
             />
             <span
-              class="inline-block h-2.5 w-2.5 rounded-full"
+              class="inline-block h-2.5 w-2.5 rounded-full border border-gray-300"
               :style="{ backgroundColor: s.color }"
             ></span>
             <span>{{ s.name }}</span>
@@ -160,6 +160,7 @@
                 fill="none"
                 :stroke="line.color"
                 stroke-width="2.6"
+                stroke-opacity="0.9"
                 stroke-linejoin="round"
                 stroke-linecap="round"
               />
@@ -243,9 +244,9 @@
                   fill="none"
                   :stroke="line.color"
                   stroke-width="1.8"
+                  stroke-opacity="0.9"
                   stroke-linejoin="round"
                   stroke-linecap="round"
-                  opacity="0.8"
                 />
               </g>
             </svg>
@@ -302,7 +303,7 @@ import StandardDropdown from "../ui/StandardDropdown.vue";
 import HelpTooltip from "../ui/HelpTooltip.vue";
 import {
   TIMELINE_LAYOUT,
-  buildQuadraticSmoothPath,
+  buildSmoothInterpolatedPath,
   clamp,
   createRafThrottled,
   indexFromClientX,
@@ -404,7 +405,7 @@ const overviewLines = computed(() =>
       name: s.name,
       color: s.color,
       plotPoints,
-      path: buildQuadraticSmoothPath(plotPoints),
+      path: buildSmoothInterpolatedPath(plotPoints),
     };
   }),
 );

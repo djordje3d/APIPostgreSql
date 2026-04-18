@@ -1,7 +1,16 @@
 <template>
-  <div
-    class="dashboard-card group p-5"
-  >
+  <div class="dashboard-card group relative p-5">
+    <div
+      v-if="helpText"
+      class="absolute right-[5px] top-[5px] z-10"
+    >
+      <HelpTooltip
+        as-icon
+        :text="helpText"
+        :aria-label="helpAriaLabel"
+      />
+    </div>
+
     <div class="flex items-center gap-4">
       <span
         class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition group-hover:bg-slate-200"
@@ -11,15 +20,7 @@
       </span>
 
       <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-1.5">
-          <p class="truncate text-sm font-medium text-gray-500">{{ label }}</p>
-          <HelpTooltip
-            v-if="helpText"
-            as-icon
-            :text="helpText"
-            :aria-label="helpAriaLabel"
-          />
-        </div>
+        <p class="truncate text-sm font-medium text-gray-500">{{ label }}</p>
 
         <p class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
           {{ value }}
