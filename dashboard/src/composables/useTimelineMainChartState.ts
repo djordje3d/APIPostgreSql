@@ -130,7 +130,11 @@ export function useTimelineMainChartState({
         name: s.name,
         color: s.color,
         plotPoints,
-        path: buildSmoothInterpolatedPath(plotPoints),
+        path: buildSmoothInterpolatedPath(plotPoints, {
+          tension: 0.75,
+          minY: TIMELINE_LAYOUT.main.axisTop,
+          maxY: TIMELINE_LAYOUT.main.axisBottom,
+        }),
       };
     }),
   );

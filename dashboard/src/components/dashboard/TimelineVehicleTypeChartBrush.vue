@@ -354,6 +354,7 @@ const dragState = ref<{
   startAtDown: number;
   endAtDown: number;
 } | null>(null);
+
 const {
   yAxisOptions,
   visibleSeries,
@@ -405,7 +406,11 @@ const overviewLines = computed(() =>
       name: s.name,
       color: s.color,
       plotPoints,
-      path: buildSmoothInterpolatedPath(plotPoints),
+      path: buildSmoothInterpolatedPath(plotPoints, {
+        tension: 0.75,
+        minY: 0,
+        maxY: TIMELINE_LAYOUT.brush.baselineY,
+      }),
     };
   }),
 );
@@ -529,6 +534,7 @@ function onMouseLeave() {
 function onWindowPointerUp(e: PointerEvent) {
   endDrag(e.pointerId);
 }
+
 const onMouseMove = createRafThrottled((e: MouseEvent) => {
   setHoverFromMouse(e);
 });
