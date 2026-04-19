@@ -24,7 +24,10 @@ TICKET_IMAGE_SUBDIR = "tickets"
 
 
 def _ext_from_content_type(content_type: str | None) -> str:
-    if content_type and content_type.split(";")[0].strip().lower() in CONTENT_TYPE_TO_EXT:
+    if (
+        content_type
+        and content_type.split(";")[0].strip().lower() in CONTENT_TYPE_TO_EXT
+    ):
         return CONTENT_TYPE_TO_EXT[content_type.split(";")[0].strip().lower()]
     return ".jpg"
 

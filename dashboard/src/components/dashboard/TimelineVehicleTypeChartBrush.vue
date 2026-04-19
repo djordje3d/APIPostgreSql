@@ -6,17 +6,21 @@
           {{ t("timeline.title") }}
         </h2>
 
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="w-[220px]">
-            <div class="mb-1 flex items-center gap-1 text-gray-600">
-              <span class="block text-sm">{{ t("timeline.yAxisMetric") }}</span>
-              <HelpTooltip
-                as-icon
-                :text="t('help.timeline.yAxis')"
-                :aria-label="t('help.aria.timelineYAxis')"
-              />
-            </div>
+        <div class="flex min-w-0 flex-wrap items-center gap-3">
+          <div class="flex shrink-0 items-baseline gap-1.5">
+            <span
+              class="text-xs font-medium uppercase tracking-wide text-gray-500"
+            >
+              {{ t("timeline.yAxisMetric") }}
+            </span>
+            <HelpTooltip
+              as-icon
+              :text="t('help.timeline.yAxis')"
+              :aria-label="t('help.aria.timelineYAxis')"
+            />
+          </div>
 
+          <div class="w-[220px] min-w-[10rem] max-w-full shrink-0">
             <StandardDropdown
               label=""
               :options="yAxisOptions"
@@ -31,7 +35,10 @@
             />
           </div>
 
-          <div class="text-sm text-gray-500">{{ fromDate }} - {{ toDate }}</div>
+          <div class="flex flex-col gap-0.5 text-sm text-gray-500">
+            <span>{{ fromDate }}</span>
+            <span>{{ toDate }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -115,7 +122,9 @@
               :key="`grid-${grid.y}`"
               :x1="TIMELINE_LAYOUT.main.axisLeft"
               :y1="grid.y"
-              :x2="TIMELINE_LAYOUT.main.axisLeft + TIMELINE_LAYOUT.main.plotWidth"
+              :x2="
+                TIMELINE_LAYOUT.main.axisLeft + TIMELINE_LAYOUT.main.plotWidth
+              "
               :y2="grid.y"
               :stroke="grid.stroke"
             />

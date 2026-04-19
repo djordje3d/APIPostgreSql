@@ -9,7 +9,6 @@ from app.errors import api_error
 from app.services import spots as spots_service
 
 router = APIRouter(prefix="/spots", tags=["Parking Spots"])
-# Tag "Parking Spots" je za dokumentaciju (Swagger UI).
 
 
 @router.get(
@@ -122,7 +121,7 @@ def delete_spot(spot_id: int, db: Session = Depends(get_db)):
     if not spot:
         raise api_error(404, "SPOT_NOT_FOUND", "Parking spot not found.")
 
-    # zabrani ako postoji aktivan tiket
+    # prevent if there is an active ticket
     has_open_ticket = db.query(
         exists().where(
             (models.Ticket.spot_id == spot_id) & (models.Ticket.ticket_state == "OPEN")

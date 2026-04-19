@@ -21,15 +21,13 @@ def compute_spot_ticket_counts(
     total_all = base.count()
     total_active = base.filter(models.ParkingSpot.is_active.is_(True)).count()
 
-    free_count = (
-        base.filter(
-            models.ParkingSpot.is_active.is_(True),
-            ~exists().where(
-                (models.Ticket.spot_id == models.ParkingSpot.id)
-                & (models.Ticket.ticket_state == "OPEN"),
-            ),
-        ).count()
-    )
+    free_count = base.filter(
+        models.ParkingSpot.is_active.is_(True),
+        ~exists().where(
+            (models.Ticket.spot_id == models.ParkingSpot.id)
+            & (models.Ticket.ticket_state == "OPEN"),
+        ),
+    ).count()
 
     inactive = max(0, total_all - total_active)
     occupied = max(0, total_active - free_count)
@@ -88,9 +86,7 @@ def compute_total_outstanding(db: Session, garage_id: int | None) -> float:
     q = (
         db.query(models.Ticket)
         .options(
-            joinedload(models.Ticket.vehicle).joinedload(
-                models.Vehicle.vehicle_type
-            ),
+            joinedload(models.Ticket.vehicle).joinedload(models.Vehicle.vehicle_type),
         )
         .filter(
             models.Ticket.ticket_state == "CLOSED",

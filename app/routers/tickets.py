@@ -48,9 +48,7 @@ def list_tickets_dashboard(
     q = (
         db.query(models.Ticket)
         .options(
-            joinedload(models.Ticket.vehicle).joinedload(
-                models.Vehicle.vehicle_type
-            ),
+            joinedload(models.Ticket.vehicle).joinedload(models.Vehicle.vehicle_type),
             joinedload(models.Ticket.spot),
             joinedload(models.Ticket.garage),
         )
@@ -61,9 +59,7 @@ def list_tickets_dashboard(
     if ticket_state is not None:
         q = q.filter(models.Ticket.ticket_state == ticket_state)
     if from_date is not None:
-        start = datetime.fromisoformat(
-            from_date.isoformat() + "T00:00:00+00:00"
-        )
+        start = datetime.fromisoformat(from_date.isoformat() + "T00:00:00+00:00")
         q = q.filter(models.Ticket.entry_time >= start)
     if to_date is not None:
         end_exclusive = datetime.fromisoformat(

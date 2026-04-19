@@ -27,7 +27,8 @@ def garage_overview(
     ),
 ):
     # Aggregation in DB: one query for all garages (or one). No spot lists.
-    q = text("""
+    q = text(
+        """
         SELECT
             pc.id AS garage_id,
             pc.name,
@@ -47,16 +48,20 @@ def garage_overview(
         WHERE (:garage_id IS NULL OR pc.id = :garage_id)
         GROUP BY pc.id, pc.name
         ORDER BY pc.id
-    """)
+    """
+    )
     rows = db.execute(q, {"garage_id": garage_id}).mappings().all()
-    return [schemas.GarageOverviewRow(
-        garage_id=r["garage_id"],
-        name=r["name"],
-        total_spots=r["total_spots"],
-        free_spots=r["free_spots"],
-        occupied_spots=r["occupied_spots"],
-        rentable_spots=r["rentable_spots"],
-    ) for r in rows]
+    return [
+        schemas.GarageOverviewRow(
+            garage_id=r["garage_id"],
+            name=r["name"],
+            total_spots=r["total_spots"],
+            free_spots=r["free_spots"],
+            occupied_spots=r["occupied_spots"],
+            rentable_spots=r["rentable_spots"],
+        )
+        for r in rows
+    ]
 
 
 @router.get(

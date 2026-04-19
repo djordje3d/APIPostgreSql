@@ -15,6 +15,7 @@ from app.config import (
     JWT_EXPIRE_MINUTES,
 )
 from app.errors import api_error
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -23,21 +24,13 @@ def _verify_password(plain: str) -> bool:
     if AUTH_PASSWORD_HASH:
         from passlib.context import (
             CryptContext,
-        )  # passlib je biblioteka za hashovanje i verifikaciju lozinki
-
-        # CryptContext je klasa koja se koristi za hashovanje i verifikaciju lozinki
-        # schemes je lista hash algoritama koje passlib podržava
-        # deprecated je opcija koja omogućava korišćenje starijih hash algoritama
-        # auto je opcija koja omogućava automatsko odabiranje najboljeg hash algoritma
+        )
 
         ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
         return ctx.verify(plain, AUTH_PASSWORD_HASH)
     if AUTH_PASSWORD is not None:
         return plain == AUTH_PASSWORD
     return False
-
-
-from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
@@ -47,7 +40,7 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(data: LoginRequest):
-    # LoginRequest je Pydantic model koji se koristi za validaciju ulaznih podataka
+    # LoginRequest - Pydantic model for validating
     """
     Authenticate with username and password. Returns JWT access token.
     Configure AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PASSWORD_HASH) in .env.
@@ -68,7 +61,7 @@ def login(data: LoginRequest):
         )
     access_token = create_token(data.username)
     # Actual JWT expiry is set in create_token (auth_jwt) from JWT_EXPIRE_MINUTES.
-    # expires_in is in seconds for the client (e.g. to show "Session expires in X" or to auto-logout).
+    # expires_in is in seconds for the client alert or auto-logout.
     return {
         "access_token": access_token,
         "token_type": "bearer",

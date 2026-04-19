@@ -47,9 +47,7 @@ def create_vehicle(data: schemas.VehicleCreate, db: Session = Depends(get_db)):
     # ensure vehicle_type exists
     vt = db.get(models.VehicleType, data.vehicle_type_id)
     if not vt:
-        raise api_error(
-            404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type does not exist."
-        )
+        raise api_error(404, "VEHICLE_TYPE_NOT_FOUND", "Vehicle type does not exist.")
 
     # ensure plate unique only when provided (multiple vehicles may have no plate)
     if data.licence_plate is not None:

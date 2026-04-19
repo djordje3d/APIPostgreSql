@@ -45,6 +45,3 @@ def get_ticket_fee(ticket, db) -> Decimal:
     Used when USE_API_FEE_CALCULATION is true (no DB trigger).
     """
     return calculate_fee(ticket, db)
-
-
-# It’s kept for reference, or for future use in an API-based fee calculation.

@@ -30,9 +30,7 @@ def dashboard_analytics(
     garage_id: int | None = Query(default=None),
     today: date = Query(
         ...,
-        description=(
-            "Calendar date for 'today' revenue (inclusive, UTC day bounds)."
-        ),
+        description=("Calendar date for 'today' revenue (inclusive, UTC day bounds)."),
     ),
     month_from: date = Query(
         ...,
