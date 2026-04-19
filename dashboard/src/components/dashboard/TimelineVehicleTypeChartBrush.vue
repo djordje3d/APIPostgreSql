@@ -385,7 +385,9 @@ const {
 });
 
 const overviewMaxY = computed(() => {
-  return maxFromAll(activeSeries.value);
+  const raw = maxFromAll(activeSeries.value);
+  if (raw <= 0) return 1;
+  return Math.max(1, raw * 1.15);
 });
 
 const overviewLines = computed(() =>

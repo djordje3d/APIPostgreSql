@@ -63,9 +63,17 @@ export function useTimelineMainChartState({
     alignedSeries.value.filter((s) => visibleSeries.value[s.id] !== false),
   );
 
-  const maxY = computed(() =>
+  const rawMaxY = computed(() =>
     maxFromRange(activeSeries.value, safeZoomStart.value, safeZoomEnd.value),
   );
+
+  // Add headroom above the tallest visible point so Bézier peaks
+  // do not visually flatten against the chart ceiling.
+  const maxY = computed(() => {
+    const raw = rawMaxY.value;
+    if (raw <= 0) return 1;
+    return Math.max(1, raw * 1.15);
+  });
 
   const mainGridLines = computed(() => {
     const count = 5;
