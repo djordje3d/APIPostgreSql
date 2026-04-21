@@ -18,8 +18,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 
-# Load .env from project root (parent of app/) so it works even when the server
-# is started from a different directory (e.g. python -m app.run from project root).
 _project_root = Path(__file__).resolve().parent.parent
 load_dotenv(_project_root / ".env")
 
@@ -29,7 +27,7 @@ _log = logging.getLogger(__name__)
 # _env_int je funkcija koja se koristi za konvertovanje stringa u integer
 def _env_int(name: str, default: int) -> int:
     raw = os.getenv(name, str(default)).strip()
-    # strip je funkcija koja se koristi za uklanjanje belih znakova sa početka i kraja stringa
+    # strip is a function that is used to remove whitespace from the beginning and end of a string
     try:
         return max(0, int(raw))
     except ValueError:
@@ -137,8 +135,6 @@ CORS_ORIGINS: list[str] = _cors_valid if _cors_valid else _DEFAULT_CORS_ORIGINS
 # Preflight cache (seconds). Browsers cache OPTIONS for this long.
 CORS_MAX_AGE: int = _env_int("CORS_MAX_AGE", 600)
 
-# Upload directory for ticket images (relative to project root or absolute path).
-# Served under /uploads; e.g. UPLOAD_DIR/tickets/file.jpg -> /uploads/tickets/file.jpg
 UPLOAD_DIR: Path = _project_root / "static" / "uploads"
 # Max size in bytes for ticket image upload (default 5 MB). Client resizes first.
 UPLOAD_TICKET_IMAGE_MAX_BYTES: int = _env_int(

@@ -27,16 +27,27 @@ def _is_public_path(path: str, method: str) -> bool:
         return True
     if path.startswith("/uploads/") and method == "GET":
         return True
+
+    # FastAPI docs/OpenAPI endpoints
+    if method == "GET" and path in {
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+        "/docs/oauth2-redirect",
+    }:
+        return True
+
     return False
 
 
+# APIKeyMiddleware is a class that is used to authenticate the request
 class APIKeyMiddleware(BaseHTTPMiddleware):
     """
     Require either valid Bearer JWT or X-API-Key when API_KEY is set.
     GET /, GET /health, POST /auth/login are always allowed.
     """
 
-    # call_next je funkcija koja se koristi za pozivanje sledeće middleware ili endpoint
+    # call_next is a function that is used to call the next middleware or endpoint
 
     async def dispatch(self, request: Request, call_next):
         if _is_public_path(request.url.path, request.method):

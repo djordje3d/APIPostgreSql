@@ -15,9 +15,6 @@ from app.errors import api_error
 TOKEN_SUB_KEY = "sub"  # username in payload
 
 
-# Kreira JWT token za datog korisnika
-# jwt je biblioteka za kreiranje i verifikaciju JWT tokena
-# jwt.encode je funkcija koja kreira JWT token
 def create_token(username: str) -> str:
     """Create a signed JWT with expiry. Payload includes sub=username."""
     now = datetime.now(timezone.utc)
