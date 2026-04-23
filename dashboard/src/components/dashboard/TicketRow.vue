@@ -57,7 +57,7 @@
 
       <div
         v-else
-        class="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-xs text-gray-400 select-none"
+        class="flex h-10 w-10 items-center justify-center rounded-lg text-xs text-gray-400 select-none"
         title="No image"
       >
         –
@@ -65,46 +65,46 @@
     </td>
 
     <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
-  <div class="flex items-center justify-end gap-2">
-    <button
-      type="button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
-      title="View ticket & payments"
-      aria-label="View ticket & payments"
-      @click="$emit('view-ticket', ticket)"
-    >
-      <span class="icon-barcode text-lg" aria-hidden="true"></span>
-    </button>
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+          title="View ticket & payments"
+          aria-label="View ticket & payments"
+          @click="$emit('view-ticket', ticket)"
+        >
+          <span class="icon-barcode text-lg" aria-hidden="true"></span>
+        </button>
 
-    <template v-if="ticket.ticket_state === 'OPEN'">
-      <button
-        type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
-        title="Close ticket"
-        aria-label="Close ticket"
-        @click="$emit('close-ticket', ticket.id)"
-      >
-        <span class="icon-exit text-lg" aria-hidden="true"></span>
-      </button>
-    </template>
+        <template v-if="ticket.ticket_state === 'OPEN'">
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+            title="Close ticket"
+            aria-label="Close ticket"
+            @click="$emit('close-ticket', ticket.id)"
+          >
+            <span class="icon-exit text-lg" aria-hidden="true"></span>
+          </button>
+        </template>
 
-    <template
-      v-else-if="
-        ticket.ticket_state === 'CLOSED' && ticket.payment_status !== 'PAID'
-      "
-    >
-      <button
-        type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
-        title="Go to payment"
-        aria-label="Go to payment"
-        @click="$emit('open-payment', ticket)"
-      >
-        <span class="icon-credit-card text-lg" aria-hidden="true"></span>
-      </button>
-    </template>
-  </div>
-</td>
+        <template
+          v-else-if="
+            ticket.ticket_state === 'CLOSED' && ticket.payment_status !== 'PAID'
+          "
+        >
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+            title="Go to payment"
+            aria-label="Go to payment"
+            @click="$emit('open-payment', ticket)"
+          >
+            <span class="icon-credit-card text-lg" aria-hidden="true"></span>
+          </button>
+        </template>
+      </div>
+    </td>
   </tr>
 </template>
 

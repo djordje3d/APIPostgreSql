@@ -16,7 +16,7 @@
       </div>
 
       <div
-        class="by-garage-card dashboard-card dashboard-fade dashboard-fade--0 h-full p-4 lg:col-span-3"
+        class="by-garage-card dashboard-card shaddow-none dashboard-fade dashboard-fade--0 h-full p-4 lg:col-span-3"
       >
         <GarageSelectDropdown
           :model-value="selectedGarageId"

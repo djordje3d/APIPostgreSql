@@ -35,9 +35,13 @@
             />
           </div>
 
-          <div class="flex flex-col gap-0.5 text-sm text-gray-500">
-            <span>{{ fromDate }}</span>
-            <span>{{ toDate }}</span>
+          <div
+            class="grid grid-cols-[auto_1fr] items-baseline gap-x-2 gap-y-0.5 text-sm text-gray-500"
+          >
+            <span class="shrink-0 text-right">From:</span>
+            <span class="min-w-0 tabular-nums">{{ fromDate }}</span>
+            <span class="shrink-0 text-right">To:</span>
+            <span class="min-w-0 tabular-nums">{{ toDate }}</span>
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@
       <button
         v-if="page > 1"
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
         aria-label="Previous page"
         :title="t('garageDetail.previousPage')"
         @click="goPrev"
@@ -45,7 +45,7 @@
       <button
         v-if="page < totalPages"
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
         aria-label="Next page"
         :title="t('garageDetail.nextPage')"
         @click="goNext"

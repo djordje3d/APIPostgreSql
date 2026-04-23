@@ -64,7 +64,7 @@ const garageOptions = computed(() =>
   justify-content: center;
   height: 6rem;
   border-radius: 0.375rem;
-  background: rgb(241 245 249);
+  background: transparent;
   color: rgb(71 85 105);
 }
 .by-garage-card__icon-img {

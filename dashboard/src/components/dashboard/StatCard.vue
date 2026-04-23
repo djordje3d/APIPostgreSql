@@ -13,7 +13,7 @@
 
     <div class="flex items-center gap-4">
       <span
-        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition group-hover:bg-slate-200"
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 transition "
         aria-hidden="true"
       >
         <span :class="`icon-${icon}`" class="text-lg"></span>
