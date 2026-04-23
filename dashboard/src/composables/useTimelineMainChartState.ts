@@ -173,8 +173,8 @@ export function useTimelineMainChartState({
       Math.max(leftPx, TIMELINE_LAYOUT.main.tooltipOffset),
       Math.max(
         chartWidth -
-          TIMELINE_LAYOUT.main.tooltipEstimatedWidth -
-          TIMELINE_LAYOUT.main.tooltipOffset,
+        TIMELINE_LAYOUT.main.tooltipEstimatedWidth -
+        TIMELINE_LAYOUT.main.tooltipOffset,
         TIMELINE_LAYOUT.main.tooltipOffset,
       ),
     );

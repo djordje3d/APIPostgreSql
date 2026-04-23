@@ -4,7 +4,6 @@
       :options="localeOptions"
       :model-value="current"
       :nullable="false"
-      dark
       @update:model-value="changeLocale($event as SupportedLocale)"
     />
   </div>

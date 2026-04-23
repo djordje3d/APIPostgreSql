@@ -167,6 +167,10 @@
     "viewGarageDetail": "View garage details (spots and vehicles)",
     "clickToOpenGarageDetail": "Click to open garage details (spots and vehicles)"
   },
+  "languageSwitcher": {
+    "title": "Language",
+    "selectLanguage": "Select language"
+  },
   "garageDetail": {
     "dashboard": "Dashboard",
     "id": "ID",

@@ -20,7 +20,7 @@
         </div>
       </div>
     </Transition>
-    
+
     <!-- Brief "Connection restored" toast -->
     <Teleport to="body">
       <Transition name="toast-fade">
@@ -63,9 +63,7 @@
       >
         <div class="session-expiry-modal">
           <p id="session-expiry-title" class="font-medium">
-            {{
-              t("session.idle.title", { countdown: sessionExpiryCountdown })
-            }}
+            {{ t("session.idle.title", { countdown: sessionExpiryCountdown }) }}
           </p>
           <p class="mt-1 text-sm opacity-90">
             {{ t("session.idle.detail") }}
@@ -123,23 +121,43 @@
         <router-view />
       </div>
       <div v-else key="dashboard">
-        <header class="bg-slate-800 text-white shadow">
+        <header class="bg-transparent text-white">
           <div
             class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-3 gap-x-4 px-4 py-3 sm:px-6"
           >
             <nav class="flex flex-wrap items-center gap-2 sm:gap-4">
               <router-link
                 :to="{ name: 'dashboard' }"
-                class="text-base font-semibold sm:text-xl"
+                class="text-base font-semibold sm:text-3xl text-black"
               >
                 {{ t("header.dashboard") }}
               </router-link>
-              <LanguageSwitcher />
             </nav>
             <div
-              class="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-3"
+              class="flex flex-shrink-0 flex-wrap items-center gap-y-2 gap-x-5"
             >
-
+            <HelpTooltip :text="t('help.autoRefresh')">
+                <RefreshCountdownRing
+                  :duration-ms="intervalMs"
+                  :remaining-ms="remainingMs"
+                  :enabled="isRunning"
+                  :auto-refresh-enabled="autoRefreshEnabled"
+                  @toggle-auto-refresh="toggleAutoRefresh"
+                />
+              </HelpTooltip>
+              <div
+                role="button"
+                tabindex="0"
+                :title="t('garageDetail.refreshNow')"
+                class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-500 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-green-500/50"
+                @click="refreshAll"
+                @keydown.enter.space.prevent="refreshAll"
+              >
+                <span
+                  class="icon-spinner11 text-[42px] leading-none"
+                  aria-hidden="true"
+                ></span>
+              </div>
               <ButtonIn
                 id="logoutBtn"
                 variant="outline"
@@ -154,6 +172,8 @@
                 @userclick="showNewEntry = true"
                 :caption="t('header.newVehicleEntry')"
               />
+              <LanguageSwitcher />
+
             </div>
           </div>
         </header>
@@ -192,6 +212,8 @@ import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
 import { clearGaragesCache } from "./utils/garageCache";
 import { refresh as refreshToken } from "./api/auth";
 import { useDashboardPolling } from "./composables/useDashboardPolling";
+import RefreshCountdownRing from "./components/dashboard/RefreshCountdownRing.vue";
+import HelpTooltip from "./components/ui/HelpTooltip.vue";
 import ButtonIn from "./components/ui/ButtonIn.vue";
 import LanguageSwitcher from "./components/ui/LanguageSwitcher.vue";
 import { useI18n } from "vue-i18n";
@@ -199,6 +221,8 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
+const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
+const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */
 const IDLE_MS = 90 * 1000;
 /** Throttle mousemove so we don't reset idle timer every frame. */
@@ -218,6 +242,14 @@ function formatCountdown(ms: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return s > 0 ? `${m}:${s.toString().padStart(2, "0")}` : `${m} min`;
+}
+
+function toggleAutoRefresh() {
+  autoRefreshEnabled.value = !autoRefreshEnabled.value;
+}
+
+function refreshAll() {
+  window.dispatchEvent(new CustomEvent(DASHBOARD_REQUEST_REFRESH_EVENT));
 }
 
 const router = useRouter();
@@ -515,17 +547,18 @@ onUnmounted(() => {
 });
 
 function onNewEntryDone() {
-  nextTick(() => { // wait for the DOM to be updated
+  nextTick(() => {
+    // wait for the DOM to be updated
     showNewEntry.value = false;
     showToast("Vehicle entry created.");
-    window.dispatchEvent(new CustomEvent("dashboard-refresh"));
+    window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
   });
 }
 
 const POLL_MS = 10_000;
 
 function refreshDashboardEverywhere() {
-  window.dispatchEvent(new CustomEvent("dashboard-refresh"));
+  window.dispatchEvent(new CustomEvent(DASHBOARD_REQUEST_REFRESH_EVENT));
 }
 
 // Don't update on login page
@@ -565,10 +598,13 @@ const connectionBannerIcon = computed(() => {
 
 // Don't update on login page
 // This is the polling that refreshes the dashboard every ?? seconds
-useDashboardPolling(refreshDashboardEverywhere, {
-  intervalMs: POLL_MS,
-  enabled: pollingEnabled, // only refresh if autoRefreshEnabled is true and not on login page
-});
+const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
+  refreshDashboardEverywhere,
+  {
+    intervalMs: POLL_MS,
+    enabled: pollingEnabled, // only refresh if autoRefreshEnabled is true and not on login page
+  },
+);
 </script>
 
 <style scoped>
@@ -622,7 +658,6 @@ useDashboardPolling(refreshDashboardEverywhere, {
 .connection-banner--api-down .connection-banner__detail {
   color: rgba(28, 25, 23, 0.9);
 }
-
 
 .banner-slide-enter-active,
 .banner-slide-leave-active {
@@ -728,7 +763,9 @@ useDashboardPolling(refreshDashboardEverywhere, {
 
 .toast-snackbar-fade-enter-active,
 .toast-snackbar-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .toast-snackbar-fade-enter-from,

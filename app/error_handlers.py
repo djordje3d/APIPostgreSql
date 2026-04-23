@@ -21,10 +21,7 @@ def _legacy_detail_to_fields(detail: list[dict]) -> list[dict[str, str]]:
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
-        if (
-            isinstance(exc.detail, dict)
-            and "error" in exc.detail
-        ):
+        if isinstance(exc.detail, dict) and "error" in exc.detail:
             return JSONResponse(status_code=exc.status_code, content=exc.detail)
         return JSONResponse(
             status_code=exc.status_code,

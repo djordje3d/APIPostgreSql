@@ -170,6 +170,10 @@
     "viewGarageDetail": "Pogledaj detalje garaže (mesta i vozila)",
     "clickToOpenGarageDetail": "Kliknite da otvorite detalje garaže (mesta i vozila)"
   },
+  "languageSwitcher": {
+    "title": "Jezik",
+    "selectLanguage": "Izaberi jezik"
+  },
   "garageDetail": {
     "dashboard": "Kontrolna tabla",
     "id": "ID",

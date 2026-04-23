@@ -1,8 +1,3 @@
-/**
- * Shared formatters for dates, numbers, and money.
- * formatMoney accepts number or string and always returns "X RSD" or "–".
- * formatNumber returns formatted number only (no RSD), for use when suffix is added in template.
- */
 export function formatTime(s: string | null | undefined): string {
   if (s == null || s === '') return '–'
   try {

@@ -1,31 +1,5 @@
 <template>
   <div class="dashboard-sections">
-    <div class="dashboard-toolbar flex items-center justify-end gap-3">
-      <div
-        class="dashboard-toolbar__refresh-info flex flex-col items-end gap-1"
-      ></div>
-      <HelpTooltip :text="t('help.autoRefresh')">
-        <RefreshCountdownRing
-          :duration-ms="intervalMs"
-          :remaining-ms="remainingMs"
-          :enabled="isRunning"
-          :auto-refresh-enabled="autoRefreshEnabled"
-          @toggle-auto-refresh="toggleAutoRefresh"
-        />
-      </HelpTooltip>
-
-      <div
-        role="button"
-        tabindex="0"
-        :title="t('garageDetail.refreshNow')"
-        class="flex cursor-pointer items-center justify-center rounded p-1.5 text-green-500 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus:ring-green-500/50"
-        @click="refreshAll"
-        @keydown.enter.space.prevent="refreshAll"
-      >
-        <span class="icon-spinner11 text-[42px] leading-none" aria-hidden="true"></span>
-      </div>
-    </div>
-
     <div class="dashboard-layout-lg lg:items-stretch lg:grid lg:grid-cols-12 lg:gap-6">
       <div class="dashboard-fade dashboard-fade--1 h-full lg:col-span-5">
         <StatusCards
@@ -171,19 +145,16 @@ import {
   watch,
   nextTick,
 } from "vue";
-import type { Ref } from "vue";
 
 import StatusCards from "../components/dashboard/StatusCards.vue";
 import GarageOverviewTable from "../components/dashboard/GarageOverviewTable.vue";
 import TicketActivity from "../components/dashboard/TicketActivity.vue";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
-import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import GarageSelectDropdown from "../components/dashboard/GarageSelectDropdown.vue";
 import StandardDropdown from "../components/ui/StandardDropdown.vue";
 import HelpTooltip from "../components/ui/HelpTooltip.vue";
 import TimelineVehicleTypeChartBrush from "../components/dashboard/TimelineVehicleTypeChartBrush.vue";
 
-import { useDashboardPolling } from "../composables/useDashboardPolling";
 import { listGarages } from "../api/garages";
 import type { Garage } from "../api/garages";
 import type { ToastApi } from "../composables/useToast";
@@ -210,10 +181,6 @@ const route = useRoute(); /** Rute za dashboard . Čita se iz URL-a*/
 const router = useRouter(); /** Router za dashboard . Koristi se za preusmeravanje na druge stranice */
 
 const toast = inject<ToastApi | null>("toast", null);
-const autoRefreshEnabled = inject<Ref<boolean>>(
-  "autoRefreshEnabled",
-  ref(true),
-);
 
 const garages = ref<Garage[]>([]);
 const selectedGarageId = ref<number | null>(null);
@@ -539,12 +506,6 @@ function refreshAll() {
   void runRefreshCycle();
 }
 
-/** Polling: skip if a full cycle is still in flight to avoid aborting overview/tickets. */
-function pollRefresh() {
-  if (refreshInProgress.value) return;
-  void runRefreshCycle();
-}
-
 function onDashboardRequestRefresh() {
   refreshAll();
 }
@@ -564,14 +525,6 @@ watch(timelineYAxisMode, () => {
   timelineZoomStart.value = Math.min(timelineZoomStart.value, maxIdx);
   timelineZoomEnd.value = Math.min(Math.max(timelineZoomEnd.value, timelineZoomStart.value), maxIdx);
 });
-
-const { remainingMs, intervalMs, isRunning } = useDashboardPolling(pollRefresh, {
-  enabled: autoRefreshEnabled,
-});
-
-function toggleAutoRefresh() {
-  autoRefreshEnabled.value = !autoRefreshEnabled.value;
-}
 
 onMounted(async () => {
   toast?.clearToast();

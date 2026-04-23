@@ -16,8 +16,8 @@
       :class="[
         { 'mt-1': label },
         dark
-          ? 'border-slate-600 bg-slate-800 text-white hover:bg-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400'
-          : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500',
+          ? 'border-slate-600 bg-slate-800 text-white hover:bg-slate-700 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500'
+          : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400',
       ]"
       :aria-expanded="open"
       @click="toggle"

@@ -9,6 +9,7 @@ from decimal import Decimal
 
 class GarageOverviewRow(BaseModel):
     """Per-garage spot counts for dashboard overview (no spot lists)."""
+
     garage_id: int
     name: str
     total_spots: int
@@ -209,6 +210,7 @@ class OutstandingResponse(BaseModel):
 
     For unpaid/partially paid tickets (optionally per garage).
     """
+
     total_outstanding: float
 
 
