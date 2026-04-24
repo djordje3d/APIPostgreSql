@@ -225,6 +225,8 @@
     "liveOverview": "Pregled uživo"
   },
   "common": {
+    "from": "Od",
+    "to": "Do",
     "refreshing": "Osvežavanje…",
     "ready": "Spremno"
   },

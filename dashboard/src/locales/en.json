@@ -222,6 +222,8 @@
     "liveOverview": "Live overview"
   },
   "common": {
+    "from": "From",
+    "to": "To",
     "refreshing": "Refreshing...",
     "ready": "Ready"
   },

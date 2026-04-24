@@ -35,13 +35,15 @@
             />
           </div>
 
-          <div
-            class="grid grid-cols-[auto_1fr] items-baseline gap-x-2 gap-y-0.5 text-sm text-gray-500"
-          >
-            <span class="shrink-0 text-right">From:</span>
-            <span class="min-w-0 tabular-nums">{{ fromDate }}</span>
-            <span class="shrink-0 text-right">To:</span>
-            <span class="min-w-0 tabular-nums">{{ toDate }}</span>
+          <div class="flex min-w-[140px] flex-col text-sm text-gray-500">
+            <div class="grid grid-cols-[auto_auto] items-baseline justify-end gap-x-2">
+              <span class="shrink-0">{{ t("common.from") }}:</span>
+              <span class="tabular-nums">{{ fromDate }}</span>
+            </div>
+            <div class="grid grid-cols-[auto_auto] items-baseline justify-end gap-x-2">
+              <span class="shrink-0">{{ t("common.to") }}:</span>
+              <span class="tabular-nums">{{ toDate }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -98,6 +100,7 @@
           >
             <input
               type="checkbox"
+              class="accent-emerald-400"
               :checked="visibleSeries[s.id] !== false"
               @change="toggleSeries(s.id)"
             />
@@ -278,7 +281,7 @@
             ></div>
 
             <div
-              class="absolute inset-y-0 border-2 border-blue-500 bg-blue-200/20"
+              class="absolute inset-y-0 border-2 border-emerald-400 bg-emerald-100/40"
               :style="{
                 left: `${brushLeftPercent}%`,
                 width: `${brushWidthPercent}%`,
@@ -287,14 +290,14 @@
               <button
                 type="button"
                 aria-label="Resize start"
-                class="absolute inset-y-0 left-0 w-3 -translate-x-1/2 cursor-ew-resize bg-blue-500/80"
+                class="absolute inset-y-0 left-0 w-3 -translate-x-1/2 cursor-ew-resize bg-emerald-400/75"
                 @pointerdown.stop.prevent="onHandlePointerDown('start', $event)"
               ></button>
 
               <button
                 type="button"
                 aria-label="Resize end"
-                class="absolute inset-y-0 right-0 w-3 translate-x-1/2 cursor-ew-resize bg-blue-500/80"
+                class="absolute inset-y-0 right-0 w-3 translate-x-1/2 cursor-ew-resize"
                 @pointerdown.stop.prevent="onHandlePointerDown('end', $event)"
               ></button>
             </div>
