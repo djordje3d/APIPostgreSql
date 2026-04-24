@@ -3,7 +3,7 @@
     <button
       ref="btnRef"
       type="button"
-      class="help-tooltip__icon-btn inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-[10px] font-bold leading-none text-gray-500 hover:border-gray-400 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
+      class="help-tooltip__icon-btn flex h-4 w-4 m-0 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-[10px] font-bold leading-none text-gray-500 hover:border-gray-400 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
       :aria-label="ariaLabel"
       :aria-describedby="open ? tipId : undefined"
       @mouseenter="openTip"

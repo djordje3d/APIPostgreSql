@@ -2,7 +2,7 @@
   <div class="dashboard-card group relative p-5">
     <div
       v-if="helpText"
-      class="absolute right-[5px] top-[5px] z-10"
+      class="absolute top-[10px] right-[10px] z-10 h-4 w-4"
     >
       <HelpTooltip
         as-icon
