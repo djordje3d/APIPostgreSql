@@ -58,10 +58,10 @@ function close() {
 <style scoped>
 /* Backdrop: fades in first (0.25s ease-out), fades out after dialog (0.2s ease-in, delayed) */
 .modal-fade-enter-active.modal-backdrop {
-  transition: opacity 0.6s ease-out;
+  transition: opacity 0.3s ease-out;
 }
 .modal-fade-leave-active.modal-backdrop {
-  transition: opacity 0.6s ease-in;
+  transition: opacity 0.3s ease-in;
   transition-delay: 0.1s;
 }
 .modal-fade-enter-from,
