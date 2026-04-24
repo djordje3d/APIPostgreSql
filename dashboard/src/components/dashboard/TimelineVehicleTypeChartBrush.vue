@@ -96,14 +96,30 @@
           <label
             v-for="s in alignedSeries"
             :key="s.id"
-            class="inline-flex items-center gap-2 text-sm text-gray-700"
+            class="series-filter-cb inline-flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700"
           >
             <input
               type="checkbox"
-              class="accent-emerald-400"
+              class="sr-only"
               :checked="visibleSeries[s.id] !== false"
               @change="toggleSeries(s.id)"
             />
+            <span class="cb-box" aria-hidden="true">
+              <svg
+                class="cb-tick"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 6l3 3 5-5"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
             <span
               class="inline-block h-2.5 w-2.5 rounded-full border border-gray-300"
               :style="{ backgroundColor: s.color }"
@@ -577,3 +593,53 @@ onBeforeUnmount(() => {
   window.removeEventListener("pointercancel", onWindowPointerUp);
 });
 </script>
+
+<style scoped>
+/* Series filter checkbox: set box vs tick colors independently */
+.series-filter-cb {
+  --cb-unchecked-border: #d1d5db;
+  --cb-unchecked-bg: #ffffff;
+  --cb-checked-bg: rgba(52, 211, 153, 0.75);
+  --cb-checked-border: #047857;
+  --cb-tick:rgb(255, 255, 255);
+  --cb-focus-ring: #10b981;
+}
+
+.series-filter-cb .cb-box {
+  display: flex;
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  border: 1px solid var(--cb-unchecked-border);
+  background-color: var(--cb-unchecked-bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.series-filter-cb input:checked + .cb-box {
+  background-color: var(--cb-checked-bg);
+  border-color: var(--cb-checked-border);
+}
+
+.series-filter-cb .cb-tick {
+  width: 0.625rem;
+  height: 0.625rem;
+  color: var(--cb-tick);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.series-filter-cb input:checked + .cb-box .cb-tick {
+  opacity: 1;
+}
+
+.series-filter-cb input:focus-visible + .cb-box {
+  outline: 2px solid var(--cb-focus-ring);
+  outline-offset: 2px;
+}
+</style>

@@ -101,7 +101,7 @@
                 </button>
                 <div
                   v-else
-                  class="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-xs text-gray-400 select-none"
+                  class="flex h-10 w-10 items-center justify-center rounded-lg text-xs text-gray-400 select-none"
                   :title="t('garageDetail.noTicketImage')"
                 >
                   –

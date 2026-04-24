@@ -46,7 +46,6 @@
       </dl>
 
       <div class="mt-4 border-t border-gray-200 pt-4">
-        <dt class="text-xs font-medium text-gray-500">{{ t("ticket.barcode") }}</dt>
 
         <dd class="mt-2 flex flex-col items-center gap-2">
           <img

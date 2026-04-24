@@ -130,10 +130,9 @@
                   >
                     {{ s.code }}
                   </td>
-
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
                     <span
-                       class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
+                    class="whitespace-nowrap border-t border-slate-100 px-4 py-3 text-sm text-gray-700"
                     >
                       {{
                         s.is_occupied
@@ -145,7 +144,7 @@
 
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
                     <span
-                      class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
+                    class="whitespace-nowrap border-t border-slate-100 px-4 py-3 text-sm text-gray-700"
                     >
                       {{
                         s.is_rentable
@@ -157,7 +156,7 @@
 
                   <td class="border-t border-slate-100 px-4 py-3 text-sm">
                     <span
-                       class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
+                    class="whitespace-nowrap border-t border-slate-100 px-4 py-3 text-sm text-gray-700"
                     >
                       {{
                         s.is_active
