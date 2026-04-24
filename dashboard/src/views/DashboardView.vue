@@ -73,23 +73,30 @@
 
           <div
             v-if="activeTab !== 'overview'"
-            class="w-full max-w-[240px]"
+            class="flex min-w-0 flex-wrap items-center gap-3"
           >
-            <div class="mb-1 flex items-center gap-1 text-gray-600">
-              <span class="block text-sm">{{ t("dashboard.timeFrame") }}</span>
+            <div class="flex shrink-0 items-baseline gap-1.5">
+              <span
+                class="text-xs font-medium uppercase tracking-wide text-gray-500"
+              >
+                {{ t("dashboard.timeFrame") }}
+              </span>
               <HelpTooltip
                 as-icon
                 :text="t('help.dashboard.timeFrame')"
                 :aria-label="t('help.aria.timeFrame')"
               />
             </div>
-            <StandardDropdown
-              label=""
-              :options="timeFrameOptions"
-              :model-value="selectedTimeFrame"
-              :nullable="false"
-              @update:model-value="selectedTimeFrame = ($event as string) ?? 'realtime'"
-            />
+
+            <div class="w-[220px] min-w-[10rem] max-w-full shrink-0">
+              <StandardDropdown
+                label=""
+                :options="timeFrameOptions"
+                :model-value="selectedTimeFrame"
+                :nullable="false"
+                @update:model-value="selectedTimeFrame = ($event as string) ?? 'realtime'"
+              />
+            </div>
           </div>
         </div>
       </div>

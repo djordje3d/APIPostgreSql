@@ -290,9 +290,66 @@
             </div>
           </div>
 
-          <!-- CONTENT PANELS -->
-          <div class="mt-6 grid grid-cols-1 gap-6">
-            <section class="dashboard-fade dashboard-fade--4">
+          <!-- CONTENT PANELS (tab strip + v-show, aligned with DashboardView) -->
+          <div class="mt-6 dashboard-fade dashboard-fade--4">
+            <div class="dashboard-card px-5 py-3">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="dashboard-tabs gap-5">
+                  <button
+                    type="button"
+                    class="dashboard-tab"
+                    :class="{ 'dashboard-tab--active': activeDetailTab === 'spots' }"
+                    @click="activeDetailTab = 'spots'"
+                  >
+                    {{ t("garageDetail.spots") }}
+                  </button>
+                  <button
+                    type="button"
+                    class="dashboard-tab"
+                    :class="{
+                      'dashboard-tab--active': activeDetailTab === 'tickets',
+                    }"
+                    @click="activeDetailTab = 'tickets'"
+                  >
+                    {{ t("garageDetail.openTickets") }}
+                  </button>
+                </div>
+
+                <div
+                  v-if="activeDetailTab === 'tickets'"
+                  class="flex min-w-0 flex-wrap items-center gap-3"
+                >
+                  <div class="flex shrink-0 items-baseline gap-1.5">
+                    <span
+                      class="text-xs font-medium uppercase tracking-wide text-gray-500"
+                    >
+                      {{ t("dashboard.timeFrame") }}
+                    </span>
+                    <HelpTooltip
+                      as-icon
+                      :text="t('help.dashboard.timeFrame')"
+                      :aria-label="t('help.aria.timeFrame')"
+                    />
+                  </div>
+
+                  <div class="w-[220px] min-w-[10rem] max-w-full shrink-0">
+                    <StandardDropdown
+                      label=""
+                      :options="timeFrameOptions"
+                      :model-value="selectedTimeFrame"
+                      :nullable="false"
+                      @update:model-value="
+                        selectedTimeFrame = ($event as string) ?? 'realtime'
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-2 dashboard-fade dashboard-fade--5">
+            <div v-show="activeDetailTab === 'spots'">
               <GarageSpotsTable
                 :spots="spotsSec.spots"
                 :page="spotsSec.page"
@@ -305,9 +362,9 @@
                 @retry="retrySpots"
                 @update:page="onSpotsPageUpdate"
               />
-            </section>
+            </div>
 
-            <section class="dashboard-fade dashboard-fade--5">
+            <div v-show="activeDetailTab === 'tickets'">
               <GarageOpenTicketsTable
                 :open-tickets="ticketsSec.openTickets"
                 :page="ticketsSec.page"
@@ -320,7 +377,7 @@
                 @retry="retryOpenTickets"
                 @update:page="onTicketsPageUpdate"
               />
-            </section>
+            </div>
           </div>
         </template>
       </template>
@@ -335,6 +392,7 @@ import { useRoute } from "vue-router";
 import RevenueSummary from "../components/dashboard/RevenueSummary.vue";
 import RefreshCountdownRing from "../components/dashboard/RefreshCountdownRing.vue";
 import HelpTooltip from "../components/ui/HelpTooltip.vue";
+import StandardDropdown from "../components/ui/StandardDropdown.vue";
 import GarageHeaderCard from "../components/dashboard/GarageHeaderCard.vue";
 import GarageSpotsTable from "../components/dashboard/GarageSpotsTable.vue";
 import GarageOpenTicketsTable from "../components/dashboard/GarageOpenTicketsTable.vue";
@@ -356,6 +414,15 @@ const autoRefreshEnabled = inject<Ref<boolean>>(
 
 const { garageId, prepareRefreshCycle } = useGarageDetailContext();
 const fallbackId = computed(() => String(route.params.id ?? ""));
+
+const activeDetailTab = ref<"spots" | "tickets">("spots");
+const selectedTimeFrame = ref("realtime");
+const timeFrameOptions = computed(() => [
+  { id: "realtime", label: t("dashboard.timeFrameRealtime") },
+  { id: "last7", label: t("dashboard.timeFrameLast7") },
+  { id: "last30", label: t("dashboard.timeFrameLast30") },
+  { id: "last90", label: t("dashboard.timeFrameLast90") },
+]);
 
 const garageSec = useGarageDetailGarage(garageId);
 const revenueSec = useGarageRevenue(garageId);
@@ -472,6 +539,20 @@ watch(
 );
 
 watch(
+  () => selectedTimeFrame.value,
+  () => {
+    if (!garageId.value || !garageSec.hasLoadedOnce || refreshInProgress.value) {
+      return;
+    }
+    if (activeDetailTab.value !== "tickets") return;
+    ticketsSec.page = 1;
+    ticketsPagAbort?.abort();
+    ticketsPagAbort = new AbortController();
+    void ticketsSec.fetchOpenTickets(ticketsPagAbort.signal);
+  },
+);
+
+watch(
   garageId,
   (id) => {
     if (!id) {
@@ -517,5 +598,23 @@ watch(
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.dashboard-tabs {
+  display: flex;
+  align-items: center;
+}
+.dashboard-tab {
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  color: rgb(51 65 85);
+  background: white;
+}
+.dashboard-tab--active {
+  border-color: rgb(16 185 129);
+  color: rgb(5 150 105);
+  background: rgb(236 253 245);
 }
 </style>
