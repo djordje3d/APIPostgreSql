@@ -176,7 +176,7 @@ const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 
 const WIDGET_FETCH_TIMEOUT_MS = 45_000;
 
-const { t } = useI18n();
+const { t, te, locale } = useI18n();
 const route = useRoute(); /** Rute za dashboard . Čita se iz URL-a*/
 const router = useRouter(); /** Router za dashboard . Koristi se za preusmeravanje na druge stranice */
 
@@ -300,7 +300,26 @@ const timelinePoints = computed(() => {
   return points;
 });
 
+function normalizeVehicleTypeKey(raw: string): string {
+  const normalized = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return normalized || "other";
+}
+
+function localizeVehicleType(raw: string): string {
+  const fallbackLabel = t("vehicleType.other");
+  const trimmed = raw.trim();
+  const key = `vehicleType.${normalizeVehicleTypeKey(trimmed)}`;
+  if (te(key)) return t(key);
+  return trimmed || fallbackLabel;
+}
+
 const timelineSeries = computed(() => {
+  // Keep localized series labels reactive to language changes.
+  void locale.value;
   //const colorPalette = ["#ef4444", "#3b82f6", "#eab308", "#22c55e", "#a855f7", "#f97316"];
   const colorPalette = [
   "hsl(0, 60%, 68%)",    // soft red
@@ -310,20 +329,24 @@ const timelineSeries = computed(() => {
   "hsl(270, 55%, 68%)",  // soft purple
   "hsl(24, 65%, 64%)",   // orange with a bit more strength
 ];
-  const perType = new Map<string, Record<string, number>>();
+  const perType = new Map<string, { rawName: string; days: Record<string, number> }>();
   for (const row of timelineRows.value) {
     const daySource = timelineYAxisMode.value === "entries" ? row.entry_time : row.exit_time;
     const day = daySource ? daySource.slice(0, 10) : "";
     if (!day) continue;
-    const typeName = row.vehicle_type?.trim() || "Other";
-    if (!perType.has(typeName)) perType.set(typeName, {});
-    const bucket = perType.get(typeName)!;
+    const rawTypeName = row.vehicle_type?.trim() || "";
+    const typeId = normalizeVehicleTypeKey(rawTypeName);
+    if (!perType.has(typeId)) {
+      perType.set(typeId, { rawName: rawTypeName, days: {} });
+    }
+    const bucket = perType.get(typeId)!.days;
     bucket[day] = (bucket[day] ?? 0) + 1;
   }
-  return Array.from(perType.entries()).map(([name, days], idx) => ({
-    name,
+  return Array.from(perType.entries()).map(([id, info], idx) => ({
+    id,
+    name: localizeVehicleType(info.rawName),
     color: colorPalette[idx % colorPalette.length],
-    values: timelinePoints.value.map((p) => days[p] ?? 0),
+    values: timelinePoints.value.map((p) => info.days[p] ?? 0),
   }));
 });
 

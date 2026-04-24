@@ -258,6 +258,19 @@
     "timeFrameLast30": "Poslednjih 30 dana",
     "timeFrameLast90": "Poslednjih 90 dana"
   },
+  "vehicleType": {
+    "putnicko": "Automobil",
+    "teretno": "Kamion",
+    "motor": "Motocikl",
+    "moped": "Moped",
+    "mini_bus": "Minibus",
+    "bicikla": "Bicikl",
+    "bus": "Autobus",
+    "karavan": "Karavan",
+    "kombi": "Kombi",
+    "suv": "SUV",
+    "other": "Drugo"
+  },
   "garageSpots": {
     "subtitle": "Pregled aktivnih parking mesta i mesta za izdavanje.",
     "loadFailed": "Učitavanje mesta nije uspelo.",

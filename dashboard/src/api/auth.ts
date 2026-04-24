@@ -1,6 +1,6 @@
 import { api } from './client'
 import { setStoredToken } from './auth-storage'
-import { setStoredLocale, type SupportedLocale } from '../i18n'
+import { i18n, setStoredLocale, type SupportedLocale } from '../i18n'
 
 export { getStoredToken, setStoredToken, clearStoredToken, isAuthenticated, ACCESS_TOKEN_KEY } from './auth-storage'
 
@@ -18,10 +18,10 @@ export interface LoginResponse {
 export async function login(username: string, password: string): Promise<LoginResponse> {
   const { data } = await api.post<LoginResponse>('/auth/login', { username, password })
   setStoredToken(data.access_token, data.expires_in)
-  if (data.preferred_language) {
-    setStoredLocale(data.preferred_language)
-  }
+  setStoredLocale("en")
+  i18n.global.locale.value = "en"
   return data
+  
 }
 
 /**

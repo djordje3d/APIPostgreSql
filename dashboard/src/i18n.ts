@@ -38,7 +38,7 @@ const stored = getStoredLocale();
 
 export const i18n = createI18n({
   legacy: false,
-  locale: stored ?? detectBrowserLocale(),
+  locale: stored ?? "en",
   fallbackLocale: "en",
   messages: {
     en,

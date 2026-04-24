@@ -255,6 +255,19 @@
     "timeFrameLast30": "Last 30 days",
     "timeFrameLast90": "Last 90 days"
   },
+  "vehicleType": {
+    "putnicko": "Car",
+    "teretno": "Truck",
+    "motor": "Motorcycle",
+    "moped": "Moped",
+    "mini_bus": "Minibus",
+    "bicikla": "Bicycle",
+    "kombi": "Van",
+    "bus": "Bus",
+    "karavan": "Estate",
+    "suv": "SUV",
+    "other": "Other"
+  },
   "garageSpots": {
     "subtitle": "Overview of active and rentable parking spots.",
     "loadFailed": "Failed to load spots.",
