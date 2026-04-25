@@ -5,6 +5,7 @@
     :title="modalTitle"
   >
     <template v-if="ticket">
+      <div class="mx-auto w-full max-w-sm">
       <div v-if="ticketImageUrl" class="mb-4">
         <ImageIn
           :key="`ticket-img-${ticket.id}-${ticketImageUrl}`"
@@ -44,16 +45,17 @@
           <dd>{{ formatMoney(ticket.fee) }}</dd>
         </div>
       </dl>
+      </div>
 
-        <dd class="mt-2 flex flex-col items-center gap-2">
+        <dd class="mt-2 -mx-6">
           <img
             v-if="barcodeImageSrc"
             :src="barcodeImageSrc"
-            class="max-w-full bg-white"
+            class="block h-auto w-full bg-white"
             :alt="`Barcode for ticket ${ticket.ticket_token ?? ticket.id}`"
           />
 
-          <span v-if="!barcodeImageSrc" class="text-xs text-gray-400">
+          <span v-if="!barcodeImageSrc" class="px-6 text-xs text-gray-400">
             Barcode unavailable
           </span>
         </dd>

@@ -162,21 +162,13 @@
       <template v-else>
         <!-- HERO -->
         <section class="dashboard-fade dashboard-fade--1">
-          <div
-            class="flex flex-col gap-3 px-0 py-2 sm:flex-row sm:items-start sm:justify-between"
-          >
-            <h1
-              class="min-w-0 truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
-            >
-              {{ garageSec.garage.name }}
-            </h1>
-
+          <div class="space-y-3 px-0 py-2">
             <div
-              class="flex flex-wrap items-center justify-start gap-2 text-sm text-slate-500 sm:justify-end"
+              class="flex flex-wrap items-center justify-end gap-2 text-sm text-slate-500"
             >
               <router-link
                 :to="{ name: 'dashboard' }"
-                class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-900"
+                class="inline-flex items-center rounded-full bg-slate-100 text-base px-3 py-1 font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-900"
               >
                 &larr; {{ t("garageDetail.dashboard") }}
               </router-link>
@@ -194,11 +186,17 @@
               </span>
               <span
                 v-else
-                class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700"
+                class="inline-flex items-center rounded-full bg-slate-100 text-base px-3 py-1 font-medium text-slate-700"
               >
                 {{ t("garageDetail.liveOverview") }}
               </span>
             </div>
+
+            <h1
+              class="min-w-0 truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+            >
+              {{ garageSec.garage.name }}
+            </h1>
           </div>
         </section>
 
