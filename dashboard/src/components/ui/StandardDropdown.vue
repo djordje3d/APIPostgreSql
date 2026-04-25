@@ -12,7 +12,7 @@
     <button
       ref="trigger"
       type="button"
-      class="w-full rounded border px-3 py-2 text-left text-sm font-medium shadow-sm transition"
+      class="h-12 w-full rounded border px-3 text-left text-sm font-medium shadow-sm transition"
       :class="[
         { 'mt-1': label },
         dark
@@ -160,7 +160,7 @@ const props = withDefaults(
     nullable: false,
     nullOptionLabel: "",
     dark: false,
-    labelClass: "text-sm",
+    labelClass: "text-sm font-medium",
   },
 );
 

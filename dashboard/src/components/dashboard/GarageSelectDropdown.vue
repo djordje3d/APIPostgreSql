@@ -13,7 +13,6 @@
       <div class="w-full min-w-0 shrink-0">
         <StandardDropdown
           :label="t('garageSelectDropdown.title')"
-          label-class="text-base"
           :options="garageOptions"
           :model-value="modelValue"
           :nullable="true"

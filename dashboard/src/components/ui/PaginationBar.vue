@@ -15,7 +15,7 @@
         <span>Page size</span>
         <select
           :value="pageSize"
-          class="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+          class="h-12 rounded border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
           @change="onPageSizeChange"
         >
           <option v-for="size in pageSizeOptions" :key="size" :value="size">

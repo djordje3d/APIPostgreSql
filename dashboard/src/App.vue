@@ -776,7 +776,4 @@ const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
   transform: translateY(0.5rem);
 }
 
-:deep(.standard-dropdown > button) {
-  height: 3rem; /* 48px, matches RefreshCountdownRing */
-}
 </style>
