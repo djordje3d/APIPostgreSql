@@ -254,6 +254,25 @@ function getSelectedIndex(): number {
   return idx >= 0 ? (props.nullable ? 1 + idx : idx) : -1;
 }
 
+const MENU_GAP = 8;
+const VIEW_MARGIN = 10;
+/** max-h-64 on the list (256px) + chrome (border, nub) */
+const LIST_MAX_H = 256;
+const ROW_EST = 40;
+
+function estimateMenuHeight(): number {
+  const rows = (props.nullable ? 1 : 0) + props.options.length;
+  return Math.min(LIST_MAX_H + 36, Math.max(48, rows * ROW_EST + 32));
+}
+
+function readMenuHeight(): number {
+  const m = menu.value;
+  if (!m) return estimateMenuHeight();
+  const h = m.getBoundingClientRect().height;
+  if (h > 1) return h;
+  return estimateMenuHeight();
+}
+
 function openMenu(after?: () => void) {
   open.value = true;
   nextTick(() => {
@@ -261,6 +280,10 @@ function openMenu(after?: () => void) {
     const selectedIdx = getSelectedIndex();
     focusItem(selectedIdx >= 0 ? selectedIdx : 0);
     after?.();
+    // Second pass after teleported menu paints (avoids using a fixed 320px “ghost” height).
+    requestAnimationFrame(() => {
+      positionMenu();
+    });
   });
 }
 
@@ -272,24 +295,33 @@ function positionMenu() {
   const viewportW = window.innerWidth;
   const viewportH = window.innerHeight;
 
-  const margin = 10;
-  const menuMaxH = 256;
-  const estimatedH = Math.min(menuMaxH + 20, 320);
+  const menuH = readMenuHeight();
+  const needH = menuH + MENU_GAP;
 
-  const spaceBelow = viewportH - rect.bottom - margin;
-  const spaceAbove = rect.top - margin;
+  const spaceBelow = viewportH - rect.bottom - VIEW_MARGIN;
+  const spaceAbove = rect.top - VIEW_MARGIN;
 
-  openUp.value = spaceBelow < estimatedH && spaceAbove > spaceBelow;
+  openUp.value = spaceBelow < needH && spaceAbove > spaceBelow;
 
   const width = rect.width;
   const left = Math.min(
-    Math.max(rect.left, margin),
-    viewportW - width - margin,
+    Math.max(rect.left, VIEW_MARGIN),
+    viewportW - width - VIEW_MARGIN,
   );
 
-  const top = openUp.value
-    ? Math.max(margin, rect.top - estimatedH)
-    : Math.min(viewportH - estimatedH - margin, rect.bottom + 8);
+  let top: number;
+  if (openUp.value) {
+    top = rect.top - MENU_GAP - menuH;
+    top = Math.max(VIEW_MARGIN, top);
+  } else {
+    top = rect.bottom + MENU_GAP;
+    if (top + menuH > viewportH - VIEW_MARGIN) {
+      top = Math.max(
+        VIEW_MARGIN,
+        Math.min(top, viewportH - VIEW_MARGIN - menuH),
+      );
+    }
+  }
 
   menuStyle.value = {
     left: `${left}px`,

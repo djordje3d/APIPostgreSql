@@ -217,12 +217,12 @@ import HelpTooltip from "./components/ui/HelpTooltip.vue";
 import ButtonIn from "./components/ui/ButtonIn.vue";
 import LanguageSwitcher from "./components/ui/LanguageSwitcher.vue";
 import { useI18n } from "vue-i18n";
+import { DASHBOARD_REQUEST_REFRESH_EVENT } from "./constants/dashboardRefresh";
 
 const { t } = useI18n();
 
 const AUTO_REFRESH_STORAGE_KEY = "dashboard-auto-refresh";
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
-const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";
 /** After this many ms without user activity (no click, no mouse move), show session-expiry alert with countdown. */
 const IDLE_MS = 90 * 1000;
 /** Throttle mousemove so we don't reset idle timer every frame. */

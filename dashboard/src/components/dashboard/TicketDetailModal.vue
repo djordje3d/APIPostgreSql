@@ -45,8 +45,6 @@
         </div>
       </dl>
 
-      <div class="mt-4 border-t border-gray-200 pt-4">
-
         <dd class="mt-2 flex flex-col items-center gap-2">
           <img
             v-if="barcodeImageSrc"
@@ -59,7 +57,7 @@
             Barcode unavailable
           </span>
         </dd>
-      </div>
+      
 
       <div class="mt-4 border-t border-gray-200 pt-4">
         <h4 class="text-sm font-semibold text-gray-800">
