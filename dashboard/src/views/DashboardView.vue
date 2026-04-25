@@ -636,6 +636,10 @@ defineExpose({ refreshAll });
   align-items: center;
 }
 .dashboard-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
   border: 1px solid rgb(203 213 225);
   border-radius: 0.5rem;
   padding: 0.45rem 0.9rem;

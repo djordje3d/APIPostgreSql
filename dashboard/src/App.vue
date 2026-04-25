@@ -160,6 +160,7 @@
               </div>
               <ButtonIn
                 id="logoutBtn"
+                class="h-12"
                 variant="outline"
                 :label="t('header.logout')"
                 @userclick="logout"
@@ -167,6 +168,7 @@
               />
               <ButtonIn
                 id="newVehicleEntryBtn"
+                class="h-12"
                 variant="primary"
                 :label="t('header.newVehicleEntry')"
                 @userclick="showNewEntry = true"
@@ -772,5 +774,9 @@ const { remainingMs, intervalMs, isRunning } = useDashboardPolling(
 .toast-snackbar-fade-leave-to {
   opacity: 0;
   transform: translateY(0.5rem);
+}
+
+:deep(.standard-dropdown > button) {
+  height: 3rem; /* 48px, matches RefreshCountdownRing */
 }
 </style>

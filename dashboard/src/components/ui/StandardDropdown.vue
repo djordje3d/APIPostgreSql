@@ -12,7 +12,7 @@
     <button
       ref="trigger"
       type="button"
-      class="w-full rounded border px-3 py-2 text-left text-sm shadow-sm transition"
+      class="w-full rounded border px-3 py-2 text-left text-sm font-medium shadow-sm transition"
       :class="[
         { 'mt-1': label },
         dark

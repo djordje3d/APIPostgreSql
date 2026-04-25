@@ -16,7 +16,7 @@
         class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 transition "
         aria-hidden="true"
       >
-        <span :class="`icon-${icon}`" class="text-lg"></span>
+        <span :class="`icon-${icon}`" class="text-2xl"></span>
       </span>
 
       <div class="min-w-0 flex-1">

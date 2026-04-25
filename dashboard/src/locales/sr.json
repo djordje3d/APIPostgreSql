@@ -91,7 +91,7 @@
     "entryTime": "Vreme ulaska",
     "exitTime": "Vreme izlaska",
     "spot": "Mesto",
-    "plate": "Registracija",
+    "plate": "Tablica",
     "state": "Stanje",
     "payment": "Plaćanje",
     "fee": "Cena",
@@ -118,7 +118,7 @@
     "paymentStatus": {
       "NOT_APPLICABLE": "Nije primenjivo",
       "UNPAID": "Neplaćeno",
-      "PARTIALLY_PAID": "Delimično plaćeno",
+      "PARTIALLY_PAID": "Delimično",
       "PAID": "Plaćeno"
     }
   },

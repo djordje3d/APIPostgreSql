@@ -49,7 +49,7 @@
           <img
             v-if="barcodeImageSrc"
             :src="barcodeImageSrc"
-            class="max-w-full rounded border border-gray-200 bg-white"
+            class="max-w-full bg-white"
             :alt="`Barcode for ticket ${ticket.ticket_token ?? ticket.id}`"
           />
 
