@@ -1,9 +1,23 @@
-export function formatTime(s: string | null | undefined): string {
-  if (s == null || s === '') return '–'
+export function formatTime(
+  s: string | null | undefined,
+  locale: "en" | "sr" = "en",
+): string {
+  if (s == null || s === "") return "–";
   try {
-    return new Date(s).toLocaleString()
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return String(s);
+    const resolvedLocale = locale === "sr" ? "sr-RS" : "en-US";
+    return new Intl.DateTimeFormat(resolvedLocale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(d);
   } catch {
-    return String(s)
+    return String(s);
   }
 }
 

@@ -72,9 +72,7 @@ const error = ref("");
 const isSubmitting = ref(false);
 
 const sessionExpiredMessage = computed(() =>
-  route.query.reason === "expired"
-    ? t("login.sessionExpired")
-    : "",
+  route.query.reason === "expired" ? t("login.sessionExpired") : "",
 );
 
 const canSubmit = computed(() => {
@@ -114,6 +112,7 @@ async function onSubmit() {
 .bg-layer {
   position: absolute;
   inset: 0;
+  pointer-events: none;
 
   /* final look */
   background:

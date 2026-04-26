@@ -13,11 +13,11 @@
     </td>
 
     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-      {{ formatTime(ticket.entry_time) }}
+      {{ formatTime(ticket.entry_time, activeLocale) }}
     </td>
 
     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-      {{ formatTime(ticket.exit_time) }}
+      {{ formatTime(ticket.exit_time, activeLocale) }}
     </td>
 
     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
@@ -121,7 +121,10 @@ const props = defineProps<{
   restToPayClass: string;
 }>();
 
-const { t, te } = useI18n();
+const { t, te, locale } = useI18n();
+const activeLocale = computed<"en" | "sr">(() =>
+  String(locale.value).toLowerCase().startsWith("sr") ? "sr" : "en",
+);
 
 const ticketStateLabel = computed(() => {
   const s = props.ticket.ticket_state;
