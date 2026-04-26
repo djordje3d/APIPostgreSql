@@ -6,9 +6,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 
 
-def spot_ids_with_open_tickets(
-    db: Session, spot_ids: Sequence[int]
-) -> set[int]:
+def spot_ids_with_open_tickets(db: Session, spot_ids: Sequence[int]) -> set[int]:
     ids = [i for i in spot_ids if i is not None]
     if not ids:
         return set()
@@ -54,11 +52,7 @@ def to_spot_response(
     )
 
 
-def allocate_free_spot(
-    db: Session,
-    garage_id: int,
-    rentable_only: bool = False
-  ) -> int:
+def allocate_free_spot(db: Session, garage_id: int, rentable_only: bool = False) -> int:
     """
     Vrati ID slobodnog spota za dati garage_id.
     Slobodan = is_active AND nije vezan za OPEN ticket.
@@ -86,9 +80,6 @@ def allocate_free_spot(
         text(sql),
         {"garage_id": garage_id, "rentable_only": rentable_only},
     ).scalar()
-    # vraca ID slobodnog spota ili None ako nema slobodnih spota.
-    # Ne mora biti samo jedan spot, ako ima više slobodnih, vraca ID prvog.
-    # Kako je ORDER BY ps.id, vraca ID najmanjeg slobodnog spota.
 
     if spot_id is None:
         raise ValueError("No free spots available")

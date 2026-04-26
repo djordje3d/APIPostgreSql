@@ -128,8 +128,7 @@ def create_ticket_entry(db: Session, data: schemas.TicketEntry) -> models.Ticket
     )
 
 
-# Validate spot reassignment to avoid race conditions
-# between ticket entry and exit
+# Validate that the requested spot can be assigned to this open ticket.
 def _validate_spot_reassignment(
     db: Session, ticket: models.Ticket, new_spot_id: int
 ) -> None:
@@ -155,8 +154,7 @@ def _validate_spot_reassignment(
         raise SpotOccupiedError("Spot is occupied")
 
 
-# Apply ticket update to avoid race conditions
-# between ticket entry and exit
+# Apply allowed updates to an existing ticket with basic state validation.
 
 
 def apply_ticket_update(

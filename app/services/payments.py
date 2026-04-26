@@ -13,7 +13,6 @@ def recalc_ticket_payment_status(db, ticket_id: int):
         .scalar()
     )
 
-    # fee može biti null/0 dok nije exit
     fee = ticket.fee or 0
 
     if fee == 0:
