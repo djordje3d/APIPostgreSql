@@ -258,10 +258,8 @@ const router = useRouter();
 const route = useRoute();
 const routerReady = ref(false);
 const isLoginPage = computed(() => route.name === "login");
-const isDashboard = computed(() => route.name === "dashboard");
 const sessionExpiryCountdown = computed(() => idleExpiryCountdown.value);
 const showNewEntry = ref(false);
-const toast = useToast();
 const { message: toastMessage, showToast, clearToast } = useToast();
 
 provide("toast", {

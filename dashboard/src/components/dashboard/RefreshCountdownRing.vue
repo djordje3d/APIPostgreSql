@@ -104,8 +104,8 @@ watch(() => props.autoRefreshEnabled, updateRing);
   stroke: #22c55e;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.5s linear;
-  transform: rotate(-90deg) scale(-1,1) rotate(-180deg); /* početak na 12h + smer kazaljke */
-  /* rotate(-90deg) → pomera početak sa 3h na 12h , scale(-1,1) → menja smer u kazaljke, rotate(-180deg) → dodatno koriguje da početak ostane na 12h, a ne da se pomeri na 6h. */
+  transform: rotate(-90deg) scale(-1,1) rotate(-180deg); /* start at 12h + direction of the clock */
+  /* rotate(-90deg) → move start from 3h to 12h , scale(-1,1) → change direction to clock, rotate(-180deg) → additional correction to keep start at 12h, not move to 6h. */
   transform-origin: center;
 }
 

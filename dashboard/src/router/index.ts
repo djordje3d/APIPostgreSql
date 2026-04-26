@@ -2,8 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteLocationNormalized } from 'vue-router'
 import { isAuthenticated } from '../api/auth-storage'
 
-/** Dashboard with no selected garage — default landing after login. */
-/**For decision abbout saving redirect information in query parameter */
+
 function isDashboardAllGarages(to: RouteLocationNormalized): boolean {
   return (
     to.name === 'dashboard' &&
@@ -14,7 +13,7 @@ function isDashboardAllGarages(to: RouteLocationNormalized): boolean {
 }
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL), /** Browser history API for navigation*/
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/login',
@@ -35,7 +34,7 @@ const router = createRouter({
       component: () => import('../views/GarageDetailView.vue'),
       meta: { title: 'Garage' },
     },
-    // Redirect so /index.html or /Index.html shows the dashboard
+    
     { path: '/index.html', redirect: '/dashboard' },
     { path: '/Index.html', redirect: '/dashboard' },
   ],

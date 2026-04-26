@@ -5,19 +5,8 @@
  */
 
 /**
- * Code 39 is a barcode symbology that encodes 43 different characters, including digits, uppercase letters, and special characters.
- * It is a self-checking code, meaning that the barcode can be scanned and verified without the need for a checksum.
- * It is a linear barcode and is often used in industrial applications.
- * It is a 1D barcode and is often used in industrial applications.
  * 0-9, A-Z, -, ., $, /, +, %, * are the supported characters.
  * * is the start/stop character and must not be part of the input.
- * The barcode is encoded as a sequence of bars and spaces.
- * The bars are encoded as "w" for wide and "n" for narrow.
- * The spaces are encoded as "n" for narrow and "w" for wide.
- * The barcode is encoded as a sequence of bars and spaces.
- * The bars are encoded as "w" for wide and "n" for narrow.
- * The spaces are encoded as "n" for narrow and "w" for wide.
- * The barcode is encoded as a sequence of bars and spaces.
  */
 
 export const CODE39_PATTERNS: Record<string, string> = {
@@ -68,7 +57,7 @@ export const CODE39_PATTERNS: Record<string, string> = {
   "/": "nwnwnnnwn",
   "+": "nwnnnwnwn",
   "%": "nnnwnwnwn",
-  "*": "nwnnwnwnn", // start/stop (should not be present in input)
+  "*": "nwnnwnwnn",
 };
 
 export type Code39RenderOptions = {
@@ -157,7 +146,6 @@ function buildCode39Sequence(
     }
 
     // Narrow space gap between characters (not after last char).
-     // međukarakterni gap, osim posle poslednjeg karaktera
     if (charIndex < fullText.length - 1) {
       sequence.push({
         isBar: false,
@@ -206,7 +194,6 @@ export function generateCode39BarcodeImage(
 
   ctx.imageSmoothingEnabled = false;
 
-  // Background color
   ctx.fillStyle = opts.backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 

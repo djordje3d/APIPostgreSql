@@ -45,9 +45,9 @@ const props = withDefaults(
     type?: "button" | "submit" | "reset";
     disabled?: boolean;
     variant?: "primary" | "danger" | "outline" | "default" | "link";
-    icon?: string;  // Default is not needed, browser just not show it. Default "" would be rendered as empty span.
-    label?: string; // Default could be unwant
-    caption?: string;  // tooltip text. Default is not needed, browser just not show it.
+    icon?: string; 
+    label?: string;
+    caption?: string;
   }>(),
   {
     type: "button",
@@ -55,9 +55,6 @@ const props = withDefaults(
     variant: "primary",
   },
 );
-
-// emit userclick event
-// parent component can listen to this event and handle the click event
 
 const emit = defineEmits<{ userclick: [e?: MouseEvent] }>();
 
@@ -102,14 +99,14 @@ function onMove(e: MouseEvent) {
 
   const el = e.currentTarget as HTMLElement;
   const rect = el.getBoundingClientRect(); // get the bounding rectangle of the element
-  const x = e.clientX - rect.left; // get the x coordinate of the mouse relative to the element
-  const y = e.clientY - rect.top; // get the y coordinate of the mouse relative to the element
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
 
   // set the hover glow style
   hoverGlow.value = {
     background: `radial-gradient(circle at ${x}px ${y}px,
-      rgba(255,255,255,0.35), // set the background color to white with 35% opacity
-      transparent 60%)`, // set the background color to transparent with 60% opacity
+      rgba(255,255,255,0.35),
+      transparent 60%)`,
   };
 }
 

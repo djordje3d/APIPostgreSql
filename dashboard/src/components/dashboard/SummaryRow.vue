@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-withDefaults( // withDefaults is a Vue 3 feature that allows us to define default values for props
+withDefaults(
   defineProps<{
     label: string
     value: string | number
