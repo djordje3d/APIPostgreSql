@@ -58,7 +58,8 @@ export function createPayment(data: {
 }) {
   return api.post<Payment>('/payments', {
     ...data,
-    amount: String(data.amount),
+    amount:
+      typeof data.amount === 'number' ? data.amount : Number(data.amount),
     currency: data.currency ?? 'RSD',
   })
 }

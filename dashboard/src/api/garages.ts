@@ -23,6 +23,8 @@ export interface Paginated<T> {
   items: T[]
 }
 
+// config - cancel request if dashboard refresh starts again and we have a request in progress
+
 export function listGarages(
   params?: { limit?: number; offset?: number },
   config?: ApiRequestConfig
