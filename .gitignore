@@ -41,3 +41,11 @@ Thumbs.db
 
 # Static files
 static/uploads/tickets/
+
+# --- Frontend (storage) ---
+fileserver/storage/node_modules/
+fileserver/storage/dist/
+fileserver/storage/.env
+fileserver/storage/.env.local
+fileserver/storage/.env.*.local
+fileserver/storage/.vite
