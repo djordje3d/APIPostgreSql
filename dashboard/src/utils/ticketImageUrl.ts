@@ -1,8 +1,9 @@
-import { baseURL } from "../api/client";
+const fileserverBase =
+  import.meta.env.VITE_FILESERVER_URL || "http://localhost:9009";
 
 /**
  * Resolve ticket `image_url` for use in <img src>. Handles absolute URLs and
- * API-relative paths (e.g. /uploads/...).
+ * relative paths (e.g. /uploads/...) by prepending the file server origin.
  */
 export function normalizeTicketImageUrl(
   url?: string | null,
@@ -11,16 +12,5 @@ export function normalizeTicketImageUrl(
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
 
   const path = url.startsWith("/") ? url : `/${url}`;
-  try {
-    const api = new URL(
-      baseURL,
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost:8000",
-    );
-    return `${api.origin}${path}`;
-  } catch {
-    const base = baseURL.replace(/\/+$/, "");
-    return base ? `${base}${path}` : path;
-  }
+  return `${fileserverBase}${path}`;
 }

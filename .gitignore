@@ -39,8 +39,8 @@ dashboard/.vite
 Thumbs.db
 .DS_Store
 
-# Static files
-static/uploads/tickets/
+# Uploaded ticket images (served by fileserver)
+fileserver/storage/ticket_*
 
 # --- Frontend (storage) ---
 fileserver/storage/node_modules/

@@ -25,8 +25,6 @@ def _is_public_path(path: str, method: str) -> bool:
         return True
     if path == "/auth/login" and method == "POST":
         return True
-    if path.startswith("/uploads/") and method == "GET":
-        return True
 
     # FastAPI docs/OpenAPI endpoints
     if method == "GET" and path in {
@@ -35,6 +33,9 @@ def _is_public_path(path: str, method: str) -> bool:
         "/redoc",
         "/docs/oauth2-redirect",
     }:
+        return True
+
+    if method == "OPTIONS":
         return True
 
     return False

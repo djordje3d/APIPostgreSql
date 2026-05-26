@@ -1,10 +1,8 @@
 # pyright: reportMissingImports=false
 # Import config first so load_dotenv() runs before db engine is created.
-from pathlib import Path
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -15,7 +13,6 @@ from app.config import (
     CORS_MAX_AGE,
     CORS_DISABLED,
     CORS_ORIGINS,
-    UPLOAD_DIR,
 )
 from app.db import get_db
 from app.auth import APIKeyMiddleware
@@ -63,9 +60,6 @@ app = FastAPI(
         },
     ],
 )
-
-# Ensure upload directory exists (tickets subdir created by upload handler).
-Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
 # CORS: allow browser apps (different origin) to call this API. Skip if CORS_DISABLED.
 if not CORS_DISABLED:
@@ -149,5 +143,3 @@ app.include_router(payments_router)
 app.include_router(spots_router)
 app.include_router(dashboard_router)
 app.include_router(upload_router, prefix="/upload")
-
-app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")

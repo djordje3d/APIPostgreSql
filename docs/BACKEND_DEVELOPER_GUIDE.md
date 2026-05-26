@@ -9,7 +9,6 @@ The backend follows a layered structure in `app/`:
 
 - `app/main.py`
   - FastAPI app creation, middleware, OpenAPI setup, router registration.
-  - Mounts static uploads under `/uploads`.
 
 - `app/routers/`
   - HTTP layer only.
@@ -234,7 +233,7 @@ Useful URLs:
 - `401 Unauthorized`: wrong/missing API key or expired/invalid JWT.
 - `409 Conflict`: business rule conflict (already occupied spot, invalid state transition, overpayment, etc.).
 - `503` on `/health`: database not reachable.
-- Upload issues: verify writable `static/uploads/` and file size/type limits.
+- Upload issues: verify writable `fileserver/storage/` and file size/type limits.
 
 ## 7) Practical contributor checklist
 

@@ -20,7 +20,6 @@ CONTENT_TYPE_TO_EXT = {
     "image/webp": ".webp",
 }
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
-TICKET_IMAGE_SUBDIR = "tickets"
 
 
 def _ext_from_content_type(content_type: str | None) -> str:
@@ -70,9 +69,8 @@ async def upload_ticket_image(
 
     ext = _ext_from_content_type(file.content_type) or _safe_ext(file.filename)
     filename = f"ticket_{uuid4().hex}{ext}"
-    subdir = Path(UPLOAD_DIR) / TICKET_IMAGE_SUBDIR
-    subdir.mkdir(parents=True, exist_ok=True)
-    target = subdir / filename
+    Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+    target = Path(UPLOAD_DIR) / filename
     target.write_bytes(content)
 
-    return {"url": f"/uploads/{TICKET_IMAGE_SUBDIR}/{filename}"}
+    return {"url": f"/{filename}"}

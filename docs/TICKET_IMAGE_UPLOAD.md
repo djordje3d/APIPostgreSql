@@ -25,12 +25,12 @@ ALTER TABLE tickets ADD COLUMN IF NOT EXISTS image_url VARCHAR(512) NULL;
 
 ### 2. Ensure upload directory is writable
 
-The backend writes uploaded images to `static/uploads/tickets/` (relative to project root). On first upload the `tickets` subdir is created automatically. Ensure the process can create and write to `static/uploads/`.
+The backend writes uploaded images to `fileserver/storage/` (relative to project root). Ensure the process can write to `fileserver/storage/`.
 
 ### 3. Optional: environment variables
 
 - `UPLOAD_TICKET_IMAGE_MAX_BYTES` — max file size in bytes (default 5 MB). Increase if needed.
-- Upload directory is `static/uploads` under project root; change in `app/config.py` if you need a different path.
+- Upload directory is `fileserver/storage` under project root; change in `app/config.py` if you need a different path.
 
 ### 4. Test the flow
 
@@ -41,10 +41,10 @@ The backend writes uploaded images to `static/uploads/tickets/` (relative to pro
 
 ## Backend details
 
-- **Upload**: `POST /upload/ticket-image`, form field `file`, multipart. Returns `{ "url": "/uploads/tickets/ticket_<uuid>.<ext>" }`. Same auth as rest of API (Bearer or X-API-Key when configured).
-- **Ticket entry**: Request body may include `"image_url": "/uploads/tickets/..."` (or any string); stored on `tickets.image_url`.
+- **Upload**: `POST /upload/ticket-image`, form field `file`, multipart. Returns `{ "url": "/ticket_<uuid>.<ext>" }`. Same auth as rest of API (Bearer or X-API-Key when configured).
+- **Ticket entry**: Request body may include `"image_url": "/ticket_xxx.jpg"` (or any string); stored on `tickets.image_url`.
 - **Dashboard list**: Each ticket in `/tickets/dashboard` includes `image_url` when set.
-- **Serving**: Files under `static/uploads/` are served at `/uploads/` (e.g. `/uploads/tickets/ticket_abc.jpg`). The dashboard prepends the API base URL when displaying so the image loads from the backend.
+- **Serving**: Files in `fileserver/storage/` are served by the Vite fileserver on port 9009. The dashboard prepends `VITE_FILESERVER_URL` when displaying so the image loads from the fileserver.
 
 ## Resize
 

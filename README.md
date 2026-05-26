@@ -50,7 +50,7 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
 
    If `DATABASE_URL` is not set, the app falls back to a default URL (see `app/db.py`). **Do not rely on the default in production;** set `DATABASE_URL` explicitly.
 
-   **Ticket images:** Uploaded files are stored under `static/uploads/` at the project root (see `UPLOAD_DIR` in `app/config.py`) and exposed by the app at **`/uploads/...`** via `StaticFiles`. Upload handling is in `app/routers/upload.py`. For flow and API details, see **[docs/TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md)**.
+   **Ticket images:** Uploaded files are stored in `fileserver/storage/` (see `UPLOAD_DIR` in `app/config.py`) and served by the Vite fileserver on port 9009. Upload handling is in `app/routers/upload.py`. For flow and API details, see **[docs/TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md)**.
 
    **CORS:** The API allows credentials (cookies, `X-API-Key`). Allowed methods are GET, POST, PUT, PATCH, DELETE; allowed headers include `Content-Type`, `Accept`, `Authorization`, `X-API-Key`. Each origin in `CORS_ORIGINS` must start with `http://` or `https://` and have no path (invalid entries are skipped with a log warning). With `ENVIRONMENT=production` or `ENV=production`, invalid or missing `CORS_ORIGINS` cause startup to fail unless `CORS_DISABLED=true`. Set `CORS_DISABLED=true` when the API is only used server-to-server or same-origin (no browser CORS needed).
 
@@ -159,7 +159,7 @@ Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, 
 - `app/services/` — business logic (e.g. spot allocation, pricing, payment status)
 - `alembic/` — Alembic migration scripts (`alembic upgrade head` from project root)
 - `alembic.ini` — Alembic config; `sqlalchemy.url` must point at the database you migrate
-- `static/uploads/` — on-disk storage for uploaded ticket images (served under `/uploads`)
+- `fileserver/storage/` — on-disk storage for uploaded ticket images (served by Vite fileserver on port 9009)
 - `dashboard/` — Vue 3 frontend (see [dashboard/README.md](dashboard/README.md))
 - `docs/` — additional documentation (e.g. [TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md))
 - `scripts/` — utility scripts (e.g. presentation builder)
