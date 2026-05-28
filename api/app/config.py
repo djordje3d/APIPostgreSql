@@ -18,8 +18,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 
-_project_root = Path(__file__).resolve().parent.parent
-load_dotenv(_project_root / ".env")
+_workspace_root = Path(__file__).resolve().parents[2]
+load_dotenv(_workspace_root / ".env")
 
 _log = logging.getLogger(__name__)
 
@@ -151,8 +151,8 @@ CORS_MAX_AGE: int = _env_int("CORS_MAX_AGE", 600)
 
 UPLOAD_DIR: Path = _env_path(
     "LOCAL_STORAGE_PATH",
-    _project_root / "fileserver" / "storage",
-    base_dir=_project_root,
+    _workspace_root / "fileserver" / "storage",
+    base_dir=_workspace_root,
 )
 # Max size in bytes for ticket image upload (default 5 MB). Client resizes first.
 UPLOAD_TICKET_IMAGE_MAX_BYTES: int = _env_int(

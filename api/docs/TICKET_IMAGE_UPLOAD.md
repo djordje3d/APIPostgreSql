@@ -14,7 +14,7 @@ Add the `image_url` column to the `tickets` table. From the project root:
 
 ```bash
 # PostgreSQL example (adjust connection string for your DB)
-psql -d your_database_name -f app/migrations/add_ticket_image_url.sql
+psql -d your_database_name -f api/app/sql/add_ticket_image_url.sql
 ```
 
 Or run the SQL manually in your DB client:

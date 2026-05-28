@@ -20,7 +20,7 @@
     },
     "apiDown": {
       "title": "Cannot connect to API",
-      "detail": "API at {baseURL} is unreachable. Start the backend: python -m app.run"
+      "detail": "API at {baseURL} is unreachable. Start the backend: python -m api.app.run"
     }
   },
   "session": {

@@ -5,7 +5,7 @@ It is intended for day-to-day development: understanding structure, adding endpo
 
 ## 1) Project architecture
 
-The backend follows a layered structure in `app/`:
+The backend follows a layered structure in `api/app/` (or `app/` when your current directory is `api/`):
 
 - `app/main.py`
   - FastAPI app creation, middleware, OpenAPI setup, router registration.
@@ -122,7 +122,7 @@ Use this checklist when implementing new API functionality.
 
 ## 4) Migration workflow (Alembic)
 
-This project uses Alembic for schema evolution in `alembic/versions/`.
+This project uses Alembic for schema evolution in `api/alembic/versions/`.
 
 ### When to run migrations
 
@@ -133,33 +133,33 @@ This project uses Alembic for schema evolution in `alembic/versions/`.
 ### Typical workflow
 
 1. Ensure target PostgreSQL database exists.
-2. Set `sqlalchemy.url` in `alembic.ini` to the same DB used by app `DATABASE_URL`.
+2. Set `sqlalchemy.url` in `api/alembic.ini` to the same DB used by app `DATABASE_URL`.
 3. Apply all migrations:
 
 ```bash
-alembic upgrade head
+alembic -c api/alembic.ini upgrade head
 ```
 
 4. Verify revision state:
 
 ```bash
-alembic current
-alembic history
+alembic -c api/alembic.ini current
+alembic -c api/alembic.ini history
 ```
 
 ### Creating a new migration (when model/schema changes require DB change)
 
 ```bash
-alembic revision -m "describe_change"
+alembic -c api/alembic.ini revision -m "describe_change"
 ```
 
-Then implement `upgrade()`/`downgrade()` in the new revision file and run `alembic upgrade head` locally.
+Then implement `upgrade()`/`downgrade()` in the new revision file and run `alembic -c api/alembic.ini upgrade head` locally.
 
 Tip: keep migrations small and focused, one logical schema change per revision when possible.
 
 ## 5) Test strategy
 
-Current tests are integration-style and live in `tests/`.
+Current tests are integration-style and live in `api/tests/`.
 
 - Tests call real API routes and use a real database connection.
 - Test isolation is transaction-based (each test is rolled back).
@@ -180,29 +180,29 @@ Recommended additions for new features:
 Run tests:
 
 ```bash
-pytest -v
+pytest api/tests -v
 ```
 
 Run specific module:
 
 ```bash
-pytest tests/test_health.py -v
+pytest api/tests/test_health.py -v
 ```
 
 ## 6) Local debugging tips
 
 ### Start backend in dev mode
 
-From project root:
+From workspace root:
 
 ```bash
-python -m app.run
+python -m api.app.run
 ```
 
 Alternative:
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn api.app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Useful URLs:

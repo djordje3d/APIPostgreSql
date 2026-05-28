@@ -21,7 +21,7 @@ When the API is started **without** `API_KEY`, you normally need neither `VITE_A
 2. Install and run:
 
 ```bash
-cd dashboard
+cd frontend
 npm install
 npm run dev
 ```

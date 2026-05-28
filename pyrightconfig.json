@@ -1,6 +1,6 @@
 {
-  "include": ["app", "tests"],
-  "extraPaths": ["."],
+  "include": ["api/app", "api/tests"],
+  "extraPaths": [".", "api"],
   "venvPath": ".",
   "venv": "venv"
 }

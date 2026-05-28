@@ -20,7 +20,7 @@
     },
     "apiDown": {
       "title": "Nije moguće povezati se sa API-jem",
-      "detail": "API na adresi {baseURL} nije dostupan. Pokrenite backend: python -m app.run"
+      "detail": "API na adresi {baseURL} nije dostupan. Pokrenite backend: python -m api.app.run"
     }
   },
   "session": {
