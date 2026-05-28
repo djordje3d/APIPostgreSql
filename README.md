@@ -161,7 +161,7 @@ Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, 
 - `alembic/` — Alembic migration scripts (`alembic upgrade head` from project root)
 - `alembic.ini` — Alembic config; `sqlalchemy.url` must point at the database you migrate
 - `fileserver/storage/` — on-disk storage for uploaded ticket images (served by Vite fileserver on port 9009)
-- `dashboard/` — Vue 3 frontend (see [dashboard/README.md](dashboard/README.md))
+- `frontend/` — Vue 3 frontend (see [frontend/README.md](frontend/README.md))
 - `docs/` — additional documentation (e.g. [TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md))
 - `scripts/` — utility scripts (e.g. presentation builder)
 - `tests/` — API integration tests (pytest, transactional rollback isolation)

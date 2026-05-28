@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import SummaryRow from "./SummaryRow.vue";
-import { formatMoney } from "../../composables/useFormatters";
+import { formatMoney } from "../../composables/useFormatters.ts";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

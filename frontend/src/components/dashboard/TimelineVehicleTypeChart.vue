@@ -236,8 +236,8 @@ import {
   TIMELINE_LAYOUT,
   createRafThrottled,
   type TimelineSeries,
-} from "../../composables/timelineChart.utils";
-import { useTimelineMainChartState } from "../../composables/useTimelineMainChartState";
+} from "../../composables/timelineChart.utils.ts";
+import { useTimelineMainChartState } from "../../composables/useTimelineMainChartState.ts";
 
 const { t } = useI18n();
 

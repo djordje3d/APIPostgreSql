@@ -69,9 +69,9 @@ import Modal from "../ui/Modal.vue";
 import StandardDropdown from "../ui/StandardDropdown.vue";
 import ButtonIn from "../ui/ButtonIn.vue";
 import InputIn from "../ui/InputIn.vue";
-import { formatMoney } from "../../composables/useFormatters";
-import { createPayment, getPaymentsByTicket } from "../../api/payments";
-import { parseApiError } from "../../api/error";
+import { formatMoney } from "../../composables/useFormatters.ts";
+import { createPayment, getPaymentsByTicket } from "../../api/payments.ts";
+import { parseApiError } from "../../api/error.ts";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{

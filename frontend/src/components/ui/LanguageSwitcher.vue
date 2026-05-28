@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { setStoredLocale, type SupportedLocale } from "../../i18n";
+import { setStoredLocale, type SupportedLocale } from "../../i18n.ts";
 import StandardDropdown from "./StandardDropdown.vue";
 
 const { locale } = useI18n();

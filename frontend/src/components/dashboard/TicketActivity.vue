@@ -155,16 +155,16 @@ import {
   onUnmounted,
   type Ref,
 } from "vue";
-import { listTicketsDashboard, ticketExit } from "../../api/tickets";
-import type { TicketDashboardRow } from "../../api/tickets";
-import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl";
-import { getPaymentsByTicket } from "../../api/payments";
-import type { Payment } from "../../api/payments";
+import { listTicketsDashboard, ticketExit } from "../../api/tickets.ts";
+import type { TicketDashboardRow } from "../../api/tickets.ts";
+import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl.ts";
+import { getPaymentsByTicket } from "../../api/payments.ts";
+import type { Payment } from "../../api/payments.ts";
 import PaymentModal from "./PaymentModal.vue";
 import { useI18n } from "vue-i18n";
-import { generateCode39BarcodeImage } from "../../utils/code39";
+import { generateCode39BarcodeImage } from "../../utils/code39.ts";
 import TicketTable from "./TicketTable.vue";
-import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh";
+import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh.ts";
 import TicketDetailModal from "./TicketDetailModal.vue";
 import Modal from "../ui/Modal.vue";
 import PaginationBar from "../ui/PaginationBar.vue";

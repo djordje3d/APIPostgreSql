@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteLocationNormalized } from 'vue-router'
-import { isAuthenticated } from '../api/auth-storage'
+import { isAuthenticated } from '../api/auth-storage.ts'
 
 
 function isDashboardAllGarages(to: RouteLocationNormalized): boolean {

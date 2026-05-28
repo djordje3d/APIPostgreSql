@@ -158,9 +158,9 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
-import type { TicketDashboardRow } from "../../api/tickets";
-import { formatTime } from "../../composables/useFormatters";
-import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl";
+import type { TicketDashboardRow } from "../../api/tickets.ts";
+import { formatTime } from "../../composables/useFormatters.ts";
+import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl.ts";
 import PaginationBar from "../ui/PaginationBar.vue";
 import Modal from "../ui/Modal.vue";
 

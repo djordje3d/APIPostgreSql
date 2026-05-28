@@ -200,7 +200,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import type { Spot } from "../../api/spots";
+import type { Spot } from "../../api/spots.ts";
 import PaginationBar from "../ui/PaginationBar.vue";
 
 const { t } = useI18n();

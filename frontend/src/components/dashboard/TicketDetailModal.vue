@@ -110,13 +110,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import type { Payment } from "../../api/payments";
-import type { TicketDashboardRow } from "../../api/tickets";
+import type { Payment } from "../../api/payments.ts";
+import type { TicketDashboardRow } from "../../api/tickets.ts";
 import Modal from "../ui/Modal.vue";
 import ButtonIn from "../ui/ButtonIn.vue";
 import ImageIn from "../ui/ImageIn.vue";
 import PaymentList from "./PaymentList.vue";
-import { formatTime, formatMoney } from "../../composables/useFormatters";
+import { formatTime, formatMoney } from "../../composables/useFormatters.ts";
 
 const props = defineProps<{
   modelValue: boolean;

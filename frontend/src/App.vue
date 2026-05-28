@@ -208,18 +208,18 @@ import {
 } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import NewVehicleEntryModal from "./components/dashboard/NewVehicleEntryModal.vue";
-import { useToast } from "./composables/useToast";
-import { baseURL } from "./api/client";
-import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage";
-import { clearGaragesCache } from "./utils/garageCache";
-import { refresh as refreshToken } from "./api/auth";
-import { useDashboardPolling } from "./composables/useDashboardPolling";
+import { useToast } from "./composables/useToast.ts";
+import { baseURL } from "./api/client.ts";
+import { clearStoredToken, getMsUntilTokenExpiry } from "./api/auth-storage.ts";
+import { clearGaragesCache } from "./utils/garageCache.ts";
+import { refresh as refreshToken } from "./api/auth.ts";
+import { useDashboardPolling } from "./composables/useDashboardPolling.ts";
 import RefreshCountdownRing from "./components/dashboard/RefreshCountdownRing.vue";
 import HelpTooltip from "./components/ui/HelpTooltip.vue";
 import ButtonIn from "./components/ui/ButtonIn.vue";
 import LanguageSwitcher from "./components/ui/LanguageSwitcher.vue";
 import { useI18n } from "vue-i18n";
-import { DASHBOARD_REQUEST_REFRESH_EVENT } from "./constants/dashboardRefresh";
+import { DASHBOARD_REQUEST_REFRESH_EVENT } from "./constants/dashboardRefresh.ts";
 
 const { t } = useI18n();
 

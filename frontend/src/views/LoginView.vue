@@ -56,8 +56,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { login } from "../api/auth";
-import { parseApiError } from "../api/error";
+import { login } from "../api/auth.ts";
+import { parseApiError } from "../api/error.ts";
 import ButtonIn from "../components/ui/ButtonIn.vue";
 import InputIn from "../components/ui/InputIn.vue";
 import { useI18n } from "vue-i18n";

@@ -128,13 +128,13 @@
 import { computed, ref, watch } from "vue";
 import Modal from "../ui/Modal.vue";
 import StandardDropdown from "../ui/StandardDropdown.vue";
-import { parseApiError } from "../../api/error";
+import { parseApiError } from "../../api/error.ts";
 import ButtonIn from "../ui/ButtonIn.vue";
 import InputIn from "../ui/InputIn.vue";
 import { useI18n } from "vue-i18n";
-import { resizeImageToJpeg } from "../../utils/imageResize";
-import { useVehicleEntryOptions } from "../../composables/useVehicleEntryOptions";
-import { createParkingEntry } from "../../services/createParkingEntry";
+import { resizeImageToJpeg } from "../../utils/imageResize.ts";
+import { useVehicleEntryOptions } from "../../composables/useVehicleEntryOptions.ts";
+import { createParkingEntry } from "../../services/createParkingEntry.ts";
 
 const props = defineProps<{ modelValue: boolean }>();
 const { t } = useI18n();

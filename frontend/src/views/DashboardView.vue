@@ -162,21 +162,21 @@ import StandardDropdown from "../components/ui/StandardDropdown.vue";
 import HelpTooltip from "../components/ui/HelpTooltip.vue";
 import TimelineVehicleTypeChartBrush from "../components/dashboard/TimelineVehicleTypeChartBrush.vue";
 
-import { listGarages } from "../api/garages";
-import type { Garage } from "../api/garages";
-import type { ToastApi } from "../composables/useToast";
-import { getDashboardAnalytics } from "../api/dashboard";
-import type { DashboardAnalytics } from "../api/dashboard";
-import { listTicketsDashboard } from "../api/tickets";
-import type { TicketDashboardRow } from "../api/tickets";
+import { listGarages } from "../api/garages.ts";
+import type { Garage } from "../api/garages.ts";
+import type { ToastApi } from "../composables/useToast.ts";
+import { getDashboardAnalytics } from "../api/dashboard.ts";
+import type { DashboardAnalytics } from "../api/dashboard.ts";
+import { listTicketsDashboard } from "../api/tickets.ts";
+import type { TicketDashboardRow } from "../api/tickets.ts";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import {
   readGaragesCache,
   writeGaragesCache,
-} from "../utils/garageCache";
-import { getTodayISO, getMonthStartEnd } from "../utils/dashboardDates";
-import { DASHBOARD_WIDGET_FETCH_DONE } from "../constants/dashboardRefresh";
+} from "../utils/garageCache.ts";
+import { getTodayISO, getMonthStartEnd } from "../utils/dashboardDates.ts";
+import { DASHBOARD_WIDGET_FETCH_DONE } from "../constants/dashboardRefresh.ts";
 
 const DASHBOARD_REFRESH_EVENT = "dashboard-refresh";
 const DASHBOARD_REQUEST_REFRESH_EVENT = "dashboard-request-refresh";

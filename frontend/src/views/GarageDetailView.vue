@@ -334,12 +334,12 @@ import StandardDropdown from "../components/ui/StandardDropdown.vue";
 import GarageHeaderCard from "../components/dashboard/GarageHeaderCard.vue";
 import GarageSpotsTable from "../components/dashboard/GarageSpotsTable.vue";
 import GarageOpenTicketsTable from "../components/dashboard/GarageOpenTicketsTable.vue";
-import { DASHBOARD_REQUEST_REFRESH_EVENT } from "../constants/dashboardRefresh";
-import { useGarageDetailContext } from "../composables/useGarageDetailContext";
-import { useGarageDetailGarage } from "../composables/useGarageDetailGarage";
-import { useGarageRevenue } from "../composables/useGarageRevenue";
-import { useGarageSpots } from "../composables/useGarageSpots";
-import { useGarageOpenTickets } from "../composables/useGarageOpenTickets";
+import { DASHBOARD_REQUEST_REFRESH_EVENT } from "../constants/dashboardRefresh.ts";
+import { useGarageDetailContext } from "../composables/useGarageDetailContext.ts";
+import { useGarageDetailGarage } from "../composables/useGarageDetailGarage.ts";
+import { useGarageRevenue } from "../composables/useGarageRevenue.ts";
+import { useGarageSpots } from "../composables/useGarageSpots.ts";
+import { useGarageOpenTickets } from "../composables/useGarageOpenTickets.ts";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

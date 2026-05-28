@@ -131,8 +131,8 @@
 
 <script setup lang="ts">
 import { ref, inject, onMounted, onUnmounted, watch, type Ref } from "vue";
-import { getGarageOverview } from "../../api/garages";
-import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh";
+import { getGarageOverview } from "../../api/garages.ts";
+import { DASHBOARD_WIDGET_FETCH_DONE } from "../../constants/dashboardRefresh.ts";
 import ButtonIn from "../ui/ButtonIn.vue";
 import { useI18n } from "vue-i18n";
 

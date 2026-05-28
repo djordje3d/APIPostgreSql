@@ -96,9 +96,9 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import HelpTooltip from "../ui/HelpTooltip.vue";
-import type { TicketDashboardRow } from "../../api/tickets";
-import { formatMoney } from "../../composables/useFormatters";
-import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl";
+import type { TicketDashboardRow } from "../../api/tickets.ts";
+import { formatMoney } from "../../composables/useFormatters.ts";
+import { normalizeTicketImageUrl } from "../../utils/ticketImageUrl.ts";
 import TicketRow from "./TicketRow.vue";
 
 const props = defineProps<{
