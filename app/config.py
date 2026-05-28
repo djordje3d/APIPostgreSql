@@ -57,6 +57,20 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return value in ("true", "1", "yes")
 
 
+def _env_path(name: str, default: Path, *, base_dir: Path) -> Path:
+    """Read a filesystem path from env.
+
+    Resolve relative values from base_dir.
+    """
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    candidate = Path(raw).expanduser()
+    if not candidate.is_absolute():
+        candidate = base_dir / candidate
+    return candidate.resolve()
+
+
 def _is_valid_cors_origin(origin: str) -> bool:
     """Origin must be http(s) only, no path, no spaces, no wildcard."""
     if not origin or " " in origin or "*" in origin:
@@ -135,7 +149,11 @@ CORS_ORIGINS: list[str] = _cors_valid if _cors_valid else _DEFAULT_CORS_ORIGINS
 # Preflight cache (seconds). Browsers cache OPTIONS for this long.
 CORS_MAX_AGE: int = _env_int("CORS_MAX_AGE", 600)
 
-UPLOAD_DIR: Path = _project_root / "fileserver" / "storage"
+UPLOAD_DIR: Path = _env_path(
+    "LOCAL_STORAGE_PATH",
+    _project_root / "fileserver" / "storage",
+    base_dir=_project_root,
+)
 # Max size in bytes for ticket image upload (default 5 MB). Client resizes first.
 UPLOAD_TICKET_IMAGE_MAX_BYTES: int = _env_int(
     "UPLOAD_TICKET_IMAGE_MAX_BYTES",

@@ -25,12 +25,12 @@ ALTER TABLE tickets ADD COLUMN IF NOT EXISTS image_url VARCHAR(512) NULL;
 
 ### 2. Ensure upload directory is writable
 
-The backend writes uploaded images to `fileserver/storage/` (relative to project root). Ensure the process can write to `fileserver/storage/`.
+The backend writes uploaded images to `LOCAL_STORAGE_PATH` (default: `fileserver/storage/`, relative to project root). Ensure the process can write to that folder.
 
 ### 3. Optional: environment variables
 
 - `UPLOAD_TICKET_IMAGE_MAX_BYTES` — max file size in bytes (default 5 MB). Increase if needed.
-- Upload directory is `fileserver/storage` under project root; change in `app/config.py` if you need a different path.
+- `LOCAL_STORAGE_PATH` — optional local filesystem path for uploads. Relative paths are resolved from project root. Default: `fileserver/storage`.
 
 ### 4. Test the flow
 
@@ -44,7 +44,7 @@ The backend writes uploaded images to `fileserver/storage/` (relative to project
 - **Upload**: `POST /upload/ticket-image`, form field `file`, multipart. Returns `{ "url": "/ticket_<uuid>.<ext>" }`. Same auth as rest of API (Bearer or X-API-Key when configured).
 - **Ticket entry**: Request body may include `"image_url": "/ticket_xxx.jpg"` (or any string); stored on `tickets.image_url`.
 - **Dashboard list**: Each ticket in `/tickets/dashboard` includes `image_url` when set.
-- **Serving**: Files in `fileserver/storage/` are served by the Vite fileserver on port 9009. The dashboard prepends `VITE_FILESERVER_URL` when displaying so the image loads from the fileserver.
+- **Serving**: Files in the upload directory (`LOCAL_STORAGE_PATH`, default `fileserver/storage/`) are served by the Vite fileserver on port 9009. The dashboard prepends `VITE_FILESERVER_URL` when displaying so the image loads from the fileserver.
 
 ## Resize
 

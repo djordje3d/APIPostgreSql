@@ -47,10 +47,11 @@ API for managing parking garages, spots, vehicles, tickets, and payments. Suppor
    | `CORS_DISABLED`            | Optional. Set to `true` to disable CORS (no CORSMiddleware). Use for server-only or same-origin deployments. Default: `false`. | `false` |
    | `CORS_MAX_AGE`              | Optional. How long (seconds) browsers may cache preflight (OPTIONS) responses. Default: `600`. | `600` |
    | `UPLOAD_TICKET_IMAGE_MAX_BYTES` | Optional. Maximum body size in bytes for ticket image uploads (default: 5 MB). Clients should resize before upload. | `5242880` |
+| `LOCAL_STORAGE_PATH` | Optional. Local filesystem path for uploaded ticket images. Relative paths resolve from project root; default is `fileserver/storage`. | `../fileserver/storage` |
 
    If `DATABASE_URL` is not set, the app falls back to a default URL (see `app/db.py`). **Do not rely on the default in production;** set `DATABASE_URL` explicitly.
 
-   **Ticket images:** Uploaded files are stored in `fileserver/storage/` (see `UPLOAD_DIR` in `app/config.py`) and served by the Vite fileserver on port 9009. Upload handling is in `app/routers/upload.py`. For flow and API details, see **[docs/TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md)**.
+   **Ticket images:** Uploaded files are stored in `LOCAL_STORAGE_PATH` (default `fileserver/storage/`; see `UPLOAD_DIR` in `app/config.py`) and served by the Vite fileserver on port 9009. Upload handling is in `app/routers/upload.py`. For flow and API details, see **[docs/TICKET_IMAGE_UPLOAD.md](docs/TICKET_IMAGE_UPLOAD.md)**.
 
    **CORS:** The API allows credentials (cookies, `X-API-Key`). Allowed methods are GET, POST, PUT, PATCH, DELETE; allowed headers include `Content-Type`, `Accept`, `Authorization`, `X-API-Key`. Each origin in `CORS_ORIGINS` must start with `http://` or `https://` and have no path (invalid entries are skipped with a log warning). With `ENVIRONMENT=production` or `ENV=production`, invalid or missing `CORS_ORIGINS` cause startup to fail unless `CORS_DISABLED=true`. Set `CORS_DISABLED=true` when the API is only used server-to-server or same-origin (no browser CORS needed).
 
@@ -146,7 +147,7 @@ Test modules: `test_health`, `test_auth`, `test_garages`, `test_vehicle_types`, 
 ## Project layout
 
 - `app/main.py` — FastAPI app and route registration (imports `app.config` first so `.env` is loaded before the DB engine is created); mounts `/uploads` for static ticket images
-- `app/config.py` — environment variables and flags; loads `.env` via `python-dotenv`; `API_KEY` read once at startup; `UPLOAD_DIR` / upload size limits
+- `app/config.py` — environment variables and flags; loads `.env` via `python-dotenv`; `API_KEY` read once at startup; `UPLOAD_DIR` (from `LOCAL_STORAGE_PATH`) / upload size limits
 - `app/auth.py` — API key and JWT middleware (accepts `X-API-Key` or `Authorization: Bearer <jwt>`)
 - `app/auth_jwt.py` — JWT create/verify and FastAPI dependencies
 - `app/routers/auth.py` — `POST /auth/login` (returns JWT when `AUTH_USERNAME`/`AUTH_PASSWORD` set)
