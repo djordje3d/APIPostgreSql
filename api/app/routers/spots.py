@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import exists
 from sqlalchemy.exc import IntegrityError
 
-from app.db import get_db
-from app import models, schemas
-from app.errors import api_error
-from app.services import spots as spots_service
+from api.app.db import get_db
+from api.app import models, schemas
+from api.app.errors import api_error
+from api.app.services import spots as spots_service
 
 router = APIRouter(prefix="/spots", tags=["Parking Spots"])
 

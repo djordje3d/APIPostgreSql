@@ -1,6 +1,6 @@
-from app.db import SessionLocal
-from app import models
-from app.services.tokens import generate_unique_ticket_token
+from api.app.db import SessionLocal
+from api.app import models
+from api.app.services.tokens import generate_unique_ticket_token
 
 db = SessionLocal()
 

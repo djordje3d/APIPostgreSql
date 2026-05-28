@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import exists, text
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from api.app import models, schemas
 
 
 def spot_ids_with_open_tickets(db: Session, spot_ids: Sequence[int]) -> set[int]:

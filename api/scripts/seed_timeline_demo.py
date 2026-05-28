@@ -8,9 +8,9 @@ if str(_REPO_ROOT) not in sys.path:
 from datetime import datetime, timedelta, timezone
 import random
 
-from app.db import SessionLocal
-from app import models
-from app.services.tokens import generate_ticket_token
+from api.app.db import SessionLocal
+from api.app import models
+from api.app.services.tokens import generate_ticket_token
 
 
 GARAGE_ID = 1

@@ -7,13 +7,13 @@ GET /, GET /health, and POST /auth/login are always public.
 import pytest
 from fastapi.testclient import TestClient
 
-from app.auth_jwt import create_token
+from api.app.auth_jwt import create_token
 
 
 @pytest.fixture
 def api_key_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
     """Enable API key auth by patching the value used by the middleware."""
-    monkeypatch.setattr("app.auth.API_KEY", "test-secret-key")
+    monkeypatch.setattr("api.app.auth.API_KEY", "test-secret-key")
 
 
 def test_protected_endpoint_returns_401_without_api_key(
@@ -61,7 +61,7 @@ def test_protected_endpoint_returns_401_with_expired_token(
     client: TestClient, api_key_enabled: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """With an expired JWT (exp in the past), a protected endpoint returns 401."""
-    monkeypatch.setattr("app.auth_jwt.JWT_EXPIRE_MINUTES", -1)  # expire = now - 1 minute
+    monkeypatch.setattr("api.app.auth_jwt.JWT_EXPIRE_MINUTES", -1)  # expire = now - 1 minute
     token = create_token("testuser")
     response = client.get("/garages", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 401
@@ -91,8 +91,8 @@ def test_protected_endpoint_accepts_lowercase_header(
 @pytest.fixture
 def login_configured(monkeypatch: pytest.MonkeyPatch) -> None:
     """Set env-based login credentials used by the auth router."""
-    monkeypatch.setattr("app.routers.auth.AUTH_USERNAME", "testuser")
-    monkeypatch.setattr("app.routers.auth.AUTH_PASSWORD", "testpass")
+    monkeypatch.setattr("api.app.routers.auth.AUTH_USERNAME", "testuser")
+    monkeypatch.setattr("api.app.routers.auth.AUTH_PASSWORD", "testpass")
 
 
 def test_login_returns_200_and_token_when_credentials_match(
@@ -139,7 +139,7 @@ def test_login_returns_503_when_not_configured(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """POST /auth/login when AUTH_USERNAME is not set returns 503."""
-    monkeypatch.setattr("app.routers.auth.AUTH_USERNAME", None)
+    monkeypatch.setattr("api.app.routers.auth.AUTH_USERNAME", None)
     response = client.post(
         "/auth/login",
         json={"username": "u", "password": "p"},
@@ -173,7 +173,7 @@ def test_auth_me_returns_401_with_expired_token(
     client: TestClient, api_key_enabled: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """GET /auth/me with expired JWT returns 401."""
-    monkeypatch.setattr("app.auth_jwt.JWT_EXPIRE_MINUTES", -1)  # expire = now - 1 minute
+    monkeypatch.setattr("api.app.auth_jwt.JWT_EXPIRE_MINUTES", -1)  # expire = now - 1 minute
     token = create_token("testuser")
     response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 401

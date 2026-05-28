@@ -1,5 +1,5 @@
 from sqlalchemy import func
-from app import models
+from api.app import models
 
 
 def recalc_ticket_payment_status(db, ticket_id: int):

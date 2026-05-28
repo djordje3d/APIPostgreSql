@@ -6,8 +6,8 @@ from decimal import Decimal
 from sqlalchemy import exists, func
 from sqlalchemy.orm import Session, joinedload
 
-from app import models
-from app.services.pricing import get_ticket_fee
+from api.app import models
+from api.app.services.pricing import get_ticket_fee
 
 
 def compute_spot_ticket_counts(

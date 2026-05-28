@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app import models, schemas
-from app.config import USE_API_FEE_CALCULATION
-from app.services.pricing import get_ticket_fee
-from app.services.spots import allocate_free_spot
-from app.services.tokens import generate_ticket_token
+from api.app import models, schemas
+from api.app.config import USE_API_FEE_CALCULATION
+from api.app.services.pricing import get_ticket_fee
+from api.app.services.spots import allocate_free_spot
+from api.app.services.tokens import generate_ticket_token
 
 MAX_RETRIES = 5
 

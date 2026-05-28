@@ -8,8 +8,8 @@ from uuid import uuid4
 
 from fastapi import APIRouter, File, UploadFile
 
-from app.config import UPLOAD_DIR, UPLOAD_TICKET_IMAGE_MAX_BYTES
-from app.errors import api_error
+from api.app.config import UPLOAD_DIR, UPLOAD_TICKET_IMAGE_MAX_BYTES
+from api.app.errors import api_error
 
 router = APIRouter(tags=["Upload"])
 

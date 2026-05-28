@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 # Env is loaded in app.config (load_dotenv from project root). The app entry point
-# (app.main) must import app.config before app.db so DATABASE_URL is available.
+# (api.app.main) must import api.app.config before api.app.db so DATABASE_URL is available.
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",

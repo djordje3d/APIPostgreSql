@@ -9,8 +9,8 @@ from typing import Any
 from fastapi import Request
 from jose import JWTError, jwt
 
-from app.config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
-from app.errors import api_error
+from api.app.config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
+from api.app.errors import api_error
 
 TOKEN_SUB_KEY = "sub"  # username in payload
 

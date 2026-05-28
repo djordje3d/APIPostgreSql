@@ -6,27 +6,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from app.config import (
-    API_KEY,
+from api.app.config import (
     CORS_ALLOW_HEADERS,
     CORS_ALLOW_METHODS,
     CORS_MAX_AGE,
     CORS_DISABLED,
     CORS_ORIGINS,
 )
-from app.db import get_db
-from app.auth import APIKeyMiddleware
-from app.errors import api_error
-from app.error_handlers import register_exception_handlers
-from app.routers.auth import router as auth_router
-from app.routers.tickets import router as tickets_router
-from app.routers.payments import router as payments_router
-from app.routers.vehicles import router as vehicles_router
-from app.routers.vehicle_types import router as vehicle_types_router
-from app.routers.spots import router as spots_router
-from app.routers.garages import router as garages_router
-from app.routers.upload import router as upload_router
-from app.routers.dashboard import router as dashboard_router
+from api.app.db import get_db
+from api.app.auth import APIKeyMiddleware
+from api.app.errors import api_error
+from api.app.error_handlers import register_exception_handlers
+from api.app.routers.auth import router as auth_router
+from api.app.routers.tickets import router as tickets_router
+from api.app.routers.payments import router as payments_router
+from api.app.routers.vehicles import router as vehicles_router
+from api.app.routers.vehicle_types import router as vehicle_types_router
+from api.app.routers.spots import router as spots_router
+from api.app.routers.garages import router as garages_router
+from api.app.routers.upload import router as upload_router
+from api.app.routers.dashboard import router as dashboard_router
 
 app = FastAPI(
     title="Parking API",

@@ -6,15 +6,15 @@ Credentials are checked against env AUTH_USERNAME and AUTH_PASSWORD (or AUTH_PAS
 
 from fastapi import APIRouter, Depends
 
-from app.auth_jwt import create_token, get_current_user
-from app.config import (
+from api.app.auth_jwt import create_token, get_current_user
+from api.app.config import (
     AUTH_PASSWORD,
     AUTH_PASSWORD_HASH,
     AUTH_USERNAME,
     AUTH_PREFERRED_LANGUAGE,
     JWT_EXPIRE_MINUTES,
 )
-from app.errors import api_error
+from api.app.errors import api_error
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Auth"])

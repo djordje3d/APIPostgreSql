@@ -8,9 +8,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from app.auth_jwt import verify_token
-from app.config import API_KEY
-from app.errors import build_error_payload
+from api.app.auth_jwt import verify_token
+from api.app.config import API_KEY
+from api.app.errors import build_error_payload
 
 API_KEY_HEADER = "X-API-Key"
 

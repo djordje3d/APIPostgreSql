@@ -3,9 +3,9 @@ from datetime import date
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.db import get_db
-from app import schemas
-from app.services.dashboard_analytics import (
+from api.app.db import get_db
+from api.app import schemas
+from api.app.services.dashboard_analytics import (
     compute_spot_ticket_counts,
     compute_total_outstanding,
     count_unpaid_and_partial,

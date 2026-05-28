@@ -1,6 +1,6 @@
 import secrets
 from sqlalchemy.orm import Session
-from app import models
+from api.app import models
 
 ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 

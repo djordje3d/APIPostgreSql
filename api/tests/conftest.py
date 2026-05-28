@@ -6,7 +6,7 @@ import os
 os.environ.setdefault("USE_API_FEE_CALCULATION", "true")
 os.environ.setdefault("USE_API_PAYMENT_STATUS", "true")
 # Integration tests call the API without headers; .env may set API_KEY. Empty string makes
-# config treat auth as disabled; test_auth.py patches app.auth.API_KEY when it needs auth on.
+# config treat auth as disabled; test_auth.py patches api.app.auth.API_KEY when it needs auth on.
 os.environ["API_KEY"] = ""
 
 import pytest
@@ -14,8 +14,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from app.main import app
-from app.db import get_db, engine
+from api.app.main import app
+from api.app.db import get_db, engine
 
 # Session bound to a connection; we control the transaction and roll back after each test.
 _SessionLocal = sessionmaker(autocommit=False, autoflush=False)

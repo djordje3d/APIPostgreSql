@@ -4,12 +4,12 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone, date, timedelta
 
-from app.db import get_db
-from app import models, schemas
-from app.config import USE_API_PAYMENT_STATUS
-from app.services.payments import recalc_ticket_payment_status
-from app.services.pricing import get_ticket_fee
-from app.errors import api_error
+from api.app.db import get_db
+from api.app import models, schemas
+from api.app.config import USE_API_PAYMENT_STATUS
+from api.app.services.payments import recalc_ticket_payment_status
+from api.app.services.pricing import get_ticket_fee
+from api.app.errors import api_error
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 

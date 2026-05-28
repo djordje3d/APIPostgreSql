@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from app.db import get_db
-from app import models, schemas
-from app.errors import api_error
+from api.app.db import get_db
+from api.app import models, schemas
+from api.app.errors import api_error
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 

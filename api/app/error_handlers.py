@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.errors import build_error_payload
+from api.app.errors import build_error_payload
 
 
 def _legacy_detail_to_fields(detail: list[dict]) -> list[dict[str, str]]:

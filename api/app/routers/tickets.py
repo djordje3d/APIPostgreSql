@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from app.db import get_db
-from app import models, schemas
-from app.services.dashboard_analytics import (
+from api.app.db import get_db
+from api.app import models, schemas
+from api.app.services.dashboard_analytics import (
     batch_payment_totals_by_ticket,
     compute_rest_to_pay_for_ticket,
 )
-from app.services.pricing import get_ticket_fee
-from app.services.tickets import (
+from api.app.services.pricing import get_ticket_fee
+from api.app.services.tickets import (
     InvalidSpotError,
     InvalidVehicleError,
     NoFreeSpotError,
@@ -26,7 +26,7 @@ from app.services.tickets import (
     close_ticket,
     create_ticket_entry,
 )
-from app.errors import api_error
+from api.app.errors import api_error
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
