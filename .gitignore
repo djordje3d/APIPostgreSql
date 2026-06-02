@@ -24,13 +24,13 @@ ENV/
 .vscode/
 *.code-workspace
 
-# --- Frontend (frontend) ---
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/.env.*.local
-frontend/.vite
+# --- Frontend (frontend_vue) ---
+frontend_vue/node_modules/
+frontend_vue/dist/
+frontend_vue/.env
+frontend_vue/.env.local
+frontend_vue/.env.*.local
+frontend_vue/.vite
 # --- OS ---
 Thumbs.db
 .DS_Store

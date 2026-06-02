@@ -3,7 +3,7 @@
 This repository is organized in two primary areas:
 
 - `api_python/` - FastAPI + PostgreSQL backend
-- `frontend/` - Vue 3 + Tailwind dashboard
+- `frontend_vue/` - Vue 3 + Tailwind dashboard
 
 The uploaded ticket images directory stays at `fileserver/storage/` (intentionally outside `api_python/`).
 
@@ -27,12 +27,12 @@ API URLs:
 
 ### 2) Frontend
 
-See `frontend/README.md` for frontend setup.
+See `frontend_vue/README.md` for frontend setup.
 
 Typical local run:
 
 ```bash
-cd frontend
+cd frontend_vue
 npm install
 npm run dev
 ```
@@ -40,12 +40,12 @@ npm run dev
 ## Layout
 
 - `api_python/` - backend source, migrations, tests, backend docs, backend scripts
-- `frontend/` - Vue application
+- `frontend_vue/` - Vue application
 - `fileserver/storage/` - uploaded ticket images storage (unchanged)
 - `POSTMAN.md` - Postman usage notes
 
 ## Notes
 
 - Backend env is loaded from `api_python/.env` (preferred), with legacy fallback to root `.env`.
-- Keep `fileserver/storage/` as-is; only API/frontend code moved under `api_python/` and `frontend/`.
+- Keep `fileserver/storage/` as-is; only API/frontend_vue code moved under `api_python/` and `frontend_vue/`.
 

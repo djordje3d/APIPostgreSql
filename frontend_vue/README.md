@@ -36,7 +36,7 @@ Backend setup (PostgreSQL, migrations, API, CORS, env) is in the project root [R
 2. Install and run:
 
 ```bash
-cd frontend
+cd frontend_vue
 npm install
 npm run dev
 ```

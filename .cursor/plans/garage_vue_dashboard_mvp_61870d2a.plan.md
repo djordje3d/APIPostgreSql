@@ -92,7 +92,7 @@ flowchart LR
 ## Section A – Live parking status (top of page)
 
 - **Four cards/counters:**
-  - **Free spots:** `GET /spots?only_free=true` (use `total` or sum over all garages: call without `garage_id` to get global count, or call per garage and sum).
+  - **Free spots:** `GET /spots?only_free=true` (use `total` or sum over all garages: call without `garage_id` to get global count, or call per garage and sum).f
   - **Occupied spots:** Derive from (total active spots − free spots), or count open tickets: `GET /tickets?state=OPEN` → `total`.
   - **Inactive spots:** `GET /spots?active_only=false` total − (active spots count). Or: total spots with `active_only=true` vs `active_only=false` and subtract.
   - **Open tickets:** `GET /tickets?state=OPEN` → `total`.
