@@ -1,22 +1,22 @@
-# Garage Manage Workspace
+﻿# Garage Manage Workspace
 
 This repository is organized in two primary areas:
 
-- `api/` - FastAPI + PostgreSQL backend
+- `api_python/` - FastAPI + PostgreSQL backend
 - `frontend/` - Vue 3 + Tailwind dashboard
 
-The uploaded ticket images directory stays at `fileserver/storage/` (intentionally outside `api/`).
+The uploaded ticket images directory stays at `fileserver/storage/` (intentionally outside `api_python/`).
 
 ## Quick Start
 
 ### 1) Backend API
 
-See backend-only commands and setup in `api/README.md`.
+See backend-only commands and setup in `api_python/README.md`.
 
 Most common command from workspace root:
 
 ```bash
-python -m api.app.run
+python -m api_python.app.run
 ```
 
 API URLs:
@@ -39,12 +39,13 @@ npm run dev
 
 ## Layout
 
-- `api/` - backend source, migrations, tests, backend docs, backend scripts
+- `api_python/` - backend source, migrations, tests, backend docs, backend scripts
 - `frontend/` - Vue application
 - `fileserver/storage/` - uploaded ticket images storage (unchanged)
 - `POSTMAN.md` - Postman usage notes
 
 ## Notes
 
-- Backend env is loaded from `api/.env` (preferred), with legacy fallback to root `.env`.
-- Keep `fileserver/storage/` as-is; only API/frontend code moved under `api/` and `frontend/`.
+- Backend env is loaded from `api_python/.env` (preferred), with legacy fallback to root `.env`.
+- Keep `fileserver/storage/` as-is; only API/frontend code moved under `api_python/` and `frontend/`.
+

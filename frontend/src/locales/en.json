@@ -15,12 +15,12 @@
       "detail": "Check your network connection."
     },
     "timeout": {
-      "title": "Request timed out – slow connection?",
+      "title": "Request timed out ÔÇô slow connection?",
       "detail": "The request took too long. Check your connection or try again."
     },
     "apiDown": {
       "title": "Cannot connect to API",
-      "detail": "API at {baseURL} is unreachable. Start the backend: python -m api.app.run"
+      "detail": "API at {baseURL} is unreachable. Start the backend: python -m api_python.app.run"
     }
   },
   "session": {
@@ -56,8 +56,8 @@
     "ticketImage": "Ticket image",
     "chooseFile": "Choose file",
     "noFileChosen": "No file chosen",
-    "imageProcessing": "Resizing image…",
-    "imageReady": "{name} — ready to upload",
+    "imageProcessing": "Resizing imageÔÇŽ",
+    "imageReady": "{name} ÔÇö ready to upload",
     "imageResizeFailed": "Could not process the image. Try another file.",
     "clearImage": "Clear image",
     "cancel": "Cancel",
@@ -284,7 +284,7 @@
     "autoRefreshAriaOn": "Auto-refresh on. Click to pause automatic updates.",
     "autoRefreshAriaOff": "Auto-refresh off. Click to resume automatic updates.",
     "dashboard": {
-      "timeFrame": "Limits ticket list and timeline to this date range. “Real time” uses the last few days; other options load a longer window."
+      "timeFrame": "Limits ticket list and timeline to this date range. ÔÇťReal timeÔÇŁ uses the last few days; other options load a longer window."
     },
     "timeline": {
       "yAxis": "Choose whether each day counts vehicle entries or exits. The chart and brush use the same metric.",
@@ -295,7 +295,7 @@
       "ticketState": "Open means the vehicle is still in the garage. Closed means exit was recorded; payment may still be due.",
       "paymentStatus": "Whether the parking fee is fully paid, partially paid, not paid, or not applicable (e.g. open ticket).",
       "fee": "Total parking fee calculated when the ticket was closed (tariff rules).",
-      "restToPay": "Amount still owed after payments. Shown as “–” while the ticket is open, and “0” when fully paid."
+      "restToPay": "Amount still owed after payments. Shown as ÔÇťÔÇôÔÇŁ while the ticket is open, and ÔÇť0ÔÇŁ when fully paid."
     },
     "aria": {
       "statusCard": "Help: {topic}",

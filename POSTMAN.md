@@ -14,7 +14,7 @@ This document describes how to configure Postman for the Parking API and what to
 ## 2. API key (when authentication is enabled)
 
 **Why do my requests work without the key?**  
-If you do **not** set `API_KEY` in your `.env` file (or `.env` is not loaded), the API does not require authentication and all requests are allowed. So Postman calls succeed without the `X-API-Key` header. To enforce the key: add `API_KEY=your-secret-key` to `api/.env` (**preferred**; legacy root `.env` fallback is supported), start the server from the project root (e.g. `python -m api.app.run`), and restart after any change to `.env`.
+If you do **not** set `API_KEY` in your `.env` file (or `.env` is not loaded), the API does not require authentication and all requests are allowed. So Postman calls succeed without the `X-API-Key` header. To enforce the key: add `API_KEY=your-secret-key` to `api_python/.env` (**preferred**; legacy root `.env` fallback is supported), start the server from the project root (e.g. `python -m api_python.app.run`), and restart after any change to `.env`.
 
 If you set `API_KEY` in your `.env` file, **every request except `GET /health`** must send the API key. The API reads `API_KEY` once at startup from the environment; if you change it in `.env`, restart the server for it to take effect.
 
@@ -28,7 +28,7 @@ If you set `API_KEY` in your `.env` file, **every request except `GET /health`**
 
 ### Option B: For the whole collection
 
-1. Right‑click your collection → **Edit**.
+1. RightÔÇĹclick your collection Ôćĺ **Edit**.
 2. Open the **Authorization** tab.
 3. **Type:** API Key  
    **Key:** `X-API-Key`  
@@ -47,7 +47,7 @@ If you set `API_KEY` in your `.env` file, **every request except `GET /health`**
 | **PUT** | `PUT /garages/{id}` | Full replace | All garage fields (name, capacity, default_rate, lost_ticket_fee, night_rate, day_rate, open_time, close_time, allow_subscription) |
 | **PATCH** | `PATCH /garages/{id}` | Partial update | Only the fields you want to change (e.g. `{"name": "New name"}` or `{"default_rate": 120}`) |
 
-**Example – PATCH (partial update):**
+**Example ÔÇô PATCH (partial update):**
 
 - **URL:** `PATCH http://localhost:8000/garages/1`
 - **Headers:** `Content-Type: application/json` (and `X-API-Key` if auth is on)
@@ -68,7 +68,7 @@ When updating or re-taking Postman screenshots, use this as a checklist:
 |------|--------------------|
 | **Postman1.jpg** | Overview: collection or request list (e.g. Garages, Vehicles, Tickets, Payments, Spots, Health). Optionally show one request with **Headers** tab open and `X-API-Key` visible. |
 | **Postman2_settings.jpg** | Collection or environment settings. If using API key: **Authorization** tab with Type = API Key, Key = `X-API-Key`, Add to = Header. |
-| **Postman3_settings.jpg** | Another settings view (e.g. Variables or a request’s Headers with `X-API-Key`). |
+| **Postman3_settings.jpg** | Another settings view (e.g. Variables or a requestÔÇÖs Headers with `X-API-Key`). |
 | **Postman3_payments.jpg** | Payments request example (e.g. POST payment or GET by-ticket) with URL, method, and body/headers as needed. |
 | **Postman4_settings.jpg** | Same idea as above: settings or headers so that API key usage is clear when auth is enabled. |
 
@@ -77,4 +77,4 @@ After the updates:
 - At least one screenshot should show the **`X-API-Key`** header (or collection auth) when you use `API_KEY`.
 - At least one request should demonstrate **`PATCH /garages/{id}`** with a small JSON body (partial update).
 
-No changes are required in Postman if you **do not** set `API_KEY` in `.env`; in that case the API does not require authentication. If your requests already work without the key, that means the server is running with `API_KEY` unset (e.g. not in `api/.env` and not in legacy root `.env`, or env file not loaded).
+No changes are required in Postman if you **do not** set `API_KEY` in `.env`; in that case the API does not require authentication. If your requests already work without the key, that means the server is running with `API_KEY` unset (e.g. not in `api_python/.env` and not in legacy root `.env`, or env file not loaded).

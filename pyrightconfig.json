@@ -1,6 +1,7 @@
-{
-  "include": ["api/app", "api/tests"],
-  "extraPaths": [".", "api"],
+﻿{
+  "include": ["api_python/app", "api_python/tests"],
+  "extraPaths": [".", "api_python"],
   "venvPath": ".",
   "venv": "venv"
 }
+

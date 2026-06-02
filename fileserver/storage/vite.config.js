@@ -5,7 +5,7 @@ export default defineConfig({
   server: {
     port: 9009,
     open: true,
-    cors: {
+    cors: { 
       origin: [
         'http://localhost:5173',   // Vue dashboard
         'http://localhost:3000',   // React frontend
