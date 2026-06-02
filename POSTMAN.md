@@ -14,7 +14,7 @@ This document describes how to configure Postman for the Parking API and what to
 ## 2. API key (when authentication is enabled)
 
 **Why do my requests work without the key?**  
-If you do **not** set `API_KEY` in your `.env` file (or `.env` is not loaded), the API does not require authentication and all requests are allowed. So Postman calls succeed without the `X-API-Key` header. To enforce the key: add `API_KEY=your-secret-key` to `.env` in the **project root**, start the server from the project root (e.g. `python -m api.app.run`), and restart after any change to `.env`.
+If you do **not** set `API_KEY` in your `.env` file (or `.env` is not loaded), the API does not require authentication and all requests are allowed. So Postman calls succeed without the `X-API-Key` header. To enforce the key: add `API_KEY=your-secret-key` to `api/.env` (**preferred**; legacy root `.env` fallback is supported), start the server from the project root (e.g. `python -m api.app.run`), and restart after any change to `.env`.
 
 If you set `API_KEY` in your `.env` file, **every request except `GET /health`** must send the API key. The API reads `API_KEY` once at startup from the environment; if you change it in `.env`, restart the server for it to take effect.
 
@@ -77,4 +77,4 @@ After the updates:
 - At least one screenshot should show the **`X-API-Key`** header (or collection auth) when you use `API_KEY`.
 - At least one request should demonstrate **`PATCH /garages/{id}`** with a small JSON body (partial update).
 
-No changes are required in Postman if you **do not** set `API_KEY` in `.env`; in that case the API does not require authentication. If your requests already work without the key, that means the server is running with `API_KEY` unset (e.g. not in `.env` or `.env` not in the project root / not loaded).
+No changes are required in Postman if you **do not** set `API_KEY` in `.env`; in that case the API does not require authentication. If your requests already work without the key, that means the server is running with `API_KEY` unset (e.g. not in `api/.env` and not in legacy root `.env`, or env file not loaded).

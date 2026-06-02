@@ -8,8 +8,8 @@ fee calculation and payment status updates are done in the API or by the DB.
 
 - API key: When API_KEY is set, all requests except GET /health must send
   header X-API-Key. When API_KEY is not set, no authentication is required.
-  .env is loaded from the project root (parent of app/) so it is found
-  regardless of the process current working directory.
+  .env is loaded from api/.env first, with legacy fallback to the project
+  root .env for compatibility during migration.
 """
 
 import logging
@@ -18,8 +18,15 @@ from pathlib import Path
 
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 
+_api_root = Path(__file__).resolve().parents[1]
 _workspace_root = Path(__file__).resolve().parents[2]
-load_dotenv(_workspace_root / ".env")
+_api_env = _api_root / ".env"
+_root_env = _workspace_root / ".env"
+
+if _api_env.exists():
+    load_dotenv(_api_env)
+else:
+    load_dotenv(_root_env)
 
 _log = logging.getLogger(__name__)
 

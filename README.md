@@ -46,5 +46,5 @@ npm run dev
 
 ## Notes
 
-- Root `.env` is still used by the backend (`api/app/config.py` loads from workspace root).
+- Backend env is loaded from `api/.env` (preferred), with legacy fallback to root `.env`.
 - Keep `fileserver/storage/` as-is; only API/frontend code moved under `api/` and `frontend/`.

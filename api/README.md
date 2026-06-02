@@ -15,7 +15,7 @@ From workspace root:
 pip install -r api/requirements.txt
 ```
 
-Configure a root `.env` file (workspace root, not inside `api/`).
+Configure `api/.env` (preferred). Legacy fallback to root `.env` is supported during migration.
 
 ## Run API
 
