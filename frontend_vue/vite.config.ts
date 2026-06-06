@@ -12,11 +12,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
-      // Ticket images: /uploads/*
-      '/uploads': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
     },
   },
 })
