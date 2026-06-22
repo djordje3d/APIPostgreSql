@@ -52,7 +52,7 @@ class VehicleType(Base):
     rate = Column(Numeric, nullable=False)
 
 
-class Vehicle(Base):
+class  Vehicle(Base):
     __tablename__ = "vehicle"
 
     id = Column(Integer, primary_key=True)

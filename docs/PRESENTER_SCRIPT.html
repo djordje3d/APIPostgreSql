@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garage Management System — Presenter Script (55 min)</title>
+  <style>
+    :root {
+      --text: #1a1a1a;
+      --muted: #555;
+      --border: #ccc;
+      --accent: #1e40af;
+      --bg-code: #f4f4f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: var(--text);
+      max-width: 8.5in;
+      margin: 0 auto;
+      padding: 0.75in 1in;
+      background: #fff;
+    }
+    h1 {
+      font-size: 22pt;
+      font-weight: 700;
+      margin: 0 0 0.25em;
+      color: var(--accent);
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 0.3em;
+    }
+    h2 {
+      font-size: 14pt;
+      margin: 1.5em 0 0.5em;
+      color: var(--accent);
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 11pt;
+      margin: 1em 0 0.4em;
+      page-break-after: avoid;
+    }
+    .subtitle {
+      font-size: 13pt;
+      color: var(--muted);
+      margin: 0 0 1.5em;
+    }
+    .meta-table, table.data {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75em 0 1em;
+      font-size: 10pt;
+    }
+    .meta-table td, .meta-table th,
+    table.data td, table.data th {
+      border: 1px solid var(--border);
+      padding: 0.35em 0.5em;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.data th, .meta-table th {
+      background: #eef2ff;
+      font-weight: 600;
+    }
+    blockquote.say {
+      margin: 0.75em 0;
+      padding: 0.6em 1em;
+      border-left: 4px solid var(--accent);
+      background: #f8fafc;
+      font-style: italic;
+      page-break-inside: avoid;
+    }
+    code, .path {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9.5pt;
+      background: var(--bg-code);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+    pre {
+      background: var(--bg-code);
+      padding: 0.75em 1em;
+      border-radius: 4px;
+      font-size: 9pt;
+      overflow-x: auto;
+      page-break-inside: avoid;
+    }
+    ul.toc { list-style: none; padding: 0; }
+    ul.toc li { padding: 0.2em 0; border-bottom: 1px dotted #ddd; }
+    ul.toc a { color: var(--accent); text-decoration: none; }
+    .page-break { page-break-before: always; }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li::before { content: "☐ "; }
+    .footer {
+      margin-top: 2em;
+      padding-top: 0.5em;
+      border-top: 1px solid var(--border);
+      font-size: 9pt;
+      color: var(--muted);
+      text-align: center;
+    }
+    .no-print {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 100;
+    }
+    .no-print button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.6em 1.2em;
+      font-size: 11pt;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .no-print button:hover { background: #1e3a8a; }
+    @media print {
+      body { padding: 0.5in; }
+      .no-print { display: none !important; }
+      h2 { page-break-before: auto; }
+      .page-break { page-break-before: always; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print">
+    <button type="button" onclick="window.print()">Save as PDF / Print</button>
+  </div>
+
+  <!-- TITLE PAGE -->
+  <h1>Garage Management System</h1>
+  <p class="subtitle">Technical Walkthrough — Presenter Script (55 minutes)</p>
+
+  <table class="meta-table">
+    <tr><th>Audience</th><td>Developers new to the codebase</td></tr>
+    <tr><th>Format</th><td>Live demo + IDE code walkthrough</td></tr>
+    <tr><th>Duration</th><td>55 minutes (+ 10 min setup)</td></tr>
+    <tr><th>Demo plate</th><td>Use a fresh plate each run, e.g. <code>DEMO99</code></td></tr>
+    <tr><th>Services</th><td>API <code>:8000</code> · Dashboard <code>:5173</code> · File server <code>:9009</code></td></tr>
+  </table>
+
+  <h2>Table of contents</h2>
+  <ul class="toc">
+    <li><a href="#pre-session">1. Pre-session checklist</a></li>
+    <li><a href="#act1">2. Act 1 — The story (0:00–5:00)</a></li>
+    <li><a href="#act2">3. Act 2 — Architecture (5:00–8:00)</a></li>
+    <li><a href="#act3">4. Act 3 — Login & security (8:00–12:00)</a></li>
+    <li><a href="#act4">5. Act 4 — Dashboard tour (12:00–17:00)</a></li>
+    <li><a href="#act5">6. Act 5 — New vehicle entry (17:00–32:00)</a></li>
+    <li><a href="#act6">7. Act 6 — Garage detail (32:00–36:00)</a></li>
+    <li><a href="#act7">8. Act 7 — Exit ticket (36:00–43:00)</a></li>
+    <li><a href="#act8">9. Act 8 — Payment (43:00–49:00)</a></li>
+    <li><a href="#act9">10. Act 9 — Supporting systems (49:00–53:00)</a></li>
+    <li><a href="#act10">11. Act 10 — Wrap-up (53:00–55:00)</a></li>
+    <li><a href="#quickref">12. Quick-reference click map</a></li>
+    <li><a href="#troubleshoot">13. Troubleshooting</a></li>
+  </ul>
+
+  <div class="page-break" id="pre-session"></div>
+  <h2>Pre-session checklist</h2>
+
+  <h3>Start services (in order)</h3>
+  <table class="data">
+    <tr><th>#</th><th>Terminal</th><th>Command</th><th>URL</th></tr>
+    <tr><td>1</td><td>Workspace root</td><td><code>python -m api_python.app.run</code></td><td>http://localhost:8000</td></tr>
+    <tr><td>2</td><td><code>fileserver/storage</code></td><td><code>npm run dev</code></td><td>http://localhost:9009</td></tr>
+    <tr><td>3</td><td><code>frontend_vue</code></td><td><code>npm run dev</code></td><td>http://localhost:5173</td></tr>
+  </table>
+
+  <h3>Screen layout</h3>
+  <ul>
+    <li><strong>Left:</strong> Browser (dashboard)</li>
+    <li><strong>Right:</strong> IDE (VS Code / Cursor)</li>
+    <li><strong>Optional tab:</strong> Swagger at http://localhost:8000/docs</li>
+  </ul>
+
+  <h3>Demo data</h3>
+  <ul class="checklist">
+    <li>At least one garage exists in the database</li>
+    <li>Vehicle types exist (Car, Van, etc.)</li>
+    <li><code>api_python/.env</code> has AUTH_USERNAME / AUTH_PASSWORD — know the values</li>
+    <li>A small JPEG or PNG on disk for ticket image upload</li>
+    <li>DevTools: F12 → Network → Preserve log ✓</li>
+  </ul>
+
+  <h3>IDE tabs to pre-open</h3>
+  <ol>
+    <li><span class="path">api_python/app/models.py</span></li>
+    <li><span class="path">api_python/app/routers/tickets.py</span></li>
+    <li><span class="path">api_python/app/services/tickets.py</span></li>
+    <li><span class="path">frontend_vue/src/services/createParkingEntry.ts</span></li>
+    <li><span class="path">frontend_vue/src/components/dashboard/NewVehicleEntryModal.vue</span></li>
+  </ol>
+
+  <div class="page-break" id="act1"></div>
+  <h2>Act 1 — The story (0:00–5:00)</h2>
+  <blockquote class="say">This is a parking garage operations system. Operators monitor occupancy, register vehicle entry, close tickets on exit, and record payments. Three runtime pieces: FastAPI + PostgreSQL backend, Vue dashboard, and a separate file server for ticket photos.</blockquote>
+  <p><strong>Show:</strong> Root <span class="path">README.md</span> — repository layout table.</p>
+  <blockquote class="say">The domain revolves around one entity: <strong>Ticket</strong>. Everything else — garage, spot, vehicle, payment — supports the ticket lifecycle: OPEN → CLOSED → PAID.</blockquote>
+  <p><strong>Show:</strong> <span class="path">api_python/app/models.py</span> → <code>Ticket</code> class (lines 67–88). Point out: <code>ticket_state</code>, <code>payment_status</code>, <code>spot_id</code>, <code>image_url</code>.</p>
+
+  <div id="act2"></div>
+  <h2>Act 2 — Architecture (5:00–8:00)</h2>
+  <blockquote class="say">Backend is layered: router = HTTP, service = business rules, schema = validation, model = database.</blockquote>
+  <p><strong>Show:</strong> <span class="path">api_python/docs/BACKEND_DEVELOPER_GUIDE.md</span> — section 1.</p>
+  <pre>Vue UI  →  API routers  →  services  →  PostgreSQL
+Vue UI  →  file server (image)  →  image URL back to API</pre>
+  <blockquote class="say">Frontend mirrors that split: views compose widgets, api/*.ts is the HTTP client, services/ orchestrates multi-step flows.</blockquote>
+
+  <div class="page-break" id="act3"></div>
+  <h2>Act 3 — Login & security (8:00–12:00)</h2>
+  <h3>Demo clicks</h3>
+  <table class="data">
+    <tr><th>Time</th><th>Action</th></tr>
+    <tr><td>8:00</td><td>Browser → http://localhost:5173</td></tr>
+    <tr><td>8:10</td><td>Land on <code>/login</code></td></tr>
+    <tr><td>8:20</td><td>Type username + password from <code>api_python/.env</code></td></tr>
+    <tr><td>8:30</td><td><strong>Click</strong> Sign in (<code>#signInBtn</code>)</td></tr>
+    <tr><td>8:40</td><td>Redirect to <code>/dashboard</code></td></tr>
+  </table>
+  <h3>Code walk</h3>
+  <table class="data">
+    <tr><th>Time</th><th>File</th><th>Say</th></tr>
+    <tr><td>9:00</td><td><span class="path">router/index.ts</span></td><td>Every route except /login requires JWT.</td></tr>
+    <tr><td>9:30</td><td><span class="path">LoginView.vue</span></td><td>Form calls login() from api/auth.ts.</td></tr>
+    <tr><td>10:00</td><td><span class="path">routers/auth.py</span></td><td>POST /auth/login returns JWT.</td></tr>
+    <tr><td>10:30</td><td><span class="path">main.py</span></td><td>Middleware enforces Bearer token.</td></tr>
+  </table>
+  <blockquote class="say">Auth is the front door. After this, every dashboard action is an authenticated API call.</blockquote>
+
+  <div id="act4"></div>
+  <h2>Act 4 — Dashboard tour (12:00–17:00)</h2>
+  <table class="data">
+    <tr><th>Time</th><th>Action</th></tr>
+    <tr><td>12:00</td><td>Point at Status cards (free / occupied / open tickets)</td></tr>
+    <tr><td>12:30</td><td>Point at Garage dropdown</td></tr>
+    <tr><td>13:00</td><td>Point at Revenue summary</td></tr>
+    <tr><td>13:30</td><td><strong>Click</strong> tab Overview</td></tr>
+    <tr><td>14:00</td><td><strong>Click</strong> tab Tickets</td></tr>
+    <tr><td>14:30</td><td><strong>Click</strong> tab Timeline</td></tr>
+    <tr><td>15:00</td><td>Point at countdown ring (auto-refresh 10s)</td></tr>
+    <tr><td>15:20</td><td><strong>Click</strong> green refresh spinner</td></tr>
+    <tr><td>15:40</td><td>Point at New vehicle entry button</td></tr>
+  </table>
+  <blockquote class="say">This is an operations console. It polls every 10 seconds and refreshes after writes.</blockquote>
+
+  <div class="page-break" id="act5"></div>
+  <h2>Act 5 — Golden path: new vehicle entry (17:00–32:00)</h2>
+  <p><em>Core of the presentation. Live demo, then code trace.</em></p>
+
+  <h3>Part A — Live demo (17:00–22:00)</h3>
+  <table class="data">
+    <tr><th>Time</th><th>Click / type</th></tr>
+    <tr><td>17:00</td><td><strong>Click</strong> New vehicle entry</td></tr>
+    <tr><td>17:20</td><td><strong>Type</strong> plate: <code>DEMO99</code></td></tr>
+    <tr><td>17:30</td><td>Select vehicle type (e.g. Car)</td></tr>
+    <tr><td>17:40</td><td>Select garage</td></tr>
+    <tr><td>17:50</td><td>Spot → Auto-assign</td></tr>
+    <tr><td>18:00</td><td><strong>Choose file</strong> → pick image</td></tr>
+    <tr><td>18:20</td><td><strong>Click</strong> Create entry</td></tr>
+    <tr><td>19:10</td><td><strong>Click</strong> Tickets tab → find DEMO99</td></tr>
+  </table>
+  <blockquote class="say">Three API calls in sequence: resolve vehicle, upload image, create ticket entry.</blockquote>
+
+  <h3>Part B — Network tab (19:30–21:00)</h3>
+  <table class="data">
+    <tr><th>Time</th><th>Request</th></tr>
+    <tr><td>19:40</td><td><code>GET /vehicles/by-plate/DEMO99</code> or <code>POST /vehicles</code></td></tr>
+    <tr><td>19:50</td><td><code>POST /upload/ticket-image</code></td></tr>
+    <tr><td>20:00</td><td><code>POST /tickets/entry</code> → OPEN, ticket_token, spot_id</td></tr>
+  </table>
+
+  <h3>Part C — Frontend code (21:00–25:00)</h3>
+  <table class="data">
+    <tr><th>File</th><th>Say</th></tr>
+    <tr><td><span class="path">NewVehicleEntryModal.vue</span></td><td>Form collects plate, type, garage, spot, image.</td></tr>
+    <tr><td><span class="path">createParkingEntry.ts</span></td><td>Orchestration — not in the component.</td></tr>
+    <tr><td><span class="path">api/vehicles.ts</span></td><td>Lookup by plate; create if missing.</td></tr>
+    <tr><td><span class="path">api/upload.ts</span></td><td>Image to file server.</td></tr>
+    <tr><td><span class="path">api/tickets.ts</span></td><td>POST /tickets/entry</td></tr>
+  </table>
+  <pre>createParkingEntry()
+  → getVehicleByPlate() or createVehicle()
+  → uploadTicketImage()
+  → ticketEntry({ vehicle_id, garage_id, spot_id, image_url })</pre>
+
+  <h3>Part D — Backend code (25:00–31:00)</h3>
+  <table class="data">
+    <tr><th>File</th><th>Say</th></tr>
+    <tr><td><span class="path">routers/tickets.py</span> ~L197</td><td>Thin router — maps errors to HTTP.</td></tr>
+    <tr><td><span class="path">services/tickets.py</span> create_ticket_entry</td><td>Validates vehicle, spot, token, saves OPEN ticket.</td></tr>
+    <tr><td><span class="path">services/spots.py</span></td><td>allocate_free_spot</td></tr>
+    <tr><td><span class="path">services/tokens.py</span></td><td>generate_ticket_token</td></tr>
+  </table>
+
+  <div class="page-break" id="act6"></div>
+  <h2>Act 6 — Garage detail view (32:00–36:00)</h2>
+  <table class="data">
+    <tr><th>Time</th><th>Action</th></tr>
+    <tr><td>32:00</td><td>Overview tab → <strong>click</strong> garage row</td></tr>
+    <tr><td>32:20</td><td>Navigates to <code>/garage/:id</code></td></tr>
+    <tr><td>33:00</td><td>Confirm DEMO99 in open tickets</td></tr>
+    <tr><td>33:15</td><td>Dashboard link → back to /dashboard</td></tr>
+  </table>
+
+  <div id="act7"></div>
+  <h2>Act 7 — Exit ticket (36:00–43:00)</h2>
+  <table class="data">
+    <tr><th>Time</th><th>Action</th></tr>
+    <tr><td>36:00</td><td>Tickets tab → DEMO99</td></tr>
+    <tr><td>36:20</td><td>Barcode icon → ticket detail modal (optional)</td></tr>
+    <tr><td>37:00</td><td><strong>Click</strong> exit icon → CLOSED, fee shown</td></tr>
+    <tr><td>39:00</td><td>Network: <code>POST /tickets/{id}/exit</code></td></tr>
+  </table>
+  <p><strong>Code:</strong> <span class="path">TicketActivity.vue</span> → <span class="path">api/tickets.ts</span> → <span class="path">routers/tickets.py</span> → <span class="path">services/tickets.py</span> + <span class="path">pricing.py</span></p>
+  <blockquote class="say">Closing is a state transition: OPEN → CLOSED, fee computed, payment becomes due.</blockquote>
+
+  <div id="act8"></div>
+  <h2>Act 8 — Payment (43:00–49:00)</h2>
+  <table class="data">
+    <tr><th>Time</th><th>Action</th></tr>
+    <tr><td>43:10</td><td>Credit-card icon → Payment modal</td></tr>
+    <tr><td>43:35</td><td>Enter amount, select method (Cash)</td></tr>
+    <tr><td>43:55</td><td><strong>Submit payment</strong></td></tr>
+    <tr><td>44:25</td><td>Row shows PAID</td></tr>
+  </table>
+  <p><strong>Code:</strong> <span class="path">PaymentModal.vue</span> → <span class="path">api/payments.ts</span> → <span class="path">routers/payments.py</span> → <span class="path">services/payments.py</span></p>
+
+  <div class="page-break" id="act9"></div>
+  <h2>Act 9 — Supporting systems (49:00–53:00)</h2>
+  <table class="data">
+    <tr><th>Time</th><th>Topic</th><th>File</th></tr>
+    <tr><td>49:00</td><td>Errors</td><td><span class="path">errors.py</span>, <span class="path">error_handlers.py</span></td></tr>
+    <tr><td>50:00</td><td>Migrations</td><td><span class="path">alembic/versions/</span></td></tr>
+    <tr><td>51:00</td><td>Tests</td><td><span class="path">tests/</span></td></tr>
+    <tr><td>52:00</td><td>i18n</td><td><span class="path">i18n.ts</span>, EN/SR switcher</td></tr>
+  </table>
+
+  <div id="act10"></div>
+  <h2>Act 10 — Wrap-up & Q&A (53:00–55:00)</h2>
+  <blockquote class="say">We followed one ticket end to end: login → new entry → dashboard → exit with fee → payment. Frontend orchestrates; backend enforces rules; PostgreSQL is source of truth.</blockquote>
+  <p><strong>Leave on screen:</strong> Tickets tab, DEMO99 — CLOSED + PAID.</p>
+  <p><strong>Q&A:</strong> Garage full? → <code>NO_FREE_SPOTS_AVAILABLE</code>. Why separate image upload? → file server. Why dashboard analytics? → fewer round-trips.</p>
+
+  <div class="page-break" id="quickref"></div>
+  <h2>Quick-reference click map</h2>
+  <table class="data">
+    <tr><th>Action</th><th>UI</th><th>API</th></tr>
+    <tr><td>Login</td><td>/login → Sign in</td><td>POST /auth/login</td></tr>
+    <tr><td>New entry</td><td>New vehicle entry → Create</td><td>vehicles, upload, POST /tickets/entry</td></tr>
+    <tr><td>View ticket</td><td>Tickets → barcode</td><td>GET /tickets/dashboard</td></tr>
+    <tr><td>Close ticket</td><td>Tickets → exit icon</td><td>POST /tickets/{id}/exit</td></tr>
+    <tr><td>Pay</td><td>Credit card → Submit</td><td>POST /payments</td></tr>
+    <tr><td>Garage detail</td><td>Overview → click row</td><td>GET /garages/{id}</td></tr>
+    <tr><td>Refresh</td><td>Green spinner</td><td>Multiple dashboard GETs</td></tr>
+  </table>
+
+  <div id="troubleshoot"></div>
+  <h2>Troubleshooting</h2>
+  <table class="data">
+    <tr><th>Problem</th><th>Fix</th></tr>
+    <tr><td>Login fails</td><td>Check AUTH_* in api_python/.env; restart API</td></tr>
+    <tr><td>Image upload fails</td><td>Start file server on :9009</td></tr>
+    <tr><td>CORS error</td><td>CORS_ORIGINS must include http://localhost:5173</td></tr>
+    <tr><td>Create entry disabled</td><td>All fields + image; wait for resize</td></tr>
+    <tr><td>No garages</td><td>Run migrations; seed data</td></tr>
+  </table>
+
+  <p class="footer">Garage Manage — Presenter Script v1.0 · Open in browser → Print → Save as PDF</p>
+
+</body>
+</html>
