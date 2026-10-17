@@ -26,14 +26,6 @@ export function setStoredLocale(locale: SupportedLocale) {
   }
 }
 
-function detectBrowserLocale(): SupportedLocale {
-  if (typeof navigator === "undefined") return "en";
-  const lang = navigator.language || navigator.languages?.[0] || "en";
-  const lower = lang.toLowerCase();
-  if (lower.startsWith("sr")) return "sr";
-  return "en";
-}
-
 const stored = getStoredLocale();
 
 export const i18n = createI18n({

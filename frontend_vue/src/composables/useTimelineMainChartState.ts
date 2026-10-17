@@ -10,8 +10,6 @@ import {
   type TimelineSeries,
 } from "./timelineChart.utils";
 
-type YAxisMode = "entries" | "exits";
-
 type UseTimelineMainChartStateParams = {
   points: Ref<string[]>;
   series: Ref<TimelineSeries[]>;
