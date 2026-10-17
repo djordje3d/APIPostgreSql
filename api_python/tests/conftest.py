@@ -2,6 +2,27 @@
 
 import os
 
+from sqlalchemy.engine import make_url
+
+# Safety check: integration tests must use a dedicated database.
+database_url = os.environ.get("DATABASE_URL")
+
+if not database_url:
+    raise RuntimeError(
+        "DATABASE_URL must be explicitly set to the garaza_test database."
+    )
+
+try:
+    database_name = make_url(database_url).database
+except Exception as exc:
+    raise RuntimeError("Invalid test DATABASE_URL.") from exc
+
+if database_name != "garaza_test":
+    raise RuntimeError(
+        f"Refusing to run tests against database '{database_name}'. "
+        "Only garaza_test is allowed."
+    )
+
 # So tests work without DB triggers: API computes fee on exit and payment_status after payments.
 os.environ.setdefault("USE_API_FEE_CALCULATION", "true")
 os.environ.setdefault("USE_API_PAYMENT_STATUS", "true")
@@ -17,6 +38,17 @@ from sqlalchemy.orm import sessionmaker
 from api_python.app.main import app
 from api_python.app.db import get_db, engine
 
+# Verify the actual connected database before running any tests.
+with engine.connect() as connection:
+    actual_database = connection.execute(
+        text("SELECT current_database()")
+    ).scalar_one()
+
+if actual_database != "garaza_test":
+    raise RuntimeError(
+        f"Unsafe test database: {actual_database}. "
+        "Expected garaza_test."
+    )
 # Session bound to a connection; we control the transaction and roll back after each test.
 _SessionLocal = sessionmaker(autocommit=False, autoflush=False)
 
